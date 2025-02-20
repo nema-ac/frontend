@@ -1,11 +1,11 @@
 "use client";
 
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Card } from '@/components/ui/card';
 
 const TOKENOMICS_DATA = [
-  { name: 'Open Supply', value: 40, description: 'Available for public trading and liquidity' },
-  { name: 'Airdrop', value: 30, description: 'Distributed to $WORM token holders' },
+  { name: 'Open Supply', value: 10, description: 'Available for public trading and liquidity' },
+  { name: 'Airdrop', value: 60, description: 'Distributed to $WORM token holders' },
   { name: 'Developer Fund', value: 20, description: '6-month cliff, then linear vesting per block' },
   { name: 'Project Fund', value: 10, description: 'Server costs and LLM infrastructure' },
 ];

@@ -1,28 +1,34 @@
 "use client";
 
 import { useState } from 'react';
-import { ConnectWallet } from '@/components/wallet/connect-wallet';
 import { checkWalletEligibility } from '@/lib/api-client';
 import { PageLayout } from '@/components/layout/page-layout';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 interface CheckResult {
   isEligible: boolean | null;
-  error: string | null;
+  projectedAmount?: number;
+  message: string | null;
 }
 
 export default function AirdropPage() {
+  const [inputAddress, setInputAddress] = useState('');
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [checkResult, setCheckResult] = useState<CheckResult>({
     isEligible: null,
-    error: null
+    message: null
   });
   const [isChecking, setIsChecking] = useState(false);
 
-  const handleWalletConnect = async (address: string) => {
-    setWalletAddress(address);
-    await checkEligibility(address);
+  const handleCheck = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!inputAddress.trim()) return;
+
+    setWalletAddress(inputAddress);
+    await checkEligibility(inputAddress);
   };
 
   const checkEligibility = async (address: string) => {
@@ -30,13 +36,9 @@ export default function AirdropPage() {
     try {
       const result = await checkWalletEligibility(address);
       setCheckResult({
-        isEligible: result.data,
-        error: result.error
-      });
-    } catch (error) {
-      setCheckResult({
-        isEligible: null,
-        error: 'Failed to check eligibility'
+        isEligible: result.isEligible,
+        projectedAmount: result.projectedAmount,
+        message: result.message
       });
     } finally {
       setIsChecking(false);
@@ -49,50 +51,80 @@ export default function AirdropPage() {
       subtitle="Check your eligibility for the $NEMA airdrop"
     >
       <div className="max-w-2xl mx-auto space-y-8">
-        <Card>
+        <Card className="p-8">
           {!walletAddress ? (
-            <div className="text-center space-y-4">
-              <p className="text-lg">
-                Connect your Solana wallet to check eligibility
-              </p>
-              <ConnectWallet onConnect={handleWalletConnect} />
-            </div>
+            <form onSubmit={handleCheck} className="space-y-6">
+              <div className="space-y-3">
+                <label
+                  htmlFor="wallet-address"
+                  className="block text-lg font-medium text-matrix-green"
+                >
+                  Enter your Solana wallet address
+                </label>
+                <Input
+                  id="wallet-address"
+                  type="search"
+                  placeholder="Solana wallet address"
+                  value={inputAddress}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInputAddress(e.target.value)}
+                  className="font-mono text-lg placeholder:text-sm"
+                  autoComplete="off"
+                />
+              </div>
+              <Button
+                type="submit"
+                disabled={!inputAddress.trim() || isChecking}
+                className="w-full text-lg py-6"
+              >
+                Check Eligibility
+              </Button>
+            </form>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div className="flex items-center justify-between p-4 bg-matrix-black/50 rounded border border-matrix-green/20">
-                <span className="text-matrix-green">Connected Wallet</span>
-                <span className="font-mono text-matrix-light-green">{walletAddress}</span>
+                <span className="text-lg text-matrix-green">Wallet</span>
+                <span className="font-mono text-lg text-matrix-light-green break-all pl-4">{walletAddress}</span>
               </div>
 
               {isChecking ? (
-                <p className="text-center text-lg text-matrix-green">Checking eligibility...</p>
-              ) : checkResult.error ? (
-                <p className="text-center text-lg text-red-500">{checkResult.error}</p>
-              ) : checkResult.isEligible !== null && (
+                <p className="text-center text-xl text-matrix-green">Checking eligibility...</p>
+              ) : checkResult.message && (
                 <div className={cn(
-                  "text-center p-4 border rounded-lg space-y-2",
+                  "text-center p-6 border rounded-lg space-y-4",
                   checkResult.isEligible
                     ? "border-matrix-light-green/50 bg-matrix-light-green/10"
                     : "border-red-500/50 bg-red-500/10"
                 )}>
-                  <p className="text-xl font-medium">
-                    {checkResult.isEligible ?
-                      "🎉 Congratulations! You're eligible for the airdrop." :
-                      "Sorry, this wallet is not eligible for the airdrop."
-                    }
+                  <p className="text-2xl font-medium">
+                    {checkResult.isEligible ? "🎉 Congratulations!" : "❌ Not Eligible"}
                   </p>
-                  {checkResult.isEligible && (
-                    <p className="text-lg text-matrix-green">
-                      Stay tuned for claiming instructions.
+                  {checkResult.projectedAmount && (
+                    <p className="text-xl font-medium text-matrix-light-green">
+                      Projected Airdrop: {checkResult.projectedAmount.toLocaleString()} $NEMA
                     </p>
                   )}
+                  <p className="text-lg text-matrix-green/90">
+                    {checkResult.message}
+                  </p>
                 </div>
               )}
+
+              <Button
+                onClick={() => {
+                  setWalletAddress(null);
+                  setInputAddress('');
+                  setCheckResult({ isEligible: null, message: null });
+                }}
+                variant="outline"
+                className="w-full text-lg py-6"
+              >
+                Check Another Wallet
+              </Button>
             </div>
           )}
         </Card>
 
-        <div className="text-center text-lg text-matrix-green/80">
+        <div className="text-center text-xl text-matrix-green/80">
           <p>
             The $NEMA airdrop is available to existing $WORM token holders on the Solana chain.
           </p>
