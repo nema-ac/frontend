@@ -4,7 +4,7 @@
 #
 
 app = 'nema-frontend'
-primary_region = 'ewr'
+primary_region = 'yyz'
 
 [build]
 
