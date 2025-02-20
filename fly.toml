@@ -1,0 +1,23 @@
+# fly.toml app configuration file generated for nema-frontend on 2025-02-17T12:27:13-05:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'nema-frontend'
+primary_region = 'ewr'
+
+[build]
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_start_machines = true
+  auto_stop_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[vm]]
+  memory = '256mb'
+  cpu_kind = 'shared'
+  size = "shared-cpu-1x"
+  cpus = 1
