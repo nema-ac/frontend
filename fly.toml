@@ -9,15 +9,17 @@ primary_region = 'yyz'
 [build]
 
 [http_service]
-  internal_port = 3000
-  force_https = true
   auto_start_machines = true
-  auto_stop_machines = true
+  auto_stop_machines = 'stop'
+  force_https = true
+  internal_port = 3000
   min_machines_running = 0
-  processes = ['app']
+  processes = [
+    'app',
+  ]
 
 [[vm]]
-  memory = '256mb'
   cpu_kind = 'shared'
-  size = "shared-cpu-1x"
   cpus = 1
+  memory = '512mb'
+  size = 'shared-cpu-1x'
