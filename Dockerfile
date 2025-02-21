@@ -12,6 +12,8 @@ WORKDIR /app
 # Set production environment
 ENV NODE_ENV="production"
 
+# Add environment variables that should be available at runtime
+ENV NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
 
 # Throw-away build stage to reduce size of final image
 FROM base AS build
