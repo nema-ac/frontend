@@ -98,11 +98,11 @@ export default function Home() {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <p className="text-nema-light/90">Total Supply</p>
-                    <p className="text-2xl font-code">100,000,000 NEMA</p>
+                    <p className="text-2xl font-code">1,000,000,000 NEMA</p>
                   </div>
                   <div className="space-y-2">
                     <p className="text-nema-light/90">Initial Circulating Supply</p>
-                    <p className="text-2xl font-code">70,000,000 NEMA</p>
+                    <p className="text-2xl font-code">700,000,000 NEMA</p>
                   </div>
                 </div>
               </div>
