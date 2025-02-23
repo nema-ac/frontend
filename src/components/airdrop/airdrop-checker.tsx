@@ -81,12 +81,12 @@ export function AirdropChecker({ apiBaseUrl }: AirdropCheckerProps) {
       {walletAddress && (
         <div className="space-y-6">
           <div className="flex items-center justify-between p-4 bg-matrix-black/50 rounded border border-matrix-green/20">
-            <span className="text-lg text-matrix-green">Wallet</span>
+            <span className="text-lg">Wallet</span>
             <span className="font-mono text-lg text-matrix-light-green break-all pl-4">{walletAddress}</span>
           </div>
 
           {isChecking ? (
-            <p className="text-center text-xl text-matrix-green">Checking eligibility...</p>
+            <p className="text-center text-xl">Checking eligibility...</p>
           ) : checkResult.message && (
             <div className={cn(
               "text-center p-6 border rounded-lg space-y-4",
@@ -102,7 +102,7 @@ export function AirdropChecker({ apiBaseUrl }: AirdropCheckerProps) {
                   Projected Airdrop: {checkResult.projectedAmount.toLocaleString()} $NEMA
                 </p>
               )}
-              <p className="text-lg text-matrix-green/90">
+              <p className="text-lg">
                 {checkResult.message}
               </p>
             </div>
@@ -122,10 +122,25 @@ export function AirdropChecker({ apiBaseUrl }: AirdropCheckerProps) {
         </div>
       )}
 
-      <div className="text-center text-xl text-matrix-green/80">
-        <p>
-          The $NEMA airdrop is available to existing $WORM token holders on the Solana chain.
-        </p>
+      <div className="space-y-6">
+        <div className="space-y-4 border-t border-matrix-green/20 pt-6">
+          <h3 className="text-lg font-medium mb-4">Important Airdrop Details:</h3>
+
+          <div className="space-y-2">
+            <p className="flex items-start">
+              <span className="mr-2">📅</span>
+              <span>The snapshot was taken on February 13th, 2025. Eligibility is based on a wallet's $WORM holdings at the time of snapshot.</span>
+            </p>
+
+            <p className="flex items-start">
+              <span className="mr-2">ℹ️</span>
+              <span>
+                Users who held > 1M $WORM tokens during January 2025 but sold on or before February 13th may still be eligible.
+                Please reach out via our Telegram channel for a case-by-case review (no guarantees).
+              </span>
+            </p>
+          </div>
+        </div>
       </div>
     </Card>
   );
