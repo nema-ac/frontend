@@ -1,6 +1,7 @@
 import { ReactNode } from 'react'
 import { Header } from './header'
 import { Footer } from './footer'
+import { EtherealWorm } from './ethereal-worm'
 
 interface PageLayoutProps {
   title: string
@@ -12,6 +13,7 @@ interface PageLayoutProps {
 export function PageLayout({ title, subtitle, children, className = '' }: PageLayoutProps) {
   return (
     <div className="min-h-screen bg-nema-dark">
+      <EtherealWorm />
       <div
         className="min-h-screen bg-gradient-to-br from-nema-dawn/40 via-nema-midday/50 to-nema-dusk/40 backdrop-blur-sm"
         style={{

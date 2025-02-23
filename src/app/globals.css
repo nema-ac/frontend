@@ -35,3 +35,26 @@
   from { width: 0 }
   to { width: 100% }
 }
+
+@keyframes moveWorm {
+  0% {
+    stroke-dasharray: 0, 30;
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dasharray: 30, 30;
+    stroke-dashoffset: -30;
+  }
+}
+
+@keyframes fadeTrail {
+  0% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
