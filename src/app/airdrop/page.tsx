@@ -7,10 +7,12 @@ export default function AirdropPage() {
 
   return (
     <PageLayout
-      title="$NEMA Airdrop"
-      subtitle="Check your eligibility for the $NEMA airdrop"
+      title="Airdrop"
+      subtitle="Check your NEMA airdrop eligibility"
     >
-      <AirdropChecker apiBaseUrl={apiBaseUrl} />
+      <div className="max-w-2xl mx-auto">
+        <AirdropChecker apiBaseUrl={apiBaseUrl} />
+      </div>
     </PageLayout>
   );
 }
