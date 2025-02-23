@@ -12,6 +12,21 @@ const TOKENOMICS_DATA = [
 
 const COLORS = ['#39ff14', '#00ff00', '#00cc00', '#009900'];
 
+// Custom tooltip component
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-matrix-dark/95 border border-matrix-green/30 px-4 py-2 rounded-lg shadow-lg">
+        <p className="text-matrix-light-green font-mono">
+          {data.name}: {data.value}%
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
+
 export function TokenDistribution() {
   return (
     <Card className="space-y-8">
@@ -46,21 +61,7 @@ export function TokenDistribution() {
                 />
               ))}
             </Pie>
-            <Tooltip
-              content={({ active, payload }) => {
-                if (active && payload && payload.length) {
-                  const data = payload[0].payload;
-                  return (
-                    <div className="bg-matrix-terminal/95 border border-matrix-green/20 p-4 rounded-lg shadow-lg">
-                      <p className="text-matrix-light-green font-medium">{data.name}</p>
-                      <p className="text-matrix-green">{data.value}%</p>
-                      <p className="text-sm text-matrix-green/80 mt-1">{data.description}</p>
-                    </div>
-                  );
-                }
-                return null;
-              }}
-            />
+            <Tooltip content={<CustomTooltip />} />
           </PieChart>
         </ResponsiveContainer>
       </div>

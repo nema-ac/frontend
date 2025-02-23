@@ -1,15 +1,17 @@
-import { MatrixLayout } from "./matrix-layout";
+import { ReactNode } from 'react'
+import { MatrixLayout } from "./matrix-layout"
 
 interface PageLayoutProps {
-  children: React.ReactNode;
-  title: string;
-  subtitle?: string;
+  title: string
+  subtitle?: string
+  children: ReactNode
+  className?: string
 }
 
-export function PageLayout({ children, title, subtitle }: PageLayoutProps) {
+export function PageLayout({ title, subtitle, children, className = '' }: PageLayoutProps) {
   return (
     <MatrixLayout>
-      <main className="container mx-auto px-4 py-16">
+      <main className={`container mx-auto px-4 py-16 ${className}`}>
         <div className="space-y-8">
           <header className="text-center space-y-4">
             <h1 className="text-6xl font-bold animate-matrix-fade">
@@ -21,10 +23,9 @@ export function PageLayout({ children, title, subtitle }: PageLayoutProps) {
               </p>
             )}
           </header>
-
           {children}
         </div>
       </main>
     </MatrixLayout>
-  );
+  )
 }
