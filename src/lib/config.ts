@@ -9,7 +9,7 @@ function getApiBaseUrl(): string {
     return process.env.API_BASE_URL;
   }
 
-  return 'http://localhost:3001';
+  return 'http://localhost:8080';
 }
 
 export const config: Config = {

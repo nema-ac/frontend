@@ -11,7 +11,7 @@ export default function AboutPage() {
         <section className="space-y-8">
           <Card>
             <h2 className="text-2xl mb-6 font-code">The DeepWorm Foundation</h2>
-            <div className="space-y-4 text-matrix-light-green/90">
+            <div className="space-y-4">
               <p className="leading-relaxed">
                 DeepWorm pioneered the implementation of verifiable digital life on-chain through its groundbreaking C. elegans neural simulation. This foundation combines sophisticated neural network architecture with blockchain technology to create transparent, autonomous digital organisms.
               </p>
@@ -25,7 +25,7 @@ export default function AboutPage() {
         <section className="space-y-8">
           <Card>
             <h2 className="text-2xl mb-6 font-code">Advanced Neural Plasticity</h2>
-            <div className="space-y-4 text-matrix-light-green/90">
+            <div className="space-y-4">
               <p className="leading-relaxed">
                 Nema introduces sophisticated neuroplasticity through Triplet-Based STDP (Spike-Timing-Dependent Plasticity), enabling genuine learning capabilities. This system allows synapses to strengthen or weaken based on precise timing of neural activity, creating dynamic learning patterns that mirror biological brain development.
               </p>
@@ -41,7 +41,7 @@ export default function AboutPage() {
           <div className="grid md:grid-cols-2 gap-6">
             <Card>
               <h3 className="text-xl mb-4 font-code">Neural Bridge System</h3>
-              <div className="space-y-4 text-matrix-light-green/90">
+              <div className="space-y-4">
                 <p>Key components include:</p>
                 <ul className="list-disc pl-6 space-y-2">
                   <li>Bridging neurons for core neural connections</li>
@@ -54,7 +54,7 @@ export default function AboutPage() {
             </Card>
             <Card>
               <h3 className="text-xl mb-4 font-code">Cognitive Enhancement</h3>
-              <div className="space-y-4 text-matrix-light-green/90">
+              <div className="space-y-4">
                 <p>Advanced features include:</p>
                 <ul className="list-disc pl-6 space-y-2">
                   <li>Bidirectional LLM communication</li>
@@ -71,7 +71,7 @@ export default function AboutPage() {
         <section className="space-y-8">
           <Card>
             <h2 className="text-2xl mb-6 font-code">Enhanced Neural Architecture</h2>
-            <div className="space-y-4 text-matrix-light-green/90">
+            <div className="space-y-4">
               <p className="leading-relaxed">
                 Building on DeepWorm&apos;s foundation, Nema introduces advanced neuroplasticity and neurogenesis capabilities. The system maintains the core C. elegans neural architecture while adding sophisticated learning mechanisms and cognitive bridges through NemaLink technology.
               </p>
@@ -85,7 +85,7 @@ export default function AboutPage() {
         <section className="space-y-8">
           <Card>
             <h2 className="text-2xl mb-6 font-code">The Future of Digital Life</h2>
-            <div className="space-y-4 text-matrix-light-green/90">
+            <div className="space-y-4">
               <p className="leading-relaxed">
                 Nema represents the next evolution in digital biology, exploring new frontiers in the integration of biological neural systems and artificial intelligence. By combining DeepWorm&apos;s proven neural simulation with advanced AI capabilities, we&apos;re creating novel forms of autonomous digital life.
               </p>

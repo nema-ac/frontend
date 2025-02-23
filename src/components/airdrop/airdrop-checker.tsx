@@ -80,9 +80,9 @@ export function AirdropChecker({ apiBaseUrl }: AirdropCheckerProps) {
 
       {walletAddress && (
         <div className="space-y-6">
-          <div className="flex items-center justify-between p-4 bg-matrix-black/50 rounded border border-matrix-green/20">
+          <div className="flex items-center justify-between p-4 rounded border">
             <span className="text-lg">Wallet</span>
-            <span className="font-mono text-lg text-matrix-light-green break-all pl-4">{walletAddress}</span>
+            <span className="font-mono text-lg break-all pl-4">{walletAddress}</span>
           </div>
 
           {isChecking ? (
@@ -91,14 +91,14 @@ export function AirdropChecker({ apiBaseUrl }: AirdropCheckerProps) {
             <div className={cn(
               "text-center p-6 border rounded-lg space-y-4",
               checkResult.isEligible
-                ? "border-matrix-light-green/50 bg-matrix-light-green/10"
+                ? "border-emerald-500/50 bg-emerald-500/10"
                 : "border-red-500/50 bg-red-500/10"
             )}>
               <p className="text-2xl font-medium">
                 {checkResult.isEligible ? "🎉 Congratulations!" : "❌ Not Eligible"}
               </p>
               {checkResult.projectedAmount && (
-                <p className="text-xl font-medium text-matrix-light-green">
+                <p className="text-xl font-medium">
                   Projected Airdrop: {checkResult.projectedAmount.toLocaleString()} $NEMA
                 </p>
               )}
@@ -123,7 +123,7 @@ export function AirdropChecker({ apiBaseUrl }: AirdropCheckerProps) {
       )}
 
       <div className="space-y-6">
-        <div className="space-y-4 border-t border-matrix-green/20 pt-6">
+        <div className="space-y-4 border-t pt-6">
           <h3 className="text-lg font-medium mb-4">Important Airdrop Details:</h3>
 
           <div className="space-y-2">

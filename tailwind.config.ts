@@ -11,24 +11,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        'matrix': {
-          'green': '#00ff00',
-          'dark-green': '#003300',
-          'light-green': '#39ff14',
-          'black': '#000000',
-          'darker': '#0a0a0a',
-          'terminal': '#101010',
-        },
         border: "hsl(var(--border))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
       },
       fontFamily: {
-        'matrix': ['VT323', 'monospace'],
         'code': ['Fira Code', 'monospace'],
       },
       animation: {
-        'matrix-fade': 'fade 2s linear infinite',
         'terminal-blink': 'blink 1s step-end infinite',
       },
       keyframes: {
