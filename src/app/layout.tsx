@@ -1,11 +1,33 @@
 import { Inter } from 'next/font/google';
 import './globals.css';
+import type { Metadata } from 'next'
 
 const inter = Inter({ subsets: ['latin'] });
 
-export const metadata = {
-  title: 'Nema - Neural Network Simulation Token',
-  description: 'A cryptocurrency project simulating C. elegans nervous system',
+export const metadata: Metadata = {
+  title: 'NEMA',
+  description: 'Digital Neural Network Simulation Token',
+  icons: {
+    icon: [
+      {
+        url: '/favicon.ico',
+        sizes: '16x16',
+        type: 'image/x-icon',
+      },
+      {
+        url: '/icon.png',
+        sizes: '32x32',
+        type: 'image/png',
+      },
+    ],
+    apple: [
+      {
+        url: '/apple-icon.png',
+        sizes: '180x180',
+        type: 'image/png',
+      },
+    ],
+  },
 };
 
 export default function RootLayout({

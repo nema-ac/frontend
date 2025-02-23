@@ -1,6 +1,6 @@
 "use client";
 
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, TooltipProps } from 'recharts';
 import { Card } from '@/components/ui/card';
 
 const TOKENOMICS_DATA = [
@@ -10,15 +10,20 @@ const TOKENOMICS_DATA = [
   { name: 'Project Fund', value: 10, description: 'Server costs and LLM infrastructure' },
 ];
 
-const COLORS = ['#39ff14', '#00ff00', '#00cc00', '#009900'];
+const COLORS = [
+  '#B4C5E4', // soft blue
+  '#8B9EB7', // muted steel blue
+  '#9B8EA9', // dusty lavender
+  '#6B5876', // deep purple
+];
 
-// Custom tooltip component
-const CustomTooltip = ({ active, payload }: any) => {
+// Custom tooltip component with proper typing
+const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
   if (active && payload && payload.length) {
-    const data = payload[0].payload;
+    const data = payload[0].payload as typeof TOKENOMICS_DATA[0];
     return (
-      <div className="bg-matrix-dark/95 border border-matrix-green/30 px-4 py-2 rounded-lg shadow-lg">
-        <p className="text-matrix-light-green font-mono">
+      <div className="bg-nema-dark/95 border border-nema-sand/20 px-4 py-2 rounded-lg shadow-lg backdrop-blur-sm">
+        <p className="text-nema-light font-mono">
           {data.name}: {data.value}%
         </p>
       </div>
@@ -32,7 +37,7 @@ export function TokenDistribution() {
     <Card className="space-y-8">
       <div className="space-y-2">
         <h2 className="text-2xl font-code mb-4">Tokenomics</h2>
-        <p className="text-lg text-matrix-light-green/90">
+        <p className="text-lg text-nema-light/90">
           Total Supply: 1,000,000,000 $NEMA
         </p>
       </div>
@@ -45,19 +50,42 @@ export function TokenDistribution() {
               cx="50%"
               cy="50%"
               labelLine={false}
-              outerRadius={150}
-              fill="#00ff00"
+              label={({ name, percent, x, y }) => (
+                <g>
+                  {/* Semi-transparent background with larger dimensions */}
+                  <rect
+                    x={x - 70}
+                    y={y - 25}
+                    width={140}
+                    height={50}
+                    rx={4}
+                    fill="rgba(0, 0, 0, 0.75)"
+                  />
+                  {/* Label text */}
+                  <text
+                    x={x}
+                    y={y}
+                    fill="white"
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                  >
+                    <tspan x={x} dy="-0.5em" className="font-medium">
+                      {name}
+                    </tspan>
+                    <tspan x={x} dy="1.2em" className="text-sm opacity-80">
+                      {(percent * 100).toFixed(0)}%
+                    </tspan>
+                  </text>
+                </g>
+              )}
+              outerRadius={160}
               dataKey="value"
-              label={({ name, value }) => `${name} ${value}%`}
             >
               {TOKENOMICS_DATA.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
                   fill={COLORS[index % COLORS.length]}
-                  style={{
-                    filter: 'drop-shadow(0 0 8px rgba(0, 255, 0, 0.3))',
-                    strokeWidth: 2,
-                  }}
+                  className="stroke-background hover:opacity-80"
                 />
               ))}
             </Pie>
@@ -70,17 +98,17 @@ export function TokenDistribution() {
         {TOKENOMICS_DATA.map((item, index) => (
           <div
             key={item.name}
-            className="p-4 bg-matrix-black/30 rounded-lg border border-matrix-green/20"
+            className="p-4 bg-nema-dark/30 rounded-lg border border-nema-sand/20"
           >
             <div className="flex items-center gap-2 mb-2">
               <div
                 className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: COLORS[index] }}
               />
-              <h3 className="font-medium text-matrix-light-green">{item.name}</h3>
+              <h3 className="font-medium text-nema-light">{item.name}</h3>
             </div>
-            <p className="text-lg font-bold text-matrix-green">{item.value}%</p>
-            <p className="text-sm text-matrix-green/80">{item.description}</p>
+            <p className="text-lg font-bold text-nema-sand">{item.value}%</p>
+            <p className="text-sm text-nema-light/80">{item.description}</p>
           </div>
         ))}
       </div>

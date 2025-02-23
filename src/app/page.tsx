@@ -10,20 +10,19 @@ export default function Home() {
       subtitle="Digital Neural Network Simulation Token"
     >
       <div className="max-w-4xl mx-auto space-y-16">
-        {/* Terminal Section */}
         <section className="space-y-6">
           <Terminal>
             <div className="space-y-4">
-              <p className="text-matrix-light-green">
+              <p className="text-nema-light">
                 {'>'} Initializing C. elegans neural network simulation...
               </p>
-              <p className="text-matrix-light-green">
+              <p className="text-nema-light">
                 {'>'} Loading 302 neurons and 95 muscle cells...
               </p>
-              <p className="text-matrix-light-green">
+              <p className="text-nema-light">
                 {'>'} Establishing TEE secure environment...
               </p>
-              <p className="text-matrix-light-green">
+              <p className="text-nema-light">
                 {'>'} Neural network online. Ready for AI integration.
               </p>
             </div>
@@ -34,7 +33,7 @@ export default function Home() {
         <section className="space-y-8">
           <Card>
             <h2 className="text-2xl mb-6 font-code">The Evolution of Digital Life</h2>
-            <div className="space-y-4 text-matrix-light-green/90">
+            <div className="space-y-4 text-nema-light/90">
               <p className="leading-relaxed">
                 Building on DeepWorm&apos;s pioneering work in digital biology, Nema explores the fascinating intersection of biological neural networks and artificial intelligence. Our implementation faithfully reproduces the C. elegans nervous system with 302 neurons and 95 muscles, creating verifiable digital life on-chain.
               </p>
@@ -51,7 +50,7 @@ export default function Home() {
           <div className="grid md:grid-cols-2 gap-6">
             <Card>
               <h3 className="text-xl mb-4 font-code">Neural Architecture</h3>
-              <ul className="space-y-3 text-matrix-light-green/90">
+              <ul className="space-y-3 text-nema-light/90">
                 <li>• 302 simulated neurons</li>
                 <li>• 95 muscle cells</li>
                 <li>• Leaky integrate-and-fire model</li>
@@ -61,7 +60,7 @@ export default function Home() {
             </Card>
             <Card>
               <h3 className="text-xl mb-4 font-code">Blockchain Integration</h3>
-              <ul className="space-y-3 text-matrix-light-green/90">
+              <ul className="space-y-3 text-nema-light/90">
                 <li>• TEE-powered verification</li>
                 <li>• On-chain state management</li>
                 <li>• Real-time neural monitoring</li>
@@ -76,7 +75,7 @@ export default function Home() {
         <section className="space-y-8">
           <Card>
             <h2 className="text-2xl mb-6 font-code">AI Integration</h2>
-            <div className="space-y-4 text-matrix-light-green/90">
+            <div className="space-y-4 text-nema-light/90">
               <p className="leading-relaxed">
                 Nema introduces groundbreaking interactions between the simulated C. elegans neural network and large language models. This creates a unique bridge between biological neural architectures and artificial intelligence, enabling new forms of autonomous behavior and decision-making.
               </p>

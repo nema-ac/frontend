@@ -4,44 +4,44 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-const navigation = [
-  { name: 'About', href: '/about' },
-  { name: 'Airdrop', href: '/airdrop' },
-  { name: 'Docs', href: 'https://docs.deepworm.xyz/deepworm' },
-  { name: 'GitHub', href: 'https://github.com/nema-ac' },
+const NAV_ITEMS = [
+  { label: 'Home', href: '/' },
+  { label: 'About', href: '/about' },
+  { label: 'Docs', href: '/docs' },
+  { label: 'Airdrop', href: '/airdrop' },
 ];
 
 export function Header() {
   const pathname = usePathname();
 
   return (
-    <header className="border-b border-matrix-green/20 bg-matrix-terminal/95 backdrop-blur-sm relative z-50">
+    <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm">
       <div className="container mx-auto px-4">
-        <nav className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-16">
           <Link
             href="/"
-            className="text-3xl font-bold text-matrix-green hover:text-matrix-light-green transition-colors"
+            className="text-2xl font-bold text-nema-light hover:text-nema-glow transition"
           >
             NEMA
           </Link>
 
-          <div className="flex gap-8">
-            {navigation.map((item) => (
+          <nav className="hidden md:flex items-center space-x-8">
+            {NAV_ITEMS.map((item) => (
               <Link
-                key={item.name}
+                key={item.href}
                 href={item.href}
                 className={cn(
-                  "text-base font-medium transition-colors hover:text-matrix-light-green",
+                  "text-nema-light/90 hover:text-nema-glow transition",
                   pathname === item.href
-                    ? "text-matrix-light-green"
-                    : "text-matrix-green"
+                    ? "text-nema-glow"
+                    : "text-nema-light"
                 )}
               >
-                {item.name}
+                {item.label}
               </Link>
             ))}
-          </div>
-        </nav>
+          </nav>
+        </div>
       </div>
     </header>
   );

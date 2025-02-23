@@ -2,18 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: 0 0% 0%;
-  --foreground: 120 100% 50%;
-}
-
 @layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+  }
+
   html {
     font-size: 18px;
   }
 
   body {
-    @apply bg-black text-matrix-green antialiased;
+    @apply bg-nema-dark text-nema-light antialiased overflow-x-hidden;
+  }
+}
+
+@layer components {
+  .font-code {
+    font-family: 'Fira Code', monospace;
   }
 }
 
@@ -28,18 +34,4 @@
 @keyframes typing {
   from { width: 0 }
   to { width: 100% }
-}
-
-.matrix-code {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-}
-
-.matrix-code span {
-  color: #00ff00;
-  text-shadow: 0 0 8px #00ff00;
 }

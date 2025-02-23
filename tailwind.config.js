@@ -9,23 +9,34 @@ module.exports = {
     extend: {
       animation: {
         blink: 'blink 1s step-end infinite',
-        'matrix-fade': 'matrix-fade 2s ease-in-out',
+        'fade-in': 'fade-in 1.5s ease-out',
       },
       keyframes: {
         blink: {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0' },
         },
-        'matrix-fade': {
+        'fade-in': {
           '0%': { opacity: '0', transform: 'translateY(-10px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
       },
       colors: {
-        matrix: {
-          green: '#00ff00',
-          'light-green': '#90ee90',
-          dark: '#001a00',
+        nema: {
+          // Updated sunset/dawn colors
+          dawn: '#91C1E7',    // Cool morning blue
+          midday: '#B4A7D6',  // Soft lavender
+          dusk: '#F4B8C4',    // Warm pink
+          // Sunset inspired colors
+          sunset: '#FF7E5F',
+          sky: '#91C1E7',
+          twilight: '#6C5B7B',
+          // Warm accents
+          sand: '#F9E4B7',
+          glow: '#FFB6B9',
+          // Base colors
+          light: '#F7F3E9',
+          dark: '#2C3338',
         },
       },
     },
