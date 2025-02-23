@@ -23,12 +23,11 @@ module.exports = {
       },
       colors: {
         nema: {
-          // Updated sunset/dawn colors
-          dawn: '#91C1E7',    // Cool morning blue
-          midday: '#B4A7D6',  // Soft lavender
-          dusk: '#F4B8C4',    // Warm pink
+          // Sunset/dawn colors
+          dawn: '#91C1E7',
+          midday: '#B4A7D6',
+          dusk: '#F4B8C4',
           // Sunset inspired colors
-          sunset: '#FF7E5F',
           sky: '#91C1E7',
           twilight: '#6C5B7B',
           // Warm accents

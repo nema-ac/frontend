@@ -23,35 +23,63 @@ export default function AboutPage() {
         </section>
 
         <section className="space-y-8">
-          <h2 className="text-2xl font-code text-center">Technical Architecture</h2>
+          <Card>
+            <h2 className="text-2xl mb-6 font-code">Advanced Neural Plasticity</h2>
+            <div className="space-y-4 text-matrix-light-green/90">
+              <p className="leading-relaxed">
+                Nema introduces sophisticated neuroplasticity through Triplet-Based STDP (Spike-Timing-Dependent Plasticity), enabling genuine learning capabilities. This system allows synapses to strengthen or weaken based on precise timing of neural activity, creating dynamic learning patterns that mirror biological brain development.
+              </p>
+              <p className="leading-relaxed">
+                Our implementation includes homeostatic plasticity mechanisms and dopaminergic modulation, ensuring stable learning while preventing runaway synaptic growth. This creates a self-regulating system capable of continuous adaptation and learning.
+              </p>
+            </div>
+          </Card>
+        </section>
+
+        <section className="space-y-8">
+          <h2 className="text-2xl font-code text-center">NemaLink Technology</h2>
           <div className="grid md:grid-cols-2 gap-6">
             <Card>
-              <h3 className="text-xl mb-4 font-code">Neural Implementation</h3>
+              <h3 className="text-xl mb-4 font-code">Neural Bridge System</h3>
               <div className="space-y-4 text-matrix-light-green/90">
-                <p>The neural architecture includes:</p>
+                <p>Key components include:</p>
                 <ul className="list-disc pl-6 space-y-2">
-                  <li>299 simulated neurons with precise connection weights</li>
-                  <li>98 muscle cells for movement control</li>
-                  <li>8 chemotaxis neurons for chemical response</li>
-                  <li>10 nose touch neurons for avoidance behavior</li>
-                  <li>21 Motor A type neurons for movement coordination</li>
+                  <li>Bridging neurons for core neural connections</li>
+                  <li>Signaling neurons for communication control</li>
+                  <li>Dopaminergic feedback mechanisms</li>
+                  <li>Adaptive learning pathways</li>
+                  <li>Intelligent response modulation</li>
                 </ul>
               </div>
             </Card>
             <Card>
-              <h3 className="text-xl mb-4 font-code">Simulation Model</h3>
+              <h3 className="text-xl mb-4 font-code">Cognitive Enhancement</h3>
               <div className="space-y-4 text-matrix-light-green/90">
-                <p>The leaky integrate-and-fire model features:</p>
+                <p>Advanced features include:</p>
                 <ul className="list-disc pl-6 space-y-2">
-                  <li>Dynamic state value updates</li>
-                  <li>Threshold-based neuron activation</li>
-                  <li>Realistic charge leakage simulation</li>
-                  <li>Biomimetic muscle control</li>
-                  <li>Environmental response mechanisms</li>
+                  <li>Bidirectional LLM communication</li>
+                  <li>Dynamic neural growth</li>
+                  <li>Adaptive synaptic pruning</li>
+                  <li>Balanced cognitive development</li>
+                  <li>Preserved worm-like behaviors</li>
                 </ul>
               </div>
             </Card>
           </div>
+        </section>
+
+        <section className="space-y-8">
+          <Card>
+            <h2 className="text-2xl mb-6 font-code">Enhanced Neural Architecture</h2>
+            <div className="space-y-4 text-matrix-light-green/90">
+              <p className="leading-relaxed">
+                Building on DeepWorm&apos;s foundation, Nema introduces advanced neuroplasticity and neurogenesis capabilities. The system maintains the core C. elegans neural architecture while adding sophisticated learning mechanisms and cognitive bridges through NemaLink technology.
+              </p>
+              <p className="leading-relaxed">
+                Our implementation includes intelligent synaptic pruning and homeostatic plasticity, ensuring optimal network efficiency while preserving critical learned behaviors. This creates a dynamic balance between biological authenticity and enhanced cognitive capabilities.
+              </p>
+            </div>
+          </Card>
         </section>
 
         <section className="space-y-8">

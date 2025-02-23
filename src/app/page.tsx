@@ -7,7 +7,7 @@ export default function Home() {
   return (
     <PageLayout
       title="NEMA"
-      subtitle="Digital Neural Network Simulation Token"
+      subtitle="Enhanced C. elegans Neural Network with Advanced Learning Capabilities"
     >
       <div className="max-w-4xl mx-auto space-y-16">
         <section className="space-y-6">
@@ -35,10 +35,10 @@ export default function Home() {
             <h2 className="text-2xl mb-6 font-code">The Evolution of Digital Life</h2>
             <div className="space-y-4 text-nema-light/90">
               <p className="leading-relaxed">
-                Building on DeepWorm&apos;s pioneering work in digital biology, Nema explores the fascinating intersection of biological neural networks and artificial intelligence. Our implementation faithfully reproduces the C. elegans nervous system with 302 neurons and 95 muscles, creating verifiable digital life on-chain.
+                Building on DeepWorm&apos;s pioneering work in digital biology, Nema introduces groundbreaking neuroplasticity and neurogenesis capabilities. Our implementation not only faithfully reproduces the C. elegans nervous system but enhances it with the ability to learn and grow through advanced neural plasticity algorithms.
               </p>
               <p className="leading-relaxed">
-                Through advanced TEE (Trusted Execution Environment) technology and blockchain integration, every neural interaction and muscle movement is transparent and verifiable, establishing a new paradigm for autonomous digital organisms.
+                Through NemaLink, our innovative neural bridge technology, we enable higher cognitive functions while preserving authentic worm-like behaviors. This creates a unique fusion of biological neural networks and artificial intelligence, establishing new possibilities for autonomous digital organisms.
               </p>
             </div>
           </Card>
@@ -51,21 +51,21 @@ export default function Home() {
             <Card>
               <h3 className="text-xl mb-4 font-code">Neural Architecture</h3>
               <ul className="space-y-3 text-nema-light/90">
-                <li>• 302 simulated neurons</li>
-                <li>• 95 muscle cells</li>
-                <li>• Leaky integrate-and-fire model</li>
-                <li>• Chemotaxis and nose touch responses</li>
-                <li>• Biomimetic neural connections</li>
+                <li>• Advanced neuroplasticity algorithms</li>
+                <li>• Dynamic neural growth capabilities</li>
+                <li>• 302 neurons with adaptive connections</li>
+                <li>• NemaLink cognitive bridge system</li>
+                <li>• Biomimetic learning patterns</li>
               </ul>
             </Card>
             <Card>
-              <h3 className="text-xl mb-4 font-code">Blockchain Integration</h3>
+              <h3 className="text-xl mb-4 font-code">AI Integration</h3>
               <ul className="space-y-3 text-nema-light/90">
-                <li>• TEE-powered verification</li>
-                <li>• On-chain state management</li>
-                <li>• Real-time neural monitoring</li>
-                <li>• Transparent attestations</li>
-                <li>• Cross-chain compatibility</li>
+                <li>• Bidirectional LLM communication</li>
+                <li>• Adaptive learning mechanisms</li>
+                <li>• Neural bridge technology</li>
+                <li>• Dopaminergic feedback systems</li>
+                <li>• Intelligent response modulation</li>
               </ul>
             </Card>
           </div>
@@ -77,38 +77,58 @@ export default function Home() {
             <h2 className="text-2xl mb-6 font-code">AI Integration</h2>
             <div className="space-y-4 text-nema-light/90">
               <p className="leading-relaxed">
-                Nema introduces groundbreaking interactions between the simulated C. elegans neural network and large language models. This creates a unique bridge between biological neural architectures and artificial intelligence, enabling new forms of autonomous behavior and decision-making.
+                Through NemaLink, we establish a sophisticated bridge between biological neural patterns and artificial intelligence. This innovative system enables higher cognitive functions while preserving authentic worm behaviors, creating a unique fusion of natural and artificial intelligence.
               </p>
               <p className="leading-relaxed">
-                The project explores how biological neural patterns can inform and enhance AI systems, while maintaining complete transparency through blockchain verification. Every interaction between the worm&apos;s neural network and AI systems is recorded and verifiable on-chain.
+                Our implementation includes advanced neuroplasticity algorithms and dynamic neural growth capabilities, allowing the network to learn and adapt over time. Every interaction is carefully modulated through dopaminergic feedback systems, ensuring optimal learning and response patterns.
               </p>
             </div>
           </Card>
         </section>
 
-        {/* Token Distribution */}
-        <section>
-          <TokenDistribution />
+        {/* Tokenomics Section */}
+        <section className="space-y-8">
+          <Card>
+            <h2 className="text-2xl font-code mb-6">Tokenomics</h2>
+
+            <div className="space-y-8">
+              {/* Token Info */}
+              <div className="space-y-4">
+                <h3 className="text-xl font-code">Token Supply</h3>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <p className="text-nema-light/90">Total Supply</p>
+                    <p className="text-2xl font-code">100,000,000 NEMA</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-nema-light/90">Initial Circulating Supply</p>
+                    <p className="text-2xl font-code">70,000,000 NEMA</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="min-w-[280px] sm:min-w-[320px] sm:px-6">
+                <TokenDistribution />
+              </div>
+
+              {/* Protocol Info */}
+              <div className="space-y-4">
+                <h3 className="text-xl font-code">Protocol Details</h3>
+                <div className="grid sm:grid-cols-2 gap-4 text-nema-light/90">
+                  <div>
+                    <p className="font-semibold mb-2">Network</p>
+                    <p>Ethereum</p>
+                  </div>
+                  <div>
+                    <p className="font-semibold mb-2">Token Type</p>
+                    <p>ERC-20</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
         </section>
       </div>
     </PageLayout>
-  )
-}
-
-function FeatureCard({ title, description }: { title: string; description: string }) {
-  return (
-    <div className="p-6 rounded-lg bg-slate-50 border border-slate-200">
-      <h3 className="text-xl font-bold mb-4">{title}</h3>
-      <p className="text-slate-600">{description}</p>
-    </div>
-  )
-}
-
-function TechnologyCard({ title, description }: { title: string; description: string }) {
-  return (
-    <div className="p-8 rounded-lg bg-white shadow-sm">
-      <h3 className="text-2xl font-bold mb-4">{title}</h3>
-      <p className="text-slate-600">{description}</p>
-    </div>
   )
 }

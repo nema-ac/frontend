@@ -1,7 +1,6 @@
 "use client";
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, TooltipProps } from 'recharts';
-import { Card } from '@/components/ui/card';
 
 const TOKENOMICS_DATA = [
   { name: 'Open Supply', value: 10, description: 'Available for public trading and liquidity' },
@@ -34,15 +33,8 @@ const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
 
 export function TokenDistribution() {
   return (
-    <Card className="space-y-8">
-      <div className="space-y-2">
-        <h2 className="text-2xl font-code mb-4">Tokenomics</h2>
-        <p className="text-lg text-nema-light/90">
-          Total Supply: 1,000,000,000 $NEMA
-        </p>
-      </div>
-
-      <div className="h-[400px] w-full">
+    <>
+      <div className="h-[400px] mb-8">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -52,7 +44,6 @@ export function TokenDistribution() {
               labelLine={false}
               label={({ name, percent, x, y }) => (
                 <g>
-                  {/* Semi-transparent background with larger dimensions */}
                   <rect
                     x={x - 70}
                     y={y - 25}
@@ -112,6 +103,6 @@ export function TokenDistribution() {
           </div>
         ))}
       </div>
-    </Card>
+    </>
   );
 }
