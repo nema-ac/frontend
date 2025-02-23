@@ -1,5 +1,3 @@
-import { config } from './config';
-
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message);
@@ -8,10 +6,11 @@ export class ApiError extends Error {
 }
 
 async function fetchApi(
+  baseUrl: string,
   endpoint: string,
   options: RequestInit = {}
 ): Promise<unknown> {
-  const url = `${config.api.baseUrl}${endpoint}`;
+  const url = `${baseUrl}${endpoint}`;
 
   const defaultHeaders = {
     'Content-Type': 'application/json',
@@ -35,17 +34,19 @@ async function fetchApi(
   return data;
 }
 
-export const apiClient = {
-  get: <T>(endpoint: string, options?: RequestInit) =>
-    fetchApi(endpoint, { ...options, method: 'GET' }) as Promise<T>,
+export function createApiClient(baseUrl: string) {
+  return {
+    get: <T>(endpoint: string, options?: RequestInit) =>
+      fetchApi(baseUrl, endpoint, { ...options, method: 'GET' }) as Promise<T>,
 
-  post: <T>(endpoint: string, data: unknown, options?: RequestInit) =>
-    fetchApi(endpoint, {
-      ...options,
-      method: 'POST',
-      body: JSON.stringify(data),
-    }) as Promise<T>,
-};
+    post: <T>(endpoint: string, data: unknown, options?: RequestInit) =>
+      fetchApi(baseUrl, endpoint, {
+        ...options,
+        method: 'POST',
+        body: JSON.stringify(data),
+      }) as Promise<T>,
+  };
+}
 
 interface WalletCheckResponse {
   exists: boolean;
@@ -58,8 +59,9 @@ interface WalletEligibilityResult {
   message: string;
 }
 
-export async function checkWalletEligibility(walletAddress: string): Promise<WalletEligibilityResult> {
+export async function checkWalletEligibility(baseUrl: string, walletAddress: string): Promise<WalletEligibilityResult> {
   try {
+    const apiClient = createApiClient(baseUrl);
     const response = await apiClient.get<WalletCheckResponse>(`/check-wallet/${walletAddress}`);
 
     if (response.exists) {
