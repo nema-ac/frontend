@@ -5,8 +5,8 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, TooltipProps } from 
 const TOKENOMICS_DATA = [
   { name: 'Open Supply', value: 10, description: 'Available for public trading and liquidity' },
   { name: 'Airdrop', value: 60, description: 'Distributed to $WORM token holders' },
-  { name: 'Developer Fund', value: 20, description: '6-month cliff, then linear vesting per block' },
-  { name: 'Project Fund', value: 10, description: 'Server costs and LLM infrastructure' },
+  { name: 'Developer Fund', value: 20, description: '2 year linear vesting schedule' },
+  { name: 'Project Fund', value: 10, description: 'Server costs and LLM infrastructure & potential partnerships' },
 ];
 
 const COLORS = [
