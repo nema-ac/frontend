@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
 interface CheckResult {
   isEligible: boolean | null;
@@ -50,6 +51,7 @@ export function AirdropChecker({ apiBaseUrl }: AirdropCheckerProps) {
 
   return (
     <Card className="p-6 space-y-6">
+      <WalletMultiButton className="mb-4" style={{}} />
       <form onSubmit={handleCheck} className="space-y-6">
         <div className="space-y-4">
           <h2 className="text-xl font-code text-nema-light">Enter your Solana address</h2>
