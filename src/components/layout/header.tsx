@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
   { label: 'Home', href: '/' },
@@ -40,10 +40,10 @@ export function Header() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "text-nema-light/90 hover:text-nema-glow transition",
+                  'text-nema-light/90 hover:text-nema-glow transition',
                   pathname === item.href
-                    ? "text-nema-glow"
-                    : "text-nema-light"
+                    ? 'text-nema-glow'
+                    : 'text-nema-light'
                 )}
               >
                 {item.label}
