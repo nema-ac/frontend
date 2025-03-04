@@ -135,3 +135,19 @@ export async function linkWalletAddresses(
     };
   }
 }
+
+interface CheckLinkResponse {
+  linked: boolean;
+  eth_address?: string;
+}
+
+export async function checkWalletLink(baseUrl: string, solanaAddress: string): Promise<CheckLinkResponse> {
+  try {
+    const apiClient = createApiClient(baseUrl);
+    return await apiClient.get<CheckLinkResponse>(`/check-link/${solanaAddress}`);
+  } catch {
+    return {
+      linked: false
+    };
+  }
+}

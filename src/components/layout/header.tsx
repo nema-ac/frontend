@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 const NAV_ITEMS = [
   { label: 'Home', href: '/' },
   { label: 'About', href: '/about' },
-  { label: 'Docs', href: '/docs' },
+  { label: 'Docs', href: 'https://github.com/nema-ac/' },
   { label: 'Airdrop', href: '/airdrop' },
 ];
 

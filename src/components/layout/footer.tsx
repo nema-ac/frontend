@@ -16,7 +16,7 @@ export function Footer() {
             <h3 className="text-lg font-bold text-nema-light mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/docs" className="text-nema-light/80 hover:text-nema-glow transition">
+                <Link href="https://github.com/nema-ac/" target="_blank" className="text-nema-light/80 hover:text-nema-glow transition">
                   Documentation
                 </Link>
               </li>
