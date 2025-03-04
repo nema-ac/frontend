@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -13,6 +14,7 @@ const NAV_ITEMS = [
 
 export function Header() {
   const pathname = usePathname();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm">
@@ -34,7 +36,7 @@ export function Header() {
             <span>NEMA</span>
           </Link>
 
-          <nav className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex md:items-center md:space-x-8">
             {NAV_ITEMS.map((item) => (
               <Link
                 key={item.href}
@@ -49,7 +51,52 @@ export function Header() {
                 {item.label}
               </Link>
             ))}
-          </nav>
+          </div>
+
+          <button
+            className="md:hidden text-nema-light focus:outline-none"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d={isMenuOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'}
+              />
+            </svg>
+          </button>
+        </div>
+
+        {/* Mobile menu, shown/hidden based on menu state */}
+        <div className={cn(
+          'md:hidden',
+          isMenuOpen ? 'block' : 'hidden',
+          'bg-nema-dark border-t border-nema-midday/30 shadow-lg'
+        )}>
+          <div className="px-4 py-3 space-y-2">
+            {NAV_ITEMS.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  'block py-2 px-2 rounded-md text-nema-light/90 hover:text-nema-glow hover:bg-nema-dark/50 transition',
+                  pathname === item.href
+                    ? 'text-nema-glow bg-nema-dark/30'
+                    : 'text-nema-light'
+                )}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </header>
