@@ -40,6 +40,12 @@ export function AirdropChecker({ apiBaseUrl }: AirdropCheckerProps) {
     success: false,
     message: null
   });
+  const [isClient, setIsClient] = useState(false);
+
+  // Set isClient to true when component mounts
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const checkEligibility = useCallback(async (address: string) => {
     setIsChecking(true);
@@ -178,12 +184,59 @@ export function AirdropChecker({ apiBaseUrl }: AirdropCheckerProps) {
     setLinkResult({ success: false, message: null });
   };
 
+  // Return early with minimal UI if not client-side yet
+  if (!isClient) {
+    return (
+      <Card className="p-6 space-y-6 bg-nema-dark/30 border-nema-midday/30">
+        <div className="flex flex-col items-center sm:flex-row sm:items-center sm:justify-between gap-4">
+          <h1 className="text-2xl font-code text-nema-light text-center sm:text-left">NEMA Airdrop Checker</h1>
+          <div className="flex justify-center w-full sm:w-auto">
+            {/* Placeholder for wallet button */}
+            <div className="h-10 w-32 bg-nema-dark/50 rounded-md"></div>
+          </div>
+        </div>
+
+        <div className="p-4 border rounded-lg border-nema-sunset bg-nema-sunset/20 text-nema-light">
+          <div className="flex items-start">
+            <span className="mr-2 text-xl">⏰</span>
+            <div>
+              <h3 className="font-medium mb-1">Important: Airdrop Claim Period</h3>
+              <p className="text-sm">
+                The NEMA airdrop wallet linking period is now open and will close on <strong>March 21st, 2025</strong>.
+                You must link your Ethereum wallet before this deadline to receive your tokens.
+                After this date, unlinked wallets will no longer be available to claim.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="h-40 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-nema-light"></div>
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <Card className="p-6 space-y-6 bg-nema-dark/30 border-nema-midday/30">
       <div className="flex flex-col items-center sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-code text-nema-light text-center sm:text-left">NEMA Airdrop Checker</h1>
         <div className="flex justify-center w-full sm:w-auto">
           <WalletMultiButton className="h-10" />
+        </div>
+      </div>
+
+      <div className="p-4 border rounded-lg border-nema-sunset bg-nema-sunset/20 text-nema-light">
+        <div className="flex items-start">
+          <span className="mr-2 text-xl">⏰</span>
+          <div>
+            <h3 className="font-medium mb-1">Important: Airdrop Claim Period</h3>
+            <p className="text-sm">
+              The NEMA airdrop wallet linking period is now open and will close on <strong>March 21st, 2025</strong>.
+              You must link your Ethereum wallet before this deadline to receive your tokens.
+              After this date, unlinked wallets will no longer be available to claim.
+            </p>
+          </div>
         </div>
       </div>
 
