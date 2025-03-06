@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useEffect, useRef } from 'react';
 
@@ -189,7 +189,7 @@ export function EtherealWorm() {
 
     const animationFrame = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationFrame);
-  }, [createConnections, createPath]);
+  }, [createConnections, createPath, generateBranchPoint, generateNewTarget]);
 
   return (
     <div className="fixed inset-0 pointer-events-none z-0">
