@@ -50,7 +50,13 @@ export function Header() {
       clearTimeout(timeoutId);
       window.removeEventListener('resize', updateBannerHeight);
     };
-  }, [isClient, isBannerVisible]);
+  }, [isClient]);
+
+  useEffect(() => {
+    if (!isBannerVisible && bannerRef.current) {
+      setBannerHeight(0);
+    }
+  }, [isBannerVisible]);
 
   return (
     <>
@@ -70,6 +76,7 @@ export function Header() {
             <button
               className="absolute right-4 top-4 sm:top-1/2 sm:-translate-y-1/2 text-nema-light hover:text-white"
               onClick={() => setIsBannerVisible(false)}
+              aria-label="Dismiss banner"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -139,7 +146,6 @@ export function Header() {
             </button>
           </div>
 
-          {/* Mobile menu, shown/hidden based on menu state */}
           <div className={cn(
             'md:hidden',
             isMenuOpen ? 'block' : 'hidden',
@@ -166,9 +172,8 @@ export function Header() {
         </div>
       </header>
 
-      {/* Dynamic spacer that adjusts to banner height */}
       <div
-        style={{ height: isClient && isBannerVisible ? `${bannerHeight + 64}px` : '64px' }}
+        style={{ height: isClient ? (isBannerVisible ? `${bannerHeight}px` : '64px') : '64px' }}
         className="transition-all duration-300"
       ></div>
     </>

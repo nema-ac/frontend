@@ -25,7 +25,7 @@ export function PageLayout({ title, subtitle, children, className = '' }: PageLa
         }}
       >
         <Header />
-        <main className={`container mx-auto px-4 py-24 ${className}`}>
+        <main className={`container mx-auto px-4 py-4 md:py-12 ${className}`}>
           <div className="space-y-8">
             <header className="text-center space-y-4">
               <h1 className="text-6xl font-bold text-white animate-fade-in drop-shadow-lg">
