@@ -6,10 +6,10 @@ import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { useWallet } from '@solana/wallet-adapter-react';
 import { encode } from '@/lib/utils';
 import { PublicKey } from '@solana/web3.js';
+import { useAppKit, useAppKitAccount, useAppKitProvider } from '@reown/appkit/react';
+import { type Provider } from '@reown/appkit-adapter-solana/react';
 
 interface CheckResult {
   isEligible: boolean | null;
@@ -22,7 +22,14 @@ interface AirdropCheckerProps {
 }
 
 export function AirdropChecker({ apiBaseUrl }: AirdropCheckerProps) {
-  const { publicKey, signMessage, connected } = useWallet();
+  const { address, isConnected } = useAppKitAccount();
+  const { walletProvider } = useAppKitProvider<Provider>('solana');
+  const { open } = useAppKit();
+
+  // Convert address to PublicKey when needed
+  const publicKey = address ? new PublicKey(address) : null;
+  const connected = isConnected;
+
   const [inputAddress, setInputAddress] = useState('');
   const [isSolanaAddressValid, setIsSolanaAddressValid] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
@@ -80,11 +87,11 @@ export function AirdropChecker({ apiBaseUrl }: AirdropCheckerProps) {
   // Check connected wallet eligibility automatically
   useEffect(() => {
     if (publicKey && connected && !walletAddress) {
-      const address = publicKey.toString();
-      setInputAddress(address);
-      setWalletAddress(address);
-      checkEligibility(address);
-      checkLink(address);
+      const addressStr = publicKey.toString();
+      setInputAddress(addressStr);
+      setWalletAddress(addressStr);
+      checkEligibility(addressStr);
+      checkLink(addressStr);
     }
   }, [publicKey, connected, walletAddress, checkEligibility, checkLink]);
 
@@ -131,7 +138,7 @@ export function AirdropChecker({ apiBaseUrl }: AirdropCheckerProps) {
   };
 
   const handleLinkWallets = async () => {
-    if (!publicKey || !signMessage || !ethAddress || !isEthAddressValid) return;
+    if (!publicKey || !walletProvider || !ethAddress || !isEthAddressValid) return;
 
     setIsLinking(true);
     try {
@@ -142,7 +149,7 @@ export function AirdropChecker({ apiBaseUrl }: AirdropCheckerProps) {
       const messageBytes = new TextEncoder().encode(message);
 
       // Request wallet to sign the message
-      const signature = await signMessage(messageBytes);
+      const signature = await walletProvider.signMessage(messageBytes);
 
       // Convert signature to base64 string for API
       const signatureString = encode(signature);
@@ -222,7 +229,12 @@ export function AirdropChecker({ apiBaseUrl }: AirdropCheckerProps) {
       <div className="flex flex-col items-center sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-code text-nema-light text-center sm:text-left">NEMA Airdrop Checker</h1>
         <div className="flex justify-center w-full sm:w-auto">
-          <WalletMultiButton className="h-10" />
+          <Button
+            onClick={() => open()}
+            className="h-10"
+          >
+            {connected ? 'Change Wallet' : 'Connect Wallet'}
+          </Button>
         </div>
       </div>
 
@@ -313,7 +325,9 @@ export function AirdropChecker({ apiBaseUrl }: AirdropCheckerProps) {
                 This wallet is eligible for the airdrop! Connect your Solana wallet to link an Ethereum address or check if you&apos;ve already linked one.
               </p>
               <div className="flex justify-center">
-                <WalletMultiButton className="h-10" />
+                <Button onClick={() => open()} className="h-10">
+                  Connect Wallet
+                </Button>
               </div>
             </div>
           )}
