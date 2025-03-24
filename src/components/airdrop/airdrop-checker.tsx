@@ -1,15 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { checkWalletEligibility, linkWalletAddresses, checkWalletLink } from '@/lib/api-client';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { checkWalletEligibility, checkWalletLink } from '@/lib/api-client';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { encode } from '@/lib/utils';
 import { PublicKey } from '@solana/web3.js';
-import { useAppKit, useAppKitAccount, useAppKitProvider } from '@reown/appkit/react';
-import { type Provider } from '@reown/appkit-adapter-solana/react';
+import { useAppKit, useAppKitAccount } from '@reown/appkit/react';
 
 interface CheckResult {
   isEligible: boolean | null;
@@ -23,31 +21,25 @@ interface AirdropCheckerProps {
 
 export function AirdropChecker({ apiBaseUrl }: AirdropCheckerProps) {
   const { address, isConnected } = useAppKitAccount();
-  const { walletProvider } = useAppKitProvider<Provider>('solana');
   const { open } = useAppKit();
 
-  // Convert address to PublicKey when needed
-  const publicKey = address ? new PublicKey(address) : null;
+  const publicKey = useMemo(() =>
+    address ? new PublicKey(address) : null
+  , [address]);
   const connected = isConnected;
 
   const [inputAddress, setInputAddress] = useState('');
   const [isSolanaAddressValid, setIsSolanaAddressValid] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [ethAddress, setEthAddress] = useState('');
-  const [isEthAddressValid, setIsEthAddressValid] = useState(false);
   const [isWalletLinked, setIsWalletLinked] = useState(false);
   const [checkResult, setCheckResult] = useState<CheckResult>({
     isEligible: null,
     message: null
   });
   const [isChecking, setIsChecking] = useState(false);
-  const [isCheckingLink, setIsCheckingLink] = useState(false);
-  const [isLinking, setIsLinking] = useState(false);
-  const [linkResult, setLinkResult] = useState<{ success: boolean; message: string | null }>({
-    success: false,
-    message: null
-  });
   const [isClient, setIsClient] = useState(false);
+  const [isLoadingWalletStatus, setIsLoadingWalletStatus] = useState(false);
 
   // Set isClient to true when component mounts
   useEffect(() => {
@@ -69,18 +61,12 @@ export function AirdropChecker({ apiBaseUrl }: AirdropCheckerProps) {
   }, [apiBaseUrl]);
 
   const checkLink = useCallback(async (address: string) => {
-    setIsCheckingLink(true);
-    try {
-      const result = await checkWalletLink(apiBaseUrl, address);
-      if (result.linked && result.eth_address) {
-        setEthAddress(result.eth_address);
-        setIsWalletLinked(true);
-        setIsEthAddressValid(true);
-      } else {
-        setIsWalletLinked(false);
-      }
-    } finally {
-      setIsCheckingLink(false);
+    const result = await checkWalletLink(apiBaseUrl, address);
+    if (result.linked && result.eth_address) {
+      setEthAddress(result.eth_address);
+      setIsWalletLinked(true);
+    } else {
+      setIsWalletLinked(false);
     }
   }, [apiBaseUrl]);
 
@@ -90,17 +76,21 @@ export function AirdropChecker({ apiBaseUrl }: AirdropCheckerProps) {
       const addressStr = publicKey.toString();
       setInputAddress(addressStr);
       setWalletAddress(addressStr);
-      checkEligibility(addressStr);
-      checkLink(addressStr);
+
+      // Use a single async function to handle both checks
+      const checkWalletStatus = async () => {
+        setIsLoadingWalletStatus(true);
+        try {
+          await checkEligibility(addressStr);
+          await checkLink(addressStr);
+        } finally {
+          setIsLoadingWalletStatus(false);
+        }
+      };
+
+      checkWalletStatus();
     }
   }, [publicKey, connected, walletAddress, checkEligibility, checkLink]);
-
-  // If wallet connects and matches the checked address, check for linked status
-  useEffect(() => {
-    if (publicKey && connected && walletAddress && publicKey.toString() === walletAddress) {
-      checkLink(walletAddress);
-    }
-  }, [publicKey, connected, walletAddress, checkLink]);
 
   // Validate Solana address
   useEffect(() => {
@@ -115,12 +105,6 @@ export function AirdropChecker({ apiBaseUrl }: AirdropCheckerProps) {
       setIsSolanaAddressValid(false);
     }
   }, [inputAddress]);
-
-  // Validate ETH address
-  useEffect(() => {
-    const isValid = /^0x[a-fA-F0-9]{40}$/.test(ethAddress);
-    setIsEthAddressValid(isValid);
-  }, [ethAddress]);
 
   // Add this useEffect after your other useEffect hooks
   useEffect(() => {
@@ -137,58 +121,12 @@ export function AirdropChecker({ apiBaseUrl }: AirdropCheckerProps) {
     await checkEligibility(inputAddress);
   };
 
-  const handleLinkWallets = async () => {
-    if (!publicKey || !walletProvider || !ethAddress || !isEthAddressValid) return;
-
-    setIsLinking(true);
-    try {
-      // Create a message to sign that includes the ETH address
-      const message = `I am linking my Solana wallet ${publicKey.toString()} to Ethereum wallet ${ethAddress} for the NEMA airdrop.`;
-
-      // Convert message to Uint8Array for signing
-      const messageBytes = new TextEncoder().encode(message);
-
-      // Request wallet to sign the message
-      const signature = await walletProvider.signMessage(messageBytes);
-
-      // Convert signature to base64 string for API
-      const signatureString = encode(signature);
-
-      // Send to API
-      const result = await linkWalletAddresses(
-        apiBaseUrl,
-        publicKey.toString(),
-        ethAddress,
-        signatureString,
-        message
-      );
-
-      if (result.success) {
-        setIsWalletLinked(true);
-      }
-
-      setLinkResult({
-        success: result.success,
-        message: result.message
-      });
-
-    } catch (error) {
-      setLinkResult({
-        success: false,
-        message: error instanceof Error ? error.message : 'Failed to sign message with wallet'
-      });
-    } finally {
-      setIsLinking(false);
-    }
-  };
-
   const resetForm = () => {
     setWalletAddress(null);
     setInputAddress('');
     setEthAddress('');
     setIsWalletLinked(false);
     setCheckResult({ isEligible: null, message: null });
-    setLinkResult({ success: false, message: null });
   };
 
   // Return early with minimal UI if not client-side yet
@@ -209,9 +147,8 @@ export function AirdropChecker({ apiBaseUrl }: AirdropCheckerProps) {
             <div>
               <h3 className="font-medium mb-1">Important: Airdrop Claim Period</h3>
               <p className="text-sm">
-                The NEMA airdrop wallet linking period is now open and will close on <strong>March 21st, 2025</strong>.
-                You must link your Ethereum wallet before this deadline to receive your tokens.
-                After this date, unlinked wallets will no longer be available to claim.
+                The NEMA airdrop wallet linking period has ended on March 23rd, 2025.
+                You can still check your eligibility and view your linked Ethereum wallet if you previously linked one.
               </p>
             </div>
           </div>
@@ -244,9 +181,8 @@ export function AirdropChecker({ apiBaseUrl }: AirdropCheckerProps) {
           <div>
             <h3 className="font-medium mb-1">Important: Airdrop Claim Period</h3>
             <p className="text-sm">
-              The NEMA airdrop wallet linking period is now open and will close on <strong>March 21st, 2025</strong>.
-              You must link your Ethereum wallet before this deadline to receive your tokens.
-              After this date, unlinked wallets will no longer be available to claim.
+              The NEMA airdrop wallet linking period has ended on March 23rd, 2025.
+              You can still check your eligibility and view your linked Ethereum wallet if you previously linked one.
             </p>
           </div>
         </div>
@@ -322,7 +258,7 @@ export function AirdropChecker({ apiBaseUrl }: AirdropCheckerProps) {
             <div className="space-y-4 border p-6 rounded-lg border-nema-midday/30 bg-nema-dark/50 border-l-4 border-l-blue-500">
               <h3 className="text-xl font-medium">Connect Your Wallet</h3>
               <p className="text-sm text-nema-light/80">
-                This wallet is eligible for the airdrop! Connect your Solana wallet to link an Ethereum address or check if you&apos;ve already linked one.
+                This wallet is eligible for the airdrop! Connect your Solana wallet to check if you&apos;ve linked an Ethereum address.
               </p>
               <div className="flex justify-center">
                 <Button onClick={() => open()} className="h-10">
@@ -334,63 +270,22 @@ export function AirdropChecker({ apiBaseUrl }: AirdropCheckerProps) {
 
           {checkResult.isEligible && connected && publicKey && (
             <div className="space-y-4 border p-6 rounded-lg border-nema-midday/30 bg-nema-dark/50">
-              <h3 className="text-xl font-medium">Link Your Ethereum Wallet</h3>
+              <h3 className="text-xl font-medium">Ethereum Wallet Status</h3>
 
-              {isCheckingLink ? (
-                <div className="flex items-center justify-center py-4">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
-                  <span>Checking wallet link status...</span>
+              {isLoadingWalletStatus ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mr-2" />
+                  <span>Loading wallet status...</span>
                 </div>
               ) : isWalletLinked ? (
-                <div className="p-4 border rounded border-nema-midday/30 bg-nema-dark/60 border-l-4 border-l-emerald-500 mb-4">
-                  <p>Your wallet is already linked to the Ethereum address below. Your NEMA tokens will be sent to this address.</p>
+                <div className="p-4 border rounded border-nema-midday/30 bg-nema-dark/60 border-l-4 border-l-emerald-500">
+                  <p className="mb-2">Your wallet is linked to the following Ethereum address:</p>
+                  <p className="font-mono break-all bg-nema-dark/30 p-2 rounded">{ethAddress}</p>
+                  <p className="mt-2 text-sm">Your NEMA tokens will be sent to this address.</p>
                 </div>
               ) : (
-                <p className="text-sm text-nema-light/80">
-                  To receive your airdrop, please provide your Ethereum wallet address.
-                  You&apos;ll need to sign a message with your Solana wallet to verify ownership.
-                </p>
-              )}
-
-              <Input
-                type="text"
-                placeholder="Ethereum wallet address (0x...)"
-                value={ethAddress}
-                onChange={(e) => setEthAddress(e.target.value)}
-                disabled={isWalletLinked}
-                className={cn(
-                  'bg-nema-dark/50 border-nema-midday/30 text-nema-light placeholder:text-nema-light/50 font-mono',
-                  isWalletLinked && 'opacity-80'
-                )}
-              />
-
-              {ethAddress && !isEthAddressValid && !isWalletLinked && (
-                <p className="text-red-500 text-sm">Please enter a valid Ethereum address</p>
-              )}
-
-              {!isWalletLinked && (
-                <Button
-                  onClick={handleLinkWallets}
-                  disabled={!isEthAddressValid || isLinking}
-                  className="w-full"
-                >
-                  {isLinking ? (
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
-                      Linking Wallets...
-                    </div>
-                  ) : (
-                    'Link Wallets'
-                  )}
-                </Button>
-              )}
-
-              {linkResult.message && !isWalletLinked && (
-                <div className={cn(
-                  'p-4 border rounded text-sm border-nema-midday/30 bg-nema-dark/60',
-                  linkResult.success && 'border-l-4 border-l-emerald-500'
-                )}>
-                  {linkResult.message}
+                <div className="p-4 border rounded border-nema-midday/30 bg-nema-dark/60 border-l-4 border-l-red-500">
+                  <p>Your wallet is not linked to any Ethereum address. The wallet linking period has ended.</p>
                 </div>
               )}
             </div>

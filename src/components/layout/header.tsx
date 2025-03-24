@@ -68,10 +68,7 @@ export function Header() {
         >
           <div className="container mx-auto">
             <p className="text-sm font-medium pr-8">
-              NEMA Airdrop wallet linking period is now open until March 21st, 2025!
-              <Link href="/airdrop" className="underline ml-2 font-bold hover:text-white block sm:inline-block mt-1 sm:mt-0">
-                Link your ETH wallet now
-              </Link>
+              NEMA Airdrop period has ended! Details on token launch coming soon.
             </p>
             <button
               className="absolute right-4 top-4 sm:top-1/2 sm:-translate-y-1/2 text-nema-light hover:text-white"
