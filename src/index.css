@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+:root {
+  /* Cyberpunk Color Palette */
+  --color-black: #000000;
+  --color-cyan: #00FFFF;
+  --color-purple: #9659D4;
+  --color-light: #EDEDED;
+  
+  font-family: 'Inter', 'Roboto', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: var(--color-light);
+  background-color: var(--color-black);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--color-black);
+  color: var(--color-light);
+  overflow-x: hidden;
+}
+
+/* Glitch text effect */
+@keyframes glitch {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-2px); }
+  40% { transform: translateX(2px); }
+  60% { transform: translateX(-1px); }
+  80% { transform: translateX(1px); }
+}
+
+/* Terminal cursor blink */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Neon glow effect */
+.neon-glow {
+  text-shadow: 0 0 5px var(--color-cyan), 0 0 10px var(--color-cyan), 0 0 15px var(--color-cyan);
+}
+
+.neon-border {
+  border: 1px solid var(--color-cyan);
+  box-shadow: 0 0 10px var(--color-cyan), inset 0 0 10px rgba(0, 255, 255, 0.1);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-black);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-cyan);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-purple);
+}
