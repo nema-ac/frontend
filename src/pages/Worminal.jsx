@@ -144,13 +144,8 @@ const Worminal = () => {
             <p className="text-lg text-gray-300 mb-6">
               The Worminal launches soon. Be among the first to shape the evolution of digital consciousness.
             </p>
-            <div className="flex justify-center space-x-4">
-              <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-lg font-bold">
-                🎫 Hold $NEMA to Access
-              </div>
-              <div className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-6 py-3 rounded-lg font-bold">
-                📱 Join Telegram for Updates
-              </div>
+            <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-4 rounded-lg font-bold inline-block">
+              🎫 Hold $NEMA to Access
             </div>
           </section>
         </div>

@@ -73,22 +73,17 @@ const Home = () => {
                 </div>
               </div>
 
-              {/* Fee Structure */}
+              {/* Contract Address */}
               <div className="bg-black/30 p-6 rounded-lg border border-purple-400/20">
-                <h4 className="text-xl font-bold text-purple-400 mb-4">Fee Structure</h4>
+                <h4 className="text-xl font-bold text-purple-400 mb-4">Contract Address</h4>
                 <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Trading Fee</span>
-                    <span className="text-white font-bold">1%</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300">CA</span>
+                    <span className="text-cyan-400 font-bold">Coming Soon</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">• Developer Fund</span>
-                    <span className="text-cyan-400">25%</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">• Dev Wallets</span>
-                    <span className="text-purple-400">75%</span>
-                  </div>
+                  <p className="text-gray-400 text-sm mt-4">
+                    Contract address will be available after Jupiter Launchpad deployment
+                  </p>
                 </div>
               </div>
             </div>

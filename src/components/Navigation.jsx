@@ -92,7 +92,7 @@ const Navigation = () => {
         {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="md:hidden bg-black/95 backdrop-blur-sm border-t border-cyan-400/30">
-            <div className="px-4 py-6 space-y-4">
+            <div className="px-4 py-6 space-y-6">
               <Link
                 to="/"
                 onClick={() => setIsMenuOpen(false)}
@@ -115,7 +115,7 @@ const Navigation = () => {
               >
                 ABOUT
               </Link>
-              <div className="relative inline-block">
+              <div className="relative block">
                 <Link
                   to="/worminal"
                   onClick={() => setIsMenuOpen(false)}
@@ -127,11 +127,11 @@ const Navigation = () => {
                 >
                   WORMINAL
                 </Link>
-                <span className="absolute -top-0.5 -right-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-1 py-0.5 rounded-full font-bold" style={{transform: 'scale(0.7)'}}>
+                <span className="absolute -top-1 left-24 md:-right-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-1 py-0.5 rounded-full font-bold" style={{transform: 'scale(0.7)'}}>
                   SOON
                 </span>
               </div>
-              <div className="relative inline-block">
+              <div className="relative block">
                 <Link
                   to="/airdrop"
                   onClick={() => setIsMenuOpen(false)}
@@ -143,7 +143,7 @@ const Navigation = () => {
                 >
                   AIRDROP
                 </Link>
-                <span className="absolute -top-0.5 -right-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-1 py-0.5 rounded-full font-bold" style={{transform: 'scale(0.7)'}}>
+                <span className="absolute -top-1 left-20 md:-right-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-1 py-0.5 rounded-full font-bold" style={{transform: 'scale(0.7)'}}>
                   SOON
                 </span>
               </div>
