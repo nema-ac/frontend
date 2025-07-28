@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import About from './pages/About';
 import Docs from './pages/Docs';
 import Airdrop from './pages/Airdrop';
+import Worminal from './pages/Worminal';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/docs" element={<Docs />} />
           <Route path="/airdrop" element={<Airdrop />} />
+          <Route path="/worminal" element={<Worminal />} />
         </Routes>
       </div>
     </Router>
