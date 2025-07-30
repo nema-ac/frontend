@@ -307,7 +307,7 @@ const AboutSections = () => {
         <div className="p-8 bg-gradient-to-r from-red-900/20 via-black/50 to-cyan-900/20 rounded-lg border border-gradient-to-r border-cyan-400/50">
           <h3 className="text-3xl font-bold text-cyan-400 mb-6">The Future of Digital Life</h3>
           <p className="text-lg text-gray-300 leading-relaxed">
-            Nema doesn't just create digital organisms—it creates digital organisms capable 
+            Nema doesn't just create digital organisms, it creates digital organisms capable 
             of genuine growth, learning, and evolution. By combining the biological accuracy 
             of DeepWorm with revolutionary neuroplasticity and neurogenesis capabilities, 
             we're opening entirely new frontiers in autonomous digital life.

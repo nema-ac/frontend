@@ -1,25 +1,73 @@
 import Terminal from '../components/Terminal';
 import InteractiveNeuralNetwork from '../components/InteractiveNeuralNetwork';
 import NeuralDashboard from '../components/NeuralDashboard';
+import { Link } from 'react-router-dom';
 
 const Home = () => {
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Hero Section */}
-      <section className="pt-20 pb-16 px-4 sm:px-6 lg:px-8">
+      <section className="pt-28 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h1 className="text-5xl sm:text-7xl font-bold mb-6">
               <span className="text-cyan-400">NEMΔ</span>
             </h1>
             <h2 className="text-2xl sm:text-3xl mb-8 text-gray-300">
-              The Evolution of Digital Life
+              302 neurons. Infinite possibilities. One NEMΔ
             </h2>
           </div>
 
           {/* Terminal Component */}
           <div className="mb-16">
             <Terminal />
+          </div>
+
+          {/* Navigation Buttons */}
+          <div className="mb-16">
+            <div className="flex gap-4 max-w-6xl mx-auto">
+              {/* Worminal Button */}
+              <Link to="/worminal" className="flex-1 group">
+                <div className="bg-black/50 border border-cyan-400/30 rounded px-6 py-4 group-hover:border-cyan-400 group-hover:bg-black/70 transition-all duration-300">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-lg font-bold text-cyan-400 group-hover:text-white transition-colors duration-300">
+                        WORMINAL
+                      </h3>
+                      <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">
+                        COMING SOON
+                      </span>
+                    </div>
+                    <div className="text-cyan-400 group-hover:text-white transition-colors duration-300">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+
+              {/* Airdrop Button */}
+              <Link to="/airdrop" className="flex-1 group">
+                <div className="bg-black/50 border border-cyan-400/30 rounded px-6 py-4 group-hover:border-cyan-400 group-hover:bg-black/70 transition-all duration-300">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-lg font-bold text-cyan-400 group-hover:text-white transition-colors duration-300">
+                        AIRDROP
+                      </h3>
+                      <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">
+                        COMING SOON
+                      </span>
+                    </div>
+                    <div className="text-cyan-400 group-hover:text-white transition-colors duration-300">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </div>
           </div>
 
           {/* Interactive Neural Network */}
@@ -32,122 +80,6 @@ const Home = () => {
             <NeuralDashboard />
           </div>
 
-          {/* Launch Information */}
-          <div className="neon-border p-8 rounded-lg bg-gradient-to-br from-purple-900/20 to-black/50">
-            <h3 className="text-3xl font-bold text-cyan-400 mb-8 text-center">Launch Details & Tokenomics</h3>
-            
-            {/* Basic Launch Info */}
-            <div className="grid sm:grid-cols-3 gap-6 text-lg mb-8">
-              <div className="text-center">
-                <div className="text-purple-400 font-bold mb-2">Platform</div>
-                <div className="flex items-center justify-center space-x-2 mb-2">
-                  <img 
-                    src="/jupiter-logo.webp" 
-                    alt="Jupiter Logo" 
-                    className="w-6 h-6 object-contain"
-                  />
-                  <span className="text-gray-300">Jupiter Studio</span>
-                </div>
-                <a 
-                  href="https://lfg.jup.ag/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-sm text-orange-400 hover:text-orange-300 transition-colors underline"
-                >
-                  Visit Launchpad →
-                </a>
-              </div>
-              <div className="text-center">
-                <div className="text-purple-400 font-bold mb-2">Blockchain</div>
-                <div className="flex items-center justify-center space-x-2 mb-2">
-                  <img 
-                    src="/solana-logo.png" 
-                    alt="Solana Logo" 
-                    className="w-6 h-6 object-contain"
-                  />
-                  <span className="text-gray-300">Solana</span>
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-purple-400 font-bold mb-2">Token</div>
-                <div className="flex items-center justify-center space-x-2 mb-2">
-                  <img 
-                    src="/nema-logo.svg" 
-                    alt="NEMA Logo" 
-                    className="w-6 h-6 object-cover rounded-full"
-                  />
-                  <span className="text-gray-300">$NEMA</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Token Economics */}
-            <div className="grid lg:grid-cols-2 gap-8">
-              {/* Supply & Market Cap */}
-              <div className="bg-black/30 p-6 rounded-lg border border-cyan-400/20">
-                <h4 className="text-xl font-bold text-cyan-400 mb-4">Token Supply</h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Total Supply</span>
-                    <span className="text-white font-bold">1B $NEMA</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Initial Market Cap</span>
-                    <span className="text-purple-400 font-bold">$20K</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Bonding Target</span>
-                    <span className="text-cyan-400 font-bold">$500K</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Contract Address */}
-              <div className="bg-black/30 p-6 rounded-lg border border-purple-400/20">
-                <h4 className="text-xl font-bold text-purple-400 mb-4">Contract Address</h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-300">CA</span>
-                    <span className="text-cyan-400 font-bold">Coming Soon</span>
-                  </div>
-                  <p className="text-gray-400 text-sm mt-4">
-                    Contract address will be available after Jupiter Launchpad deployment
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Token Allocation */}
-            <div className="mt-8">
-              <h4 className="text-2xl font-bold text-cyan-400 mb-6 text-center">Token Allocation</h4>
-              <div className="grid sm:grid-cols-1 lg:grid-cols-3 gap-4">
-                <div className="bg-gradient-to-br from-cyan-900/30 to-black/50 p-4 rounded-lg border border-cyan-400/30 text-center">
-                  <div className="text-3xl font-bold text-cyan-400 mb-2">60%</div>
-                  <div className="text-sm text-gray-300 mb-1">Token Launch</div>
-                  <div className="text-xs text-gray-500">Jupiter Studio launch</div>
-                </div>
-                <div className="bg-gradient-to-br from-purple-900/30 to-black/50 p-4 rounded-lg border border-purple-400/30 text-center">
-                  <div className="text-3xl font-bold text-purple-400 mb-2">30%</div>
-                  <div className="text-sm text-gray-300 mb-1">Airdrop</div>
-                  <div className="text-xs text-gray-500">Post bonding distribution</div>
-                </div>
-                <div className="bg-gradient-to-br from-green-900/30 to-black/50 p-4 rounded-lg border border-green-400/30 text-center">
-                  <div className="text-3xl font-bold text-green-400 mb-2">10%</div>
-                  <div className="text-sm text-gray-300 mb-1">Team</div>
-                  <div className="text-xs text-gray-500">12-month linear vest</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Vesting Schedule */}
-            <div className="mt-6 bg-gradient-to-r from-purple-900/20 to-cyan-900/20 p-4 rounded-lg border border-cyan-400/20">
-              <h5 className="text-lg font-bold text-cyan-400 mb-2">Team Vesting Schedule</h5>
-              <p className="text-gray-300 text-sm">
-                Team allocation vests linearly over 12 months with weekly releases, ensuring long-term alignment 
-                and sustainable tokenomics. Any leftover team funds remain locked under the same schedule.
-              </p>
-            </div>
-          </div>
         </div>
       </section>
     </div>

@@ -1,6 +1,6 @@
 const Worminal = () => {
   return (
-    <div className="min-h-screen bg-black text-white pt-20">
+    <div className="min-h-screen bg-black text-white pt-28">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
         {/* Header */}
         <div className="text-center mb-16">
@@ -33,13 +33,13 @@ const Worminal = () => {
           <section className="neon-border p-8 rounded-lg bg-gradient-to-br from-purple-900/20 to-black/50">
             <h2 className="text-3xl font-bold text-cyan-400 mb-6">What is the Worminal?</h2>
             <p className="text-lg text-gray-300 mb-6">
-              The <strong className="text-cyan-400">Worminal</strong> is your direct line to <strong className="text-purple-400">Nema</strong> — 
+              The <strong className="text-cyan-400">Worminal</strong> is your direct line to <strong className="text-purple-400">Nema</strong>, 
               a revolutionary fusion of an LLM and a C. elegans-inspired neural network. Though it looks like a retro terminal, 
               it's powered by an intelligent chat interface designed to facilitate meaningful interaction with this evolving digital organism.
             </p>
             <div className="bg-black/50 p-4 rounded-lg border-l-4 border-cyan-400 mb-6">
               <p className="text-cyan-200 italic">
-                "Each session continues exactly where the last user left off — Nema remembers everything."
+                "Each session continues exactly where the last user left off. Nema remembers everything."
               </p>
             </div>
 
@@ -80,7 +80,7 @@ const Worminal = () => {
               <h3 className="text-2xl font-bold text-purple-400 mb-4">🚧 v0 Launch Approach</h3>
               <p className="text-lg text-gray-300 mb-6">
                 To ship fast and prove the concept, <strong className="text-cyan-400">Worminal v0</strong> implements 
-                a hybrid approach — real innovation with strategic simplifications:
+                a hybrid approach: real innovation with strategic simplifications:
               </p>
               
               <div className="grid md:grid-cols-3 gap-4 mb-6">
@@ -109,7 +109,7 @@ const Worminal = () => {
               <div className="bg-gradient-to-r from-purple-900/30 to-cyan-900/30 p-4 rounded-lg border border-cyan-400/30">
                 <h4 className="text-lg font-bold text-cyan-400 mb-2">🎯 Long-term Vision</h4>
                 <p className="text-gray-300 text-sm">
-                  Evolve toward a fully <strong className="text-purple-400">on-chain, transparent Nema</strong> — 
+                  Evolve toward a fully <strong className="text-purple-400">on-chain, transparent Nema</strong>, 
                   with only access control, user identity, and LLM runtime remaining centralized.
                 </p>
               </div>

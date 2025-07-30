@@ -2,7 +2,7 @@ import AboutSections from '../components/AboutSections';
 
 const About = () => {
   return (
-    <div className="min-h-screen bg-black text-white pt-20">
+    <div className="min-h-screen bg-black text-white pt-28">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
         {/* Header */}
         <div className="text-center mb-16">
