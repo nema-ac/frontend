@@ -39,16 +39,45 @@ const Home = () => {
             {/* Basic Launch Info */}
             <div className="grid sm:grid-cols-3 gap-6 text-lg mb-8">
               <div className="text-center">
-                <div className="text-purple-400 font-bold">Platform</div>
-                <div className="text-gray-300">Jupiter Launchpad</div>
+                <div className="text-purple-400 font-bold mb-2">Platform</div>
+                <div className="flex items-center justify-center space-x-2 mb-2">
+                  <img 
+                    src="/jupiter-logo.webp" 
+                    alt="Jupiter Logo" 
+                    className="w-6 h-6 object-contain"
+                  />
+                  <span className="text-gray-300">Jupiter Studio</span>
+                </div>
+                <a 
+                  href="https://lfg.jup.ag/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm text-orange-400 hover:text-orange-300 transition-colors underline"
+                >
+                  Visit Launchpad →
+                </a>
               </div>
               <div className="text-center">
-                <div className="text-purple-400 font-bold">Blockchain</div>
-                <div className="text-gray-300">Solana</div>
+                <div className="text-purple-400 font-bold mb-2">Blockchain</div>
+                <div className="flex items-center justify-center space-x-2 mb-2">
+                  <img 
+                    src="/solana-logo.png" 
+                    alt="Solana Logo" 
+                    className="w-6 h-6 object-contain"
+                  />
+                  <span className="text-gray-300">Solana</span>
+                </div>
               </div>
               <div className="text-center">
-                <div className="text-purple-400 font-bold">Token</div>
-                <div className="text-gray-300">$NEMA</div>
+                <div className="text-purple-400 font-bold mb-2">Token</div>
+                <div className="flex items-center justify-center space-x-2 mb-2">
+                  <img 
+                    src="/nema-logo.svg" 
+                    alt="NEMA Logo" 
+                    className="w-6 h-6 object-cover rounded-full"
+                  />
+                  <span className="text-gray-300">$NEMA</span>
+                </div>
               </div>
             </div>
 
@@ -64,11 +93,11 @@ const Home = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-300">Initial Market Cap</span>
-                    <span className="text-purple-400 font-bold">$200K</span>
+                    <span className="text-purple-400 font-bold">$20K</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-300">Graduation Target</span>
-                    <span className="text-cyan-400 font-bold">$1M</span>
+                    <span className="text-gray-300">Bonding Target</span>
+                    <span className="text-cyan-400 font-bold">$500K</span>
                   </div>
                 </div>
               </div>
@@ -91,21 +120,16 @@ const Home = () => {
             {/* Token Allocation */}
             <div className="mt-8">
               <h4 className="text-2xl font-bold text-cyan-400 mb-6 text-center">Token Allocation</h4>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid sm:grid-cols-1 lg:grid-cols-3 gap-4">
                 <div className="bg-gradient-to-br from-cyan-900/30 to-black/50 p-4 rounded-lg border border-cyan-400/30 text-center">
-                  <div className="text-3xl font-bold text-cyan-400 mb-2">40%</div>
-                  <div className="text-sm text-gray-300 mb-1">Open Supply</div>
-                  <div className="text-xs text-gray-500">Tradeable at launch</div>
+                  <div className="text-3xl font-bold text-cyan-400 mb-2">60%</div>
+                  <div className="text-sm text-gray-300 mb-1">Token Launch</div>
+                  <div className="text-xs text-gray-500">Jupiter Studio launch</div>
                 </div>
                 <div className="bg-gradient-to-br from-purple-900/30 to-black/50 p-4 rounded-lg border border-purple-400/30 text-center">
                   <div className="text-3xl font-bold text-purple-400 mb-2">30%</div>
                   <div className="text-sm text-gray-300 mb-1">Airdrop</div>
-                  <div className="text-xs text-gray-500">Dropped after bonding</div>
-                </div>
-                <div className="bg-gradient-to-br from-orange-900/30 to-black/50 p-4 rounded-lg border border-orange-400/30 text-center">
-                  <div className="text-3xl font-bold text-orange-400 mb-2">20%</div>
-                  <div className="text-sm text-gray-300 mb-1">Liquidity Pool</div>
-                  <div className="text-xs text-gray-500">Market stability</div>
+                  <div className="text-xs text-gray-500">Post bonding distribution</div>
                 </div>
                 <div className="bg-gradient-to-br from-green-900/30 to-black/50 p-4 rounded-lg border border-green-400/30 text-center">
                   <div className="text-3xl font-bold text-green-400 mb-2">10%</div>
