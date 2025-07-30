@@ -89,7 +89,7 @@ const Home = () => {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-300">Total Supply</span>
-                    <span className="text-white font-bold">100M $NEMA</span>
+                    <span className="text-white font-bold">1B $NEMA</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-300">Initial Market Cap</span>

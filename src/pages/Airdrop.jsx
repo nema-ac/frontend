@@ -11,7 +11,7 @@ const Airdrop = () => {
             <div className="text-6xl mb-6">🪂</div>
             <h2 className="text-3xl font-bold text-cyan-400 mb-6">Phased Airdrop Distribution</h2>
             <p className="text-lg text-gray-300 leading-relaxed mb-8">
-              30% of total $NEMA supply will be distributed to the community through a multi-phase airdrop program following Jupiter Studio bonding.
+              300M $NEMA tokens will be distributed to the community through a multi-phase airdrop program following Jupiter Studio bonding.
             </p>
 
             {/* Airdrop Phases */}
@@ -70,7 +70,7 @@ const Airdrop = () => {
               <div className="p-4 bg-gradient-to-br from-purple-900/10 to-black/30 rounded border border-cyan-400/30">
                 <div className="text-cyan-400 font-bold mb-2">Total Airdrop</div>
                 <div className="text-white text-lg font-bold">30% of Supply</div>
-                <div className="text-gray-400 text-sm">30M $NEMA tokens</div>
+                <div className="text-gray-400 text-sm">300M $NEMA tokens</div>
               </div>
               <div className="p-4 bg-gradient-to-br from-purple-900/10 to-black/30 rounded border border-purple-400/30">
                 <div className="text-purple-400 font-bold mb-2">Loyalty Bonus</div>
