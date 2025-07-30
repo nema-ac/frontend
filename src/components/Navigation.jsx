@@ -11,11 +11,8 @@ const Navigation = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3">
+          <Link to="/" className="flex items-center">
             <Logo size={36} />
-            <div className="text-2xl font-bold text-cyan-400">
-              NEMA
-            </div>
           </Link>
 
           {/* Navigation Links */}

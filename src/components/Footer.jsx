@@ -1,11 +1,13 @@
+import Logo from './Logo';
+
 const Footer = () => {
   return (
     <footer className="bg-black/90 border-t border-cyan-400/30 mt-16">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col items-center space-y-6">
           {/* Logo */}
-          <div className="text-2xl font-bold text-cyan-400">
-            NEMA
+          <div className="flex items-center">
+            <Logo size={40} />
           </div>
           
           {/* Social Links */}

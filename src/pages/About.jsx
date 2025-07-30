@@ -7,7 +7,7 @@ const About = () => {
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-4xl sm:text-6xl font-bold mb-6">
-            <span className="text-cyan-400">ABOUT NEMA</span>
+            <span className="text-cyan-400">ABOUT NEMΔ</span>
           </h1>
           <p className="text-xl text-gray-400 max-w-4xl mx-auto">
             The revolutionary digital biology project that introduces genuine learning 

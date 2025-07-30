@@ -10,7 +10,7 @@ const Home = () => {
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h1 className="text-5xl sm:text-7xl font-bold mb-6">
-              <span className="text-cyan-400">NEMA</span>
+              <span className="text-cyan-400">NEMΔ</span>
             </h1>
             <h2 className="text-2xl sm:text-3xl mb-8 text-gray-300">
               The Evolution of Digital Life
