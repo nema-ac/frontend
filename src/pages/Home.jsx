@@ -25,10 +25,10 @@ const Home = () => {
 
           {/* Navigation Buttons */}
           <div className="mb-16">
-            <div className="flex gap-4 max-w-6xl mx-auto">
+            <div className="flex flex-col sm:flex-row gap-4 max-w-6xl mx-auto">
               {/* Worminal Button */}
-              <Link to="/worminal" className="flex-1 group">
-                <div className="bg-black/50 border border-cyan-400/30 rounded px-6 py-4 group-hover:border-cyan-400 group-hover:bg-black/70 transition-all duration-300">
+              <Link to="/worminal" className="w-full sm:flex-1 group">
+                <div className="neon-border bg-black/50 rounded px-6 py-5 group-hover:bg-black/70 transition-all duration-300">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <h3 className="text-lg font-bold text-cyan-400 group-hover:text-white transition-colors duration-300">
@@ -48,8 +48,8 @@ const Home = () => {
               </Link>
 
               {/* Airdrop Button */}
-              <Link to="/airdrop" className="flex-1 group">
-                <div className="bg-black/50 border border-cyan-400/30 rounded px-6 py-4 group-hover:border-cyan-400 group-hover:bg-black/70 transition-all duration-300">
+              <Link to="/airdrop" className="w-full sm:flex-1 group">
+                <div className="neon-border bg-black/50 rounded px-6 py-5 group-hover:bg-black/70 transition-all duration-300">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <h3 className="text-lg font-bold text-cyan-400 group-hover:text-white transition-colors duration-300">
