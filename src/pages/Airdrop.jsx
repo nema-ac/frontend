@@ -81,12 +81,38 @@ const Airdrop = () => {
               <div className="bg-black/30 p-6 rounded-lg border border-purple-400/20">
                 <h4 className="text-xl font-bold text-purple-400 mb-4">Contract Address</h4>
                 <div className="space-y-3">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-300">CA</span>
+                      <button 
+                        onClick={() => navigator.clipboard.writeText('5hUL8iHMXcUj9AS7yBErJmmTXyRvbdwwUqbtB2udjups')}
+                        className="text-gray-400 hover:text-white transition-colors"
+                        title="Copy to clipboard"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div className="bg-gray-900/50 rounded p-2">
+                      <span className="text-cyan-400 font-mono text-xs sm:text-sm font-bold break-all">
+                        5hUL8iHMXcUj9AS7yBErJmmTXyRvbdwwUqbtB2udjups
+                      </span>
+                    </div>
+                  </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-300">CA</span>
-                    <span className="text-cyan-400 font-bold">Coming Soon</span>
+                    <span className="text-gray-300">Chart</span>
+                    <a 
+                      href="https://dexscreener.com/solana/4nyhzno8noeabnj9fgmsk7ympxgssacqswjuhrg3xucz" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-orange-400 hover:text-orange-300 transition-colors underline font-bold"
+                    >
+                      Dexscreener →
+                    </a>
                   </div>
                   <p className="text-sm text-gray-400 mt-4">
-                    Contract address will be available after Jupiter Launchpad deployment
+                    Token is live on Solana. Click chart link to view trading data.
                   </p>
                 </div>
               </div>

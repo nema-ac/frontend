@@ -16,6 +16,27 @@ const Home = () => {
             <h2 className="text-2xl sm:text-3xl mb-8 text-gray-300">
               302 neurons. Infinite possibilities. One NEMΔ
             </h2>
+            
+            {/* Contract Address */}
+            <div className="bg-black/50 border border-cyan-400/30 rounded-lg px-4 py-3 mb-8 max-w-full mx-auto">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <span className="text-gray-400 text-sm whitespace-nowrap">CA:</span>
+                  <span className="text-cyan-400 font-mono text-xs sm:text-sm font-bold truncate">
+                    5hUL8iHMXcUj9AS7yBErJmmTXyRvbdwwUqbtB2udjups
+                  </span>
+                </div>
+                <button 
+                onClick={() => navigator.clipboard.writeText('5hUL8iHMXcUj9AS7yBErJmmTXyRvbdwwUqbtB2udjups')}
+                  className="text-gray-400 hover:text-white transition-colors flex-shrink-0"
+                title="Copy to clipboard"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Terminal Component */}
