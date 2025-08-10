@@ -22,42 +22,59 @@ const InteractiveTerminal = () => {
     isTyping, 
     loading, 
     error, 
+    isLoadingHistory,
+    historyLoaded,
     sendMessage, 
     clearConversation,
     addMessage
   } = useConversation({
-    maxMessages: 50,
+    maxMessages: 100,
+    loadHistory: true,
+    historyLimit: 20,
     onError: (error) => {
       console.error('Conversation error:', error);
     }
   });
 
   // Initialize terminal with welcome message (using ref to prevent duplicates)
+  // Only show welcome messages if we're not loading history or if history loading fails
   useEffect(() => {
-    if (!initializationRef.current) {
+    if (!initializationRef.current && !isLoadingHistory && (historyLoaded || error)) {
       initializationRef.current = true;
-      // Add welcome messages using the conversation hook
-      setTimeout(() => {
-        const welcomeMessages = [
-          'NEMA Neural Network Terminal v2.0',
-          'Initializing connection to neural substrate...',
-          '348 neurons online | C. elegans connectome active',
-          'Type "help" for available commands or start chatting with NEMA'
-        ];
-        
-        // Add messages with delays for typing effect
-        welcomeMessages.forEach((content, index) => {
-          setTimeout(() => {
-            addMessage({
-              type: 'system', 
-              content, 
-              timestamp: new Date()
-            });
-          }, index * 800);
-        });
-      }, 500);
+      
+      // If history was loaded successfully, show a brief status
+      if (historyLoaded && conversation.length > 0) {
+        setTimeout(() => {
+          addMessage({
+            type: 'system',
+            content: `Loaded ${conversation.length} previous messages. Type "help" for commands.`,
+            timestamp: new Date()
+          });
+        }, 500);
+      } else {
+        // Show full welcome messages if no history or history failed
+        setTimeout(() => {
+          const welcomeMessages = [
+            'NEMA Neural Network Terminal v2.0',
+            'Initializing connection to neural substrate...',
+            '348 neurons online | C. elegans connectome active',
+            'Type "help" for available commands or start chatting with NEMA'
+          ];
+          
+          // Add messages with delays for typing effect
+          welcomeMessages.forEach((content, index) => {
+            setTimeout(() => {
+              addMessage({
+                type: 'system', 
+                content, 
+                timestamp: new Date()
+              });
+            }, index * 800);
+          });
+        }, 500);
+      }
     }
-  }, [addMessage]);
+  }, [addMessage, isLoadingHistory, historyLoaded, error, conversation.length]);
 
   // Use conversation directly from the hook
   const allMessages = conversation;
@@ -214,9 +231,10 @@ Or simply type a message to chat with NEMA!`,
   const getMessageStyle = (type) => {
     switch (type) {
       case 'user':
-        return 'text-cyan-400';
-      case 'assistant':
         return 'text-green-400';
+      case 'assistant':
+      case 'nema': // Support both "assistant" (from hook) and "nema" (from API)
+        return 'text-blue-400';
       case 'system':
         return 'text-yellow-400';
       default:
@@ -230,6 +248,7 @@ Or simply type a message to chat with NEMA!`,
       case 'user':
         return 'user@worminal:~$';
       case 'assistant':
+      case 'nema': // Support both "assistant" (from hook) and "nema" (from API)
         return 'nema@neural:~>';
       case 'system':
         return 'system@worminal:~#';
@@ -270,6 +289,23 @@ Or simply type a message to chat with NEMA!`,
             className="mb-4"
             onRetry={() => window.location.reload()}
           />
+        )}
+
+        {/* Loading History Indicator */}
+        {isLoadingHistory && (
+          <div className="flex items-start space-x-2">
+            <span className="text-yellow-400 text-xs min-w-fit">
+              [{formatTimestamp(new Date())}] system@worminal:~#
+            </span>
+            <div className="text-yellow-400 flex items-center space-x-1">
+              <span>Loading message history</span>
+              <div className="flex space-x-1">
+                <div className="w-1 h-1 bg-yellow-400 rounded-full animate-pulse"></div>
+                <div className="w-1 h-1 bg-yellow-400 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                <div className="w-1 h-1 bg-yellow-400 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Messages */}

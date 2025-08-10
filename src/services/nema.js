@@ -40,10 +40,12 @@ const validatePromptResponse = (data) => {
     throw new Error('Invalid prompt response: missing data object');
   }
 
-  // The exact structure depends on your Go backend implementation
-  // Adjust these validations based on your AskResponse structure
-  if (!data.human_message && !data.response && !data.message) {
-    throw new Error('Invalid prompt response: missing response message');
+  // Based on Go backend's AskResponse structure
+  const requiredFields = ['human_message', 'state_id', 'changed', 'neural_state'];
+  for (const field of requiredFields) {
+    if (!(field in data)) {
+      throw new Error(`Invalid prompt response: missing ${field}`);
+    }
   }
 
   return true;
@@ -94,15 +96,17 @@ class NemaService {
       const data = await apiClient.post('/nema/prompt', requestBody);
       validatePromptResponse(data);
       
-      // Structure response based on your Go backend's AskResponse
+      // Structure response based on Go backend's AskResponse
       const response = {
-        message: data.human_message || data.response || data.message,
+        message: data.human_message,
         timestamp: new Date(),
+        stateId: data.state_id,
+        changed: data.changed,
       };
 
-      // Include neural state if present in response
-      if (data.neural_state || data.state) {
-        const neuralData = data.neural_state || data.state;
+      // Include neural state from response
+      if (data.neural_state) {
+        const neuralData = data.neural_state;
         response.neuralState = {
           stateCount: neuralData.state_count,
           updatedAt: new Date(neuralData.updated_at),
@@ -113,9 +117,10 @@ class NemaService {
         };
       }
 
-      // Include state changes if present
-      if (data.state_changes || data.changes) {
-        response.stateChanges = data.state_changes || data.changes;
+      // Note: State changes are implicit in the neural_state difference
+      // The backend doesn't explicitly return changes, but we can infer from the 'changed' field
+      if (data.changed) {
+        response.stateChanges = { changed: true };
       }
 
       return response;
@@ -135,6 +140,43 @@ class NemaService {
       return await apiClient.healthCheck();
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * Get message history from backend
+   * GET /nema/history
+   */
+  async getHistory(limit = 20) {
+    if (typeof limit !== 'number' || limit <= 0) {
+      throw new Error('Limit must be a positive number');
+    }
+
+    try {
+      const data = await apiClient.get(`/nema/history?limit=${limit}`);
+      
+      // Validate response structure
+      if (!data || !Array.isArray(data.messages)) {
+        throw new Error('Invalid history response: missing messages array');
+      }
+
+      // Convert to frontend format
+      return {
+        messages: data.messages.map(msg => ({
+          id: msg.id,
+          type: msg.type, // "system", "user", "nema"
+          content: msg.content,
+          timestamp: new Date(msg.created_at),
+          createdAt: msg.created_at,
+        })),
+        total: data.total || data.messages.length,
+        limit: data.limit || limit,
+      };
+    } catch (error) {
+      if (error instanceof NetworkError || error instanceof ServerError) {
+        throw error;
+      }
+      throw new Error(`Failed to get message history: ${error.message}`);
     }
   }
 

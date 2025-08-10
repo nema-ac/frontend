@@ -186,10 +186,18 @@ export const useSendPrompt = (options = {}) => {
  * Hook for managing a conversation history
  */
 export const useConversation = (options = {}) => {
-  const { maxMessages = 100, onError = null } = options;
+  const { 
+    maxMessages = 100, 
+    onError = null,
+    loadHistory = false,
+    historyLimit = 20 
+  } = options;
   
   const [conversation, setConversation] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
+  const historyAttemptedRef = useRef(false);
   
   const { sendPrompt, loading, error } = useSendPrompt({
     onSuccess: (response) => {
@@ -236,16 +244,63 @@ export const useConversation = (options = {}) => {
   const clearConversation = useCallback(() => {
     setConversation([]);
     setIsTyping(false);
+    setHistoryLoaded(false);
+    historyAttemptedRef.current = false; // Reset attempt flag
   }, []);
+
+  // Load history on mount if enabled
+  const loadHistoryMessages = useCallback(async () => {
+    // Prevent multiple attempts - if we've tried once, don't try again
+    if (!loadHistory || historyLoaded || isLoadingHistory || historyAttemptedRef.current) {
+      return;
+    }
+    
+    historyAttemptedRef.current = true; // Mark as attempted immediately
+    setIsLoadingHistory(true);
+    
+    try {
+      const historyData = await nemaService.getHistory(historyLimit);
+      
+      // Convert history messages to conversation format
+      const historyMessages = historyData.messages.map(msg => ({
+        id: msg.id,
+        type: msg.type === 'nema' ? 'assistant' : msg.type, // Convert "nema" to "assistant" for consistency
+        content: msg.content,
+        timestamp: msg.timestamp,
+      }));
+      
+      // Set the conversation with history messages
+      setConversation(historyMessages);
+      setHistoryLoaded(true);
+    } catch (error) {
+      // If it fails, it fails - don't retry
+      setHistoryLoaded(true); // Mark as "done" even on failure to prevent retries
+      if (onError) {
+        onError(error);
+      }
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  }, [loadHistory, historyLoaded, isLoadingHistory, historyLimit, onError]);
+
+  // Load history when component mounts
+  useEffect(() => {
+    if (loadHistory && !historyLoaded && !isLoadingHistory) {
+      loadHistoryMessages();
+    }
+  }, [loadHistory, historyLoaded, isLoadingHistory]); // Removed loadHistoryMessages from deps to prevent infinite loop
 
   return {
     conversation,
     isTyping,
     loading,
     error,
+    isLoadingHistory,
+    historyLoaded,
     sendMessage,
     clearConversation,
     addMessage,
+    loadHistoryMessages,
   };
 };
 

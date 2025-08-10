@@ -60,18 +60,10 @@ export const getUserFriendlyErrorMessage = (error) => {
 };
 
 /**
- * Determine if an error is retryable
+ * Determine if an error is retryable (deprecated - no retries implemented)
  */
 export const isRetryableError = (error) => {
-  if (error instanceof TimeoutError) return true;
-  if (error instanceof NetworkError) {
-    // Don't retry client errors (4xx)
-    return !error.status || error.status >= 500;
-  }
-  if (error instanceof ServerError) {
-    // Retry server errors except 501 (Not Implemented)
-    return error.status !== 501;
-  }
+  // Always return false since we don't retry requests
   return false;
 };
 
@@ -116,28 +108,18 @@ export const createErrorState = (error, context = '') => {
 export const getErrorRecoveryActions = (error) => {
   const actions = [];
   
-  if (isRetryableError(error)) {
-    actions.push({
-      label: 'Try Again',
-      action: 'retry',
-      primary: true,
-    });
-  }
+  // Manual retry option for user-initiated retries
+  actions.push({
+    label: 'Try Again',
+    action: 'retry',
+    primary: true,
+  });
   
   if (error instanceof NetworkError) {
     actions.push({
       label: 'Check Connection',
       action: 'checkConnection',
       primary: false,
-    });
-  }
-  
-  if (error.status === 429) {
-    actions.push({
-      label: 'Wait and Retry',
-      action: 'waitAndRetry',
-      primary: true,
-      delay: 5000, // 5 seconds
     });
   }
   

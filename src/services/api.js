@@ -41,7 +41,6 @@ class ApiClient {
   constructor() {
     this.baseUrl = config.api.baseUrl;
     this.timeout = config.api.timeout;
-    this.retries = config.api.retries;
     this.settings = getEnvironmentSettings();
   }
 
@@ -103,10 +102,10 @@ class ApiClient {
   }
 
   /**
-   * Make HTTP request with timeout and retry logic
+   * Make HTTP request with timeout (single attempt, no retries)
    */
   async makeRequest(endpoint, options = {}) {
-    const { method = 'GET', headers = {}, body, retries = this.retries } = options;
+    const { method = 'GET', headers = {}, body } = options;
     const url = `${this.baseUrl}${endpoint}`;
     
     const requestOptions = {
@@ -123,30 +122,12 @@ class ApiClient {
 
     this.logRequest(method, url, requestOptions);
 
-    // Attempt the request with retries
-    for (let attempt = 0; attempt <= retries; attempt++) {
-      try {
-        const fetchPromise = fetch(url, requestOptions);
-        const timeoutPromise = createTimeout(this.timeout);
-        
-        const response = await Promise.race([fetchPromise, timeoutPromise]);
-        return await this.handleResponse(response, method, url);
-        
-      } catch (error) {
-        // If this is the last attempt or a non-retryable error, throw it
-        if (attempt === retries || error instanceof TimeoutError || error.status < 500) {
-          throw error;
-        }
-        
-        // Wait before retrying (exponential backoff)
-        const delay = Math.pow(2, attempt) * 1000;
-        await new Promise(resolve => setTimeout(resolve, delay));
-        
-        if (this.settings.enableApiDebugging) {
-          console.warn(`🔄 Retrying API request (${attempt + 1}/${retries}):`, url);
-        }
-      }
-    }
+    // Single attempt with timeout
+    const fetchPromise = fetch(url, requestOptions);
+    const timeoutPromise = createTimeout(this.timeout);
+    
+    const response = await Promise.race([fetchPromise, timeoutPromise]);
+    return await this.handleResponse(response, method, url);
   }
 
   /**

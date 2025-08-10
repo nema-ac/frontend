@@ -14,7 +14,6 @@ const config = {
       ? 'http://localhost:8080' 
       : 'https://nema.fly.dev', // Update this to match your production backend URL
     timeout: 30000, // 30 seconds
-    retries: 3,
   },
   
   // Development settings
