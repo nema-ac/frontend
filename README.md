@@ -152,6 +152,81 @@ Nema doesn't just create digital organisms—it creates digital organisms capabl
 
 Join us in creating the future where digital organisms don't just exist—they live, learn, and evolve.
 
+## 🛠️ Frontend Setup Guide
+
+### Prerequisites
+- **Node.js v20 or higher** (required for Vite 7 and React Router 7)
+- npm (comes with Node.js)
+
+> ⚠️ **Important**: This project requires Node.js v20+. If you have an older version, follow the setup steps below.
+
+### Quick Start
+
+#### 1. **Set up Node.js v20 using nvm (recommended)**:
+```bash
+# Install nvm if you don't have it
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+
+# Restart your terminal or run:
+source ~/.bashrc
+
+# Install and use Node.js v20
+nvm install 20
+nvm use 20
+
+# Verify version
+node -v  # Should show v20.x.x
+```
+
+#### 2. **Clone and navigate to the project**:
+```bash
+cd frontend
+```
+
+#### 3. **Install dependencies**:
+```bash
+npm install
+```
+
+#### 4. **Start development server**:
+```bash
+npm run dev
+```
+The app will be available at `http://localhost:5173`
+
+### Available Commands
+- `npm run dev` - Start development server with hot reload
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build locally
+- `npm run lint` - Run ESLint to check code quality
+
+### Making Changes
+- **Components**: Edit files in `src/components/` for reusable UI elements
+- **Pages**: Edit files in `src/pages/` for main route components
+- **Styles**: Uses Tailwind CSS - modify `tailwind.config.js` for custom colors/themes
+- **Routes**: Update `src/App.jsx` to add/modify routes
+
+### Key Files for Backend Devs
+- `src/App.jsx` - Main app component with routing
+- `src/components/InteractiveNeuralNetwork.jsx` - D3-powered neural visualization
+- `src/components/Terminal.jsx` - Terminal interface component
+- `package.json` - Dependencies and scripts
+- `vite.config.js` - Build configuration
+
+### Tech Stack
+- **React 19** - UI framework
+- **Vite** - Build tool and dev server
+- **Tailwind CSS v4** - Styling
+- **D3.js** - Neural network visualizations
+- **React Router** - Client-side routing
+
+### Deployment
+The app is deployed to fly.io. For deployment commands, see the Makefile:
+```bash
+make deploy-full  # Lint, build, and deploy
+make logs         # View deployment logs
+```
+
 ---
 
 *Built with React, Vite, and Tailwind CSS for an immersive digital biology experience.*

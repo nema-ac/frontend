@@ -55,8 +55,8 @@ const Home = () => {
                       <h3 className="text-lg font-bold text-cyan-400 group-hover:text-white transition-colors duration-300">
                         WORMINAL
                       </h3>
-                      <span className="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded">
-                        COMING SOON
+                      <span className="text-xs text-green-400 bg-green-900/30 px-2 py-1 rounded border border-green-400/30">
+                        LIVE
                       </span>
                     </div>
                     <div className="text-cyan-400 group-hover:text-white transition-colors duration-300">
