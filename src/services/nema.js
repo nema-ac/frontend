@@ -13,7 +13,7 @@ const validateNeuralState = (data) => {
     throw new Error('Invalid neural state response: missing data object');
   }
 
-  const requiredFields = ['state_count', 'updated_at', 'motor_neurons', 'sensory_neurons'];
+  const requiredFields = ['id', 'updated_at', 'motor_neurons', 'sensory_neurons'];
   for (const field of requiredFields) {
     if (!(field in data)) {
       throw new Error(`Invalid neural state response: missing ${field}`);
@@ -65,7 +65,7 @@ class NemaService {
       validateNeuralState(data);
       
       return {
-        stateCount: data.state_count,
+        stateCount: data.id, // Use id as state count
         updatedAt: new Date(data.updated_at),
         motorNeurons: data.motor_neurons,
         sensoryNeurons: data.sensory_neurons,
@@ -164,7 +164,7 @@ class NemaService {
       return {
         messages: data.messages.map(msg => ({
           id: msg.id,
-          type: msg.type, // "system", "user", "nema"
+          type: msg.kind, // Convert "kind" to "type" for frontend consistency
           content: msg.content,
           timestamp: new Date(msg.created_at),
           createdAt: msg.created_at,

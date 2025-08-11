@@ -6,15 +6,82 @@
 import { useState, useEffect, useRef } from 'react';
 import { useConversation } from '../hooks/useNema.js';
 import { ErrorDisplay } from './ErrorBoundary.jsx';
+import nemaService from '../services/nema.js';
 
 const InteractiveTerminal = () => {
   const [input, setInput] = useState('');
   const [commandHistory, setCommandHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
+  const [showNeuralState, setShowNeuralState] = useState(true);
+  const [currentNeuralState, setCurrentNeuralState] = useState(null);
+  const [previousNeuralState, setPreviousNeuralState] = useState(null);
+  const [recentNeuralChanges, setRecentNeuralChanges] = useState([]);
   
   const inputRef = useRef(null);
   const messagesEndRef = useRef(null);
   const initializationRef = useRef(false);
+  
+  // Calculate differences between two neural states
+  const calculateNeuralChanges = (oldState, newState) => {
+    if (!oldState || !newState) return [];
+    
+    const changes = [];
+    
+    // Check motor neuron changes
+    const allMotorNeurons = new Set([
+      ...Object.keys(oldState.motorNeurons || {}),
+      ...Object.keys(newState.motorNeurons || {})
+    ]);
+    
+    for (const neuron of allMotorNeurons) {
+      const oldValue = oldState.motorNeurons?.[neuron] || 0;
+      const newValue = newState.motorNeurons?.[neuron] || 0;
+      if (oldValue !== newValue) {
+        changes.push({
+          neuron,
+          type: 'motor',
+          oldValue,
+          newValue,
+          delta: newValue - oldValue
+        });
+      }
+    }
+    
+    // Check sensory neuron changes
+    const allSensoryNeurons = new Set([
+      ...Object.keys(oldState.sensoryNeurons || {}),
+      ...Object.keys(newState.sensoryNeurons || {})
+    ]);
+    
+    for (const neuron of allSensoryNeurons) {
+      const oldValue = oldState.sensoryNeurons?.[neuron] || 0;
+      const newValue = newState.sensoryNeurons?.[neuron] || 0;
+      if (oldValue !== newValue) {
+        changes.push({
+          neuron,
+          type: 'sensory',
+          oldValue,
+          newValue,
+          delta: newValue - oldValue
+        });
+      }
+    }
+    
+    return changes;
+  };
+
+  // Format neural changes for display
+  const formatNeuralChanges = (changes) => {
+    if (!changes || changes.length === 0) return 'No neural changes';
+    
+    return changes
+      .slice(0, 5) // Limit to first 5 changes to avoid clutter
+      .map(change => {
+        const sign = change.delta > 0 ? '+' : '';
+        return `${change.neuron} ${sign}${change.delta}`;
+      })
+      .join(', ');
+  };
   
   // Remove health checks to avoid CORS issues - we'll show connection status based on actual API calls
   const { 
@@ -33,6 +100,15 @@ const InteractiveTerminal = () => {
     historyLimit: 20,
     onError: (error) => {
       console.error('Conversation error:', error);
+    },
+    onNeuralStateUpdate: (neuralState) => {
+      // Calculate changes between previous and new state
+      const changes = calculateNeuralChanges(currentNeuralState, neuralState);
+      setRecentNeuralChanges(changes);
+      
+      // Update states
+      setPreviousNeuralState(currentNeuralState);
+      setCurrentNeuralState(neuralState);
     }
   });
 
@@ -76,19 +152,38 @@ const InteractiveTerminal = () => {
     }
   }, [addMessage, isLoadingHistory, historyLoaded, error, conversation.length]);
 
+  // Load initial neural state on mount
+  useEffect(() => {
+    if (!currentNeuralState) {
+      fetchCurrentNeuralState();
+    }
+  }, []);
+
   // Use conversation directly from the hook
   const allMessages = conversation;
 
-  // Auto-scroll to bottom
+  // Auto-scroll to bottom (container only, not page)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const container = messagesEndRef.current?.parentElement;
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
   }, [allMessages, isTyping]);
 
-  // Focus input on mount and clicks
+  // Focus input when clicking within terminal area only
   useEffect(() => {
-    const handleClick = () => inputRef.current?.focus();
-    document.addEventListener('click', handleClick);
-    return () => document.removeEventListener('click', handleClick);
+    const terminalElement = messagesEndRef.current?.closest('.neon-border');
+    if (!terminalElement) return;
+    
+    const handleTerminalClick = (e) => {
+      // Only focus if the click target is not an input or button
+      if (!e.target.matches('input, button, a, [contenteditable="true"]')) {
+        inputRef.current?.focus();
+      }
+    };
+    
+    terminalElement.addEventListener('click', handleTerminalClick);
+    return () => terminalElement.removeEventListener('click', handleTerminalClick);
   }, []);
 
   // Handle keyboard shortcuts
@@ -98,16 +193,10 @@ const InteractiveTerminal = () => {
       handleSendMessage();
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      navigateHistory(-1);
+      navigateHistory(1); // Up = go back in history (older)
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
-      navigateHistory(1);
-    } else if (e.ctrlKey && e.key === 'l') {
-      e.preventDefault();
-      handleClearTerminal();
-    } else if (e.ctrlKey && e.key === 'c') {
-      e.preventDefault();
-      setInput('');
+      navigateHistory(-1); // Down = go forward in history (newer)
     }
   };
 
@@ -132,26 +221,20 @@ const InteractiveTerminal = () => {
           type: 'system',
           content: `Available commands:
 • help - Show this help message
-• clear - Clear terminal history
 • status - Show NEMA neural network status
 • ping - Test connection to NEMA
-• history - Show command history
-• exit - Close terminal session
+• state - Toggle neural state sidebar
 
 Or simply type a message to chat with NEMA!`,
           timestamp: new Date()
         };
-        
-      case 'clear':
-        handleClearTerminal();
-        return null;
         
       case 'status':
         return {
           type: 'system',
           content: `NEMA Status:
 • Neural Network: Ready for interaction
-• Total Neurons: 348 (95 motor + 253 sensory)
+• Total Neurons: 302 (95 motor + 207 sensory)
 • Connection: Send a message to test connectivity
 • Terminal: Active and ready`,
           timestamp: new Date()
@@ -164,21 +247,23 @@ Or simply type a message to chat with NEMA!`,
           timestamp: new Date()
         };
         
-      case 'history':
-        return {
-          type: 'system',
-          content: commandHistory.length > 0 
-            ? `Command history:\n${commandHistory.map((cmd, i) => `  ${i + 1}. ${cmd}`).join('\n')}`
-            : 'No command history available',
-          timestamp: new Date()
-        };
-        
-      case 'exit':
-        return {
-          type: 'system',
-          content: 'Neural connection terminated. Refresh page to reconnect.',
-          timestamp: new Date()
-        };
+      case 'state':
+        // Toggle neural state sidebar
+        if (showNeuralState) {
+          setShowNeuralState(false);
+          return {
+            type: 'system',
+            content: 'Neural state viewer closed.',
+            timestamp: new Date()
+          };
+        } else {
+          fetchCurrentNeuralState();
+          return {
+            type: 'system',
+            content: 'Opening neural state viewer...',
+            timestamp: new Date()
+          };
+        }
         
       default:
         return null; // Not a command, treat as regular message
@@ -199,6 +284,12 @@ Or simply type a message to chat with NEMA!`,
     if (commandResponse) {
       addMessage(commandResponse);
       setInput('');
+      // Refocus input after command (only if no other element is focused)
+      setTimeout(() => {
+        if (!document.activeElement || document.activeElement === document.body) {
+          inputRef.current?.focus();
+        }
+      }, 100);
       return;
     }
 
@@ -209,12 +300,41 @@ Or simply type a message to chat with NEMA!`,
       await sendMessage(trimmedInput);
     } catch (error) {
       // Error is handled by the hook
+    } finally {
+      // Refocus input after message is sent (success or failure)
+      // Only if the document's active element is not something else the user clicked on
+      setTimeout(() => {
+        if (!document.activeElement || document.activeElement === document.body) {
+          inputRef.current?.focus();
+        }
+      }, 100);
     }
   };
 
   // Clear terminal
   const handleClearTerminal = () => {
     clearConversation();
+  };
+
+  // Fetch current neural state (only when no state exists)
+  const fetchCurrentNeuralState = async () => {
+    if (currentNeuralState) {
+      // If we already have state, just show the sidebar
+      setShowNeuralState(true);
+      return;
+    }
+    
+    try {
+      const neuralState = await nemaService.getNeuralState();
+      setCurrentNeuralState(neuralState);
+      setShowNeuralState(true);
+    } catch (error) {
+      addMessage({
+        type: 'system',
+        content: `Error fetching neural state: ${error.message}`,
+        timestamp: new Date()
+      });
+    }
   };
 
   // Format timestamp for messages
@@ -242,23 +362,26 @@ Or simply type a message to chat with NEMA!`,
     }
   };
 
-  // Get prompt prefix based on type
-  const getPromptPrefix = (type) => {
+  // Get prompt prefix based on type and ID
+  const getPromptPrefix = (type, id) => {
+    const idStr = id ? `[${id}]` : '';
     switch (type) {
       case 'user':
-        return 'user@worminal:~$';
+        return `user@worminal${idStr}:~$`;
       case 'assistant':
       case 'nema': // Support both "assistant" (from hook) and "nema" (from API)
-        return 'nema@neural:~>';
+        return `nema@neural${idStr}:~>`;
       case 'system':
-        return 'system@worminal:~#';
+        return `system@worminal${idStr}:~#`;
       default:
-        return '>';
+        return `${idStr}>`;
     }
   };
 
   return (
-    <div className="neon-border bg-black rounded-lg font-mono text-sm h-[600px] flex flex-col">
+    <div className="flex gap-4">
+      {/* Terminal */}
+      <div className={`neon-border bg-black rounded-lg font-mono text-sm h-[600px] flex flex-col transition-all duration-300 ${showNeuralState ? 'w-2/3' : 'w-full'}`}>
       {/* Terminal Header */}
       <div className="flex items-center justify-between p-4 border-b border-cyan-400/30">
         <div className="flex items-center space-x-4">
@@ -314,17 +437,25 @@ Or simply type a message to chat with NEMA!`,
             <div key={message.id || index} className="flex flex-col">
               <div className="flex items-start space-x-2">
                 <span className={`${getMessageStyle(message.type)} text-xs min-w-fit`}>
-                  [{formatTimestamp(message.timestamp)}] {getPromptPrefix(message.type)}
+                  [{formatTimestamp(message.timestamp)}] {getPromptPrefix(message.type, message.id)}
                 </span>
                 <div className={`${getMessageStyle(message.type)} flex-1 whitespace-pre-wrap break-words`}>
                   {message.content}
                 </div>
               </div>
               
-              {/* Neural State Changes (for assistant messages) */}
-              {message.stateChanges && (
-                <div className="ml-4 mt-1 text-xs text-purple-400">
-                  <span className="text-gray-400">Neural state changes:</span> {JSON.stringify(message.stateChanges)}
+              {/* Show neural changes for the most recent assistant message */}
+              {message.type === 'assistant' && 
+               index === allMessages.length - 1 && 
+               recentNeuralChanges.length > 0 && (
+                <div className="ml-4 mt-1 text-xs">
+                  <span className="text-gray-400">Neural changes:</span>{' '}
+                  <span className="text-cyan-400">
+                    {formatNeuralChanges(recentNeuralChanges)}
+                    {recentNeuralChanges.length > 5 && (
+                      <span className="text-gray-500"> (+{recentNeuralChanges.length - 5} more)</span>
+                    )}
+                  </span>
                 </div>
               )}
             </div>
@@ -333,15 +464,15 @@ Or simply type a message to chat with NEMA!`,
           {/* Typing Indicator */}
           {isTyping && (
             <div className="flex items-start space-x-2">
-              <span className="text-green-400 text-xs min-w-fit">
+              <span className="text-blue-400 text-xs min-w-fit">
                 [{formatTimestamp(new Date())}] nema@neural:~&gt;
               </span>
-              <div className="text-green-400 flex items-center space-x-1">
+              <div className="text-blue-400 flex items-center space-x-1">
                 <span>thinking</span>
                 <div className="flex space-x-1">
-                  <div className="w-1 h-1 bg-green-400 rounded-full animate-pulse"></div>
-                  <div className="w-1 h-1 bg-green-400 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                  <div className="w-1 h-1 bg-green-400 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                  <div className="w-1 h-1 bg-blue-400 rounded-full animate-pulse"></div>
+                  <div className="w-1 h-1 bg-blue-400 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                  <div className="w-1 h-1 bg-blue-400 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
                 </div>
               </div>
             </div>
@@ -376,17 +507,92 @@ Or simply type a message to chat with NEMA!`,
         </div>
       </div>
 
-      {/* Terminal Footer */}
-      <div className="px-4 py-2 border-t border-cyan-400/30 text-xs text-gray-500">
-        <div className="flex items-center justify-between">
-          <div>
-            Press Ctrl+L to clear, Ctrl+C to cancel, ↑/↓ for history
-          </div>
-          <div>
-            Messages: {allMessages.length}
+        {/* Terminal Footer */}
+        <div className="px-4 py-2 border-t border-cyan-400/30 text-xs text-gray-500">
+          <div className="flex items-center justify-between">
+            <div>
+              Press ↑/↓ for command history
+            </div>
+            <div>
+              Messages: {allMessages.length}
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Neural State Sidebar */}
+      {showNeuralState && (
+        <div className="w-1/3 neon-border bg-black rounded-lg font-mono text-sm h-[600px] flex flex-col">
+          {/* Sidebar Header */}
+          <div className="flex items-center justify-between p-4 border-b border-purple-400/30">
+            <div className="text-purple-400 font-semibold">Neural State</div>
+            <button 
+              onClick={() => setShowNeuralState(false)}
+              className="text-gray-400 hover:text-red-400 transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+          
+          {/* Neural State Content */}
+          <div className="flex-1 p-4 overflow-y-auto">
+            {currentNeuralState ? (
+              <div className="space-y-4">
+                <div className="text-cyan-400">
+                  <div>State Count: {currentNeuralState.stateCount}</div>
+                  <div>Updated: {currentNeuralState.updatedAt.toLocaleString()}</div>
+                  <div>Total Neurons: {currentNeuralState.totalNeurons}</div>
+                </div>
+                
+                {/* Recent Neural Changes */}
+                {recentNeuralChanges.length > 0 && (
+                  <div className="border-t border-gray-700 pt-4">
+                    <div className="text-yellow-400 mb-2">Recent Changes ({recentNeuralChanges.length}):</div>
+                    <div className="space-y-1 text-xs">
+                      {recentNeuralChanges.slice(0, 10).map((change, idx) => (
+                        <div key={idx} className="flex justify-between items-center">
+                          <span className={change.type === 'motor' ? 'text-green-300' : 'text-blue-300'}>
+                            {change.neuron}
+                          </span>
+                          <span className="text-gray-400 text-xs">
+                            {change.oldValue} → {change.newValue}
+                          </span>
+                          <span className={`font-mono ${change.delta > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                            {change.delta > 0 ? '+' : ''}{change.delta}
+                          </span>
+                        </div>
+                      ))}
+                      {recentNeuralChanges.length > 10 && (
+                        <div className="text-gray-500 text-center pt-2">
+                          +{recentNeuralChanges.length - 10} more changes
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="border-t border-gray-700 pt-4">
+                  <div className="text-green-400 mb-2">Motor Neurons ({Object.keys(currentNeuralState.motorNeurons || {}).length}):</div>
+                  <pre className="text-xs text-green-300 bg-gray-900 p-2 rounded overflow-x-auto">
+                    {JSON.stringify(currentNeuralState.motorNeurons, null, 2)}
+                  </pre>
+                </div>
+                
+                <div className="border-t border-gray-700 pt-4">
+                  <div className="text-blue-400 mb-2">Sensory Neurons ({Object.keys(currentNeuralState.sensoryNeurons || {}).length}):</div>
+                  <pre className="text-xs text-blue-300 bg-gray-900 p-2 rounded overflow-x-auto">
+                    {JSON.stringify(currentNeuralState.sensoryNeurons, null, 2)}
+                  </pre>
+                </div>
+              </div>
+            ) : (
+              <div className="text-gray-400 text-center mt-8">
+                Loading neural state...
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

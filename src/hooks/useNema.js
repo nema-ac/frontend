@@ -190,7 +190,8 @@ export const useConversation = (options = {}) => {
     maxMessages = 100, 
     onError = null,
     loadHistory = false,
-    historyLimit = 20 
+    historyLimit = 20,
+    onNeuralStateUpdate = null
   } = options;
   
   const [conversation, setConversation] = useState([]);
@@ -209,6 +210,11 @@ export const useConversation = (options = {}) => {
         neuralState: response.neuralState,
         stateChanges: response.stateChanges,
       });
+      
+      // Update neural state if callback provided and state exists
+      if (onNeuralStateUpdate && response.neuralState) {
+        onNeuralStateUpdate(response.neuralState);
+      }
     },
     onError: (error) => {
       setIsTyping(false);
