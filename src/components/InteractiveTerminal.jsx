@@ -16,6 +16,11 @@ const InteractiveTerminal = () => {
   const [currentNeuralState, setCurrentNeuralState] = useState(null);
   const [previousNeuralState, setPreviousNeuralState] = useState(null);
   const [recentNeuralChanges, setRecentNeuralChanges] = useState([]);
+  const [neuralSearchTerm, setNeuralSearchTerm] = useState('');
+  const [motorExpanded, setMotorExpanded] = useState(false);
+  const [sensoryExpanded, setSensoryExpanded] = useState(false);
+  const [showActiveOnly, setShowActiveOnly] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
   
   const inputRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -81,6 +86,31 @@ const InteractiveTerminal = () => {
         return `${change.neuron} ${sign}${change.delta}`;
       })
       .join(', ');
+  };
+
+  // Filter neurons based on search term and active-only toggle
+  const filterNeurons = (neurons) => {
+    if (!neurons) return {};
+    
+    let filtered = { ...neurons };
+    
+    // Filter by search term
+    if (neuralSearchTerm) {
+      filtered = Object.fromEntries(
+        Object.entries(filtered).filter(([name]) => 
+          name.toLowerCase().includes(neuralSearchTerm.toLowerCase())
+        )
+      );
+    }
+    
+    // Filter by active-only
+    if (showActiveOnly) {
+      filtered = Object.fromEntries(
+        Object.entries(filtered).filter(([, value]) => value !== 0)
+      );
+    }
+    
+    return filtered;
   };
   
   // Remove health checks to avoid CORS issues - we'll show connection status based on actual API calls
@@ -157,6 +187,15 @@ const InteractiveTerminal = () => {
     if (!currentNeuralState) {
       fetchCurrentNeuralState();
     }
+  }, []);
+
+  // Update clock every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
   }, []);
 
   // Use conversation directly from the hook
@@ -398,7 +437,7 @@ Or simply type a message to chat with NEMA!`,
             <span>READY</span>
           </div>
           <div className="text-gray-400">
-            {formatTimestamp(new Date())}
+            {formatTimestamp(currentTime)}
           </div>
         </div>
       </div>
@@ -571,18 +610,62 @@ Or simply type a message to chat with NEMA!`,
                   </div>
                 )}
                 
+                {/* Search and Filter Controls */}
                 <div className="border-t border-gray-700 pt-4">
-                  <div className="text-green-400 mb-2">Motor Neurons ({Object.keys(currentNeuralState.motorNeurons || {}).length}):</div>
-                  <pre className="text-xs text-green-300 bg-gray-900 p-2 rounded overflow-x-auto">
-                    {JSON.stringify(currentNeuralState.motorNeurons, null, 2)}
-                  </pre>
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      placeholder="Search neurons..."
+                      value={neuralSearchTerm}
+                      onChange={(e) => setNeuralSearchTerm(e.target.value)}
+                      className="w-full bg-gray-900 text-cyan-400 text-xs px-2 py-1 rounded border border-gray-600 focus:border-cyan-400 outline-none"
+                    />
+                    <label className="flex items-center text-xs text-gray-400">
+                      <input
+                        type="checkbox"
+                        checked={showActiveOnly}
+                        onChange={(e) => setShowActiveOnly(e.target.checked)}
+                        className="mr-2 accent-cyan-400"
+                      />
+                      Show active only (non-zero)
+                    </label>
+                  </div>
                 </div>
                 
+                {/* Motor Neurons */}
                 <div className="border-t border-gray-700 pt-4">
-                  <div className="text-blue-400 mb-2">Sensory Neurons ({Object.keys(currentNeuralState.sensoryNeurons || {}).length}):</div>
-                  <pre className="text-xs text-blue-300 bg-gray-900 p-2 rounded overflow-x-auto">
-                    {JSON.stringify(currentNeuralState.sensoryNeurons, null, 2)}
-                  </pre>
+                  <button
+                    onClick={() => setMotorExpanded(!motorExpanded)}
+                    className="flex items-center justify-between w-full text-green-400 mb-2 hover:text-green-300 transition-colors"
+                  >
+                    <span>Motor Neurons ({Object.keys(filterNeurons(currentNeuralState.motorNeurons)).length}/{Object.keys(currentNeuralState.motorNeurons || {}).length})</span>
+                    <span className="transform transition-transform duration-200" style={{transform: motorExpanded ? 'rotate(180deg)' : 'rotate(0deg)'}}>
+                      ▼
+                    </span>
+                  </button>
+                  {motorExpanded && (
+                    <pre className="text-xs text-green-300 bg-gray-900 p-2 rounded overflow-x-auto max-h-40 overflow-y-auto">
+                      {JSON.stringify(filterNeurons(currentNeuralState.motorNeurons), null, 2)}
+                    </pre>
+                  )}
+                </div>
+                
+                {/* Sensory Neurons */}
+                <div className="border-t border-gray-700 pt-4">
+                  <button
+                    onClick={() => setSensoryExpanded(!sensoryExpanded)}
+                    className="flex items-center justify-between w-full text-blue-400 mb-2 hover:text-blue-300 transition-colors"
+                  >
+                    <span>Sensory Neurons ({Object.keys(filterNeurons(currentNeuralState.sensoryNeurons)).length}/{Object.keys(currentNeuralState.sensoryNeurons || {}).length})</span>
+                    <span className="transform transition-transform duration-200" style={{transform: sensoryExpanded ? 'rotate(180deg)' : 'rotate(0deg)'}}>
+                      ▼
+                    </span>
+                  </button>
+                  {sensoryExpanded && (
+                    <pre className="text-xs text-blue-300 bg-gray-900 p-2 rounded overflow-x-auto max-h-40 overflow-y-auto">
+                      {JSON.stringify(filterNeurons(currentNeuralState.sensoryNeurons), null, 2)}
+                    </pre>
+                  )}
                 </div>
               </div>
             ) : (
