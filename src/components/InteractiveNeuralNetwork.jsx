@@ -465,7 +465,7 @@ const InteractiveNeuralNetwork = () => {
   }, []);
 
   return (
-    <div className="neon-border rounded-lg bg-gradient-to-br from-purple-900/20 to-black/50 p-6">
+    <div className="rounded-lg bg-gradient-to-br from-purple-900/20 to-black/60 border border-cyan-400/50 p-6">
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Visualization */}
         <div className="flex-1">
