@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
 import Navigation from './components/Navigation';
 import AnimatedBackground from './components/AnimatedBackground';
 import Footer from './components/Footer';
@@ -11,18 +12,20 @@ import Worminal from './pages/Worminal';
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-black text-white relative">
-        <AnimatedBackground />
-        <Navigation />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/docs" element={<Docs />} />
-          <Route path="/airdrop" element={<Airdrop />} />
-          <Route path="/worminal" element={<Worminal />} />
-        </Routes>
-        <Footer />
-      </div>
+      <AuthProvider>
+        <div className="min-h-screen bg-black text-white relative">
+          <AnimatedBackground />
+          <Navigation />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/docs" element={<Docs />} />
+            <Route path="/airdrop" element={<Airdrop />} />
+            <Route path="/worminal" element={<Worminal />} />
+          </Routes>
+          <Footer />
+        </div>
+      </AuthProvider>
     </Router>
   );
 }
