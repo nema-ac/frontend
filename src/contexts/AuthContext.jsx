@@ -1,17 +1,29 @@
 import { createContext, useState, useEffect } from 'react';
 import config from '../config/environment.js';
+import profileService from '../services/profile.js';
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [user, setUser] = useState(null);
+    const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
 
     // Check authentication status on app load
     useEffect(() => {
         checkAuthStatus();
     }, []);
+
+    const fetchProfile = async () => {
+        try {
+            const profileData = await profileService.getProfile();
+            setProfile(profileData);
+        } catch (error) {
+            console.error('Error fetching profile:', error);
+            setProfile(null);
+        }
+    };
 
     const checkAuthStatus = async () => {
         try {
@@ -25,14 +37,18 @@ export const AuthProvider = ({ children }) => {
                 const userData = await response.json();
                 setIsAuthenticated(true);
                 setUser(userData);
+                // Fetch profile data after successful auth check
+                await fetchProfile();
             } else {
                 setIsAuthenticated(false);
                 setUser(null);
+                setProfile(null);
             }
         } catch (error) {
             console.error('Error checking auth status:', error);
             setIsAuthenticated(false);
             setUser(null);
+            setProfile(null);
         } finally {
             setLoading(false);
         }
@@ -80,16 +96,19 @@ export const AuthProvider = ({ children }) => {
         } finally {
             setIsAuthenticated(false);
             setUser(null);
+            setProfile(null);
         }
     };
 
     const value = {
         isAuthenticated,
         user,
+        profile,
         loading,
         login,
         logout,
         checkAuthStatus,
+        fetchProfile,
     };
 
     return (

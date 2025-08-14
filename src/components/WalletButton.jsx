@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useAuth } from '../hooks/useAuth';
@@ -8,8 +9,26 @@ import bs58 from 'bs58';
 const WalletButton = () => {
     const { publicKey, signMessage, disconnect } = useWallet();
     const { isAuthenticated, login, logout, loading } = useAuth();
+    const navigate = useNavigate();
     const [isAuthenticating, setIsAuthenticating] = useState(false);
     const [error, setError] = useState(null);
+    const [hasAttemptedAutoAuth, setHasAttemptedAutoAuth] = useState(false);
+
+    // Auto-authenticate when wallet connects
+    useEffect(() => {
+        if (publicKey && signMessage && !isAuthenticated && !hasAttemptedAutoAuth && !loading) {
+            setHasAttemptedAutoAuth(true);
+            handleAuthenticate();
+        }
+    }, [publicKey, signMessage, isAuthenticated, hasAttemptedAutoAuth, loading]);
+
+    // Reset auto-auth attempt when wallet disconnects
+    useEffect(() => {
+        if (!publicKey) {
+            setHasAttemptedAutoAuth(false);
+            setError(null);
+        }
+    }, [publicKey]);
 
     const handleAuthenticate = async () => {
         if (!publicKey || !signMessage) {
@@ -36,6 +55,9 @@ const WalletButton = () => {
             
             if (!result.success) {
                 setError(result.error || 'Authentication failed');
+            } else {
+                // Redirect to profile page on successful login
+                navigate('/profile');
             }
         } catch (err) {
             console.error('Authentication error:', err);
@@ -64,16 +86,20 @@ const WalletButton = () => {
     }
 
     if (isAuthenticated) {
+        const { user, profile } = useAuth();
+        
         return (
-            <div className="flex items-center space-x-3">
-                <span className="text-sm text-cyan-400">Connected</span>
-                <button
-                    onClick={handleDisconnect}
-                    className="px-4 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200"
-                >
-                    Disconnect
-                </button>
-            </div>
+            <Link
+                to="/profile"
+                className="block text-right transition-colors duration-200 group"
+            >
+                <div className="text-sm font-medium text-white group-hover:text-cyan-400">
+                    {profile?.username || 'Anonymous'}
+                </div>
+                <div className="text-xs text-gray-400 group-hover:text-cyan-300">
+                    {(profile?.nema_balance || 0).toLocaleString()} NEMA
+                </div>
+            </Link>
         );
     }
 
@@ -82,8 +108,7 @@ const WalletButton = () => {
             {!publicKey ? (
                 <WalletMultiButton className="!bg-gradient-to-r !from-cyan-500 !to-blue-500 hover:!from-cyan-600 hover:!to-blue-600 !border-0 !rounded-lg !text-sm !font-medium !transition-all !duration-200" />
             ) : (
-                <div className="flex items-center space-x-2">
-                    <span className="text-sm text-green-400">Wallet Connected</span>
+                <div className="flex items-center">
                     <button
                         onClick={handleAuthenticate}
                         disabled={isAuthenticating}

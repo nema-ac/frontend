@@ -8,6 +8,7 @@ import About from './pages/About';
 import Docs from './pages/Docs';
 import Airdrop from './pages/Airdrop';
 import Worminal from './pages/Worminal';
+import Profile from './pages/Profile';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
             <Route path="/docs" element={<Docs />} />
             <Route path="/airdrop" element={<Airdrop />} />
             <Route path="/worminal" element={<Worminal />} />
+            <Route path="/profile" element={<Profile />} />
           </Routes>
           <Footer />
         </div>
