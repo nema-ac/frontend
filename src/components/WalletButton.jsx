@@ -91,13 +91,26 @@ const WalletButton = () => {
         return (
             <Link
                 to="/profile"
-                className="block text-right transition-colors duration-200 group"
+                className="flex items-center space-x-3 transition-colors duration-200 group"
             >
-                <div className="text-sm font-medium text-white group-hover:text-cyan-400">
-                    {profile?.username || 'Anonymous'}
-                </div>
-                <div className="text-xs text-gray-400 group-hover:text-cyan-300">
-                    {(profile?.nema_balance || 0).toLocaleString()} NEMA
+                {/* Worm Avatar */}
+                {profile?.avatar_base64 && (
+                    <img 
+                        src={profile.avatar_base64} 
+                        alt="Worm Avatar"
+                        className="w-8 h-8 rounded-full border-2 border-gray-600 group-hover:border-cyan-400 transition-colors duration-200"
+                        style={{ imageRendering: 'pixelated' }}
+                    />
+                )}
+                
+                {/* User Info */}
+                <div className="text-right">
+                    <div className="text-sm font-medium text-white group-hover:text-cyan-400">
+                        {profile?.username || 'Anonymous'}
+                    </div>
+                    <div className="text-xs text-gray-400 group-hover:text-cyan-300">
+                        {(profile?.nema_balance || 0).toLocaleString()} NEMA
+                    </div>
                 </div>
             </Link>
         );

@@ -5,7 +5,7 @@ import { AuthContext } from '../contexts/AuthContext';
 import profileService from '../services/profile.js';
 
 const Profile = () => {
-  const { isAuthenticated, logout } = useContext(AuthContext);
+  const { isAuthenticated, logout, profile: contextProfile } = useContext(AuthContext);
   const { disconnect } = useWallet();
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
@@ -25,6 +25,9 @@ const Profile = () => {
       fetchProfile();
     }
   }, [isAuthenticated]);
+
+  // Use context profile if available, otherwise local profile
+  const displayProfile = contextProfile || profile;
 
   const fetchProfile = async () => {
     try {
@@ -74,9 +77,9 @@ const Profile = () => {
 
   const handleCancel = () => {
     setFormData({
-      username: profile?.username || '',
-      twitter_handle: profile?.twitter_handle || '',
-      telegram_handle: profile?.telegram_handle || ''
+      username: displayProfile?.username || '',
+      twitter_handle: displayProfile?.twitter_handle || '',
+      telegram_handle: displayProfile?.telegram_handle || ''
     });
     setIsEditing(false);
     setError('');
@@ -94,6 +97,7 @@ const Profile = () => {
       console.error('Disconnect error:', err);
     }
   };
+
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -151,10 +155,26 @@ const Profile = () => {
             </div>
           )}
 
-          {profile && (
+          {displayProfile && (
             <div className="space-y-6">
-              {/* Wallet Info Card */}
+              {/* Avatar & Wallet Info Card */}
               <div className="bg-gray-800/50 border border-gray-600 rounded-lg p-6">
+                <div className="flex items-center space-x-4 mb-6">
+                  {/* Worm Avatar */}
+                  {displayProfile.avatar_base64 && (
+                    <img 
+                      src={displayProfile.avatar_base64} 
+                      alt="Your Worm Avatar"
+                      className="w-16 h-16 rounded-full border-3 border-cyan-400"
+                      style={{ imageRendering: 'pixelated' }}
+                    />
+                  )}
+                  <div>
+                    <h3 className="text-lg font-medium text-cyan-400">Your Nema Worm</h3>
+                    <p className="text-sm text-gray-400">Unique C. elegans avatar generated from your wallet</p>
+                  </div>
+                </div>
+                
                 <h3 className="text-lg font-medium text-cyan-400 mb-4">Wallet Information</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full">
@@ -165,7 +185,7 @@ const Profile = () => {
                         </td>
                         <td className="py-3 text-sm">
                           <code className="text-cyan-400 break-all">
-                            {profile.wallet_address}
+                            {displayProfile.wallet_address}
                           </code>
                         </td>
                       </tr>
@@ -175,7 +195,7 @@ const Profile = () => {
                         </td>
                         <td className="py-3 text-sm">
                           <span className="text-yellow-400 font-bold">
-                            {(profile.nema_balance || 0).toLocaleString()} NEMA
+                            {(displayProfile.nema_balance || 0).toLocaleString()} NEMA
                           </span>
                         </td>
                       </tr>
@@ -206,7 +226,7 @@ const Profile = () => {
                         <>
                           <div className="bg-gray-800 border border-gray-600 rounded-lg p-3 pr-12">
                             <span className="text-white">
-                              {profile.username || 'Not set'}
+                              {displayProfile.username || 'Not set'}
                             </span>
                           </div>
                           <button
@@ -244,7 +264,7 @@ const Profile = () => {
                         <>
                           <div className="bg-gray-800 border border-gray-600 rounded-lg p-3 pr-12 pl-8">
                             <span className="text-white">
-                              {profile.twitter_handle || 'Not set'}
+                              {displayProfile.twitter_handle || 'Not set'}
                             </span>
                           </div>
                           <span className="absolute left-3 top-3 text-gray-400 z-10">@</span>
@@ -283,7 +303,7 @@ const Profile = () => {
                         <>
                           <div className="bg-gray-800 border border-gray-600 rounded-lg p-3 pr-12 pl-8">
                             <span className="text-white">
-                              {profile.telegram_handle || 'Not set'}
+                              {displayProfile.telegram_handle || 'Not set'}
                             </span>
                           </div>
                           <span className="absolute left-3 top-3 text-gray-400 z-10">@</span>
@@ -328,31 +348,19 @@ const Profile = () => {
               {/* Account Info */}
               <div className="border-t border-gray-700 pt-6">
                 <h3 className="text-lg font-medium text-cyan-400 mb-4">Account Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-6">
                   <div>
                     <span className="text-gray-400">Account created:</span>
-                    <span className="text-white ml-2">{formatDate(profile.created_at)}</span>
+                    <span className="text-white ml-2">{displayProfile.created_at ? formatDate(displayProfile.created_at) : 'N/A'}</span>
                   </div>
                   <div>
                     <span className="text-gray-400">Last updated:</span>
-                    <span className="text-white ml-2">{formatDate(profile.updated_at)}</span>
+                    <span className="text-white ml-2">{displayProfile.updated_at ? formatDate(displayProfile.updated_at) : 'N/A'}</span>
                   </div>
-                  {profile.verified_at && (
-                    <div>
-                      <span className="text-gray-400">Verified:</span>
-                      <span className="text-green-400 ml-2">{formatDate(profile.verified_at)}</span>
-                    </div>
-                  )}
                 </div>
-              </div>
-
-              {/* Disconnect Section */}
-              <div className="border-t border-gray-700 pt-6 mt-6">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="text-lg font-medium text-red-400 mb-1">Danger Zone</h3>
-                    <p className="text-sm text-gray-400">Disconnect your wallet from Nema</p>
-                  </div>
+                
+                {/* Disconnect Button */}
+                <div className="pt-4 border-t border-gray-600">
                   <button
                     onClick={handleDisconnect}
                     className="px-4 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200"

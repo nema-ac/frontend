@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect } from 'react';
 import config from '../config/environment.js';
 import profileService from '../services/profile.js';
+import { getOrGenerateAvatar, generateNewVariation } from '../utils/avatarStorage.js';
 
 export const AuthContext = createContext();
 
@@ -25,6 +26,37 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const loadOrGenerateAvatar = (walletAddress) => {
+        try {
+            console.log('Loading or generating worm avatar...');
+            const avatarBase64 = getOrGenerateAvatar(walletAddress);
+            // Add avatar to existing profile data
+            setProfile(prev => ({
+                ...prev,
+                avatar_base64: avatarBase64,
+                wallet_address: walletAddress
+            }));
+        } catch (error) {
+            console.error('Error loading/generating avatar:', error);
+        }
+    };
+
+    const generateNewAvatarVariation = (walletAddress) => {
+        try {
+            console.log('Generating new avatar variation...');
+            const avatarBase64 = generateNewVariation(walletAddress);
+            // Update profile with new avatar
+            setProfile(prev => ({
+                ...prev,
+                avatar_base64: avatarBase64
+            }));
+            return avatarBase64;
+        } catch (error) {
+            console.error('Error generating new avatar variation:', error);
+            return null;
+        }
+    };
+
     const checkAuthStatus = async () => {
         try {
             const baseUrl = config.api.baseUrl;
@@ -39,6 +71,10 @@ export const AuthProvider = ({ children }) => {
                 setUser(userData);
                 // Fetch profile data after successful auth check
                 await fetchProfile();
+                // Load avatar for existing session if we have wallet address
+                if (userData.wallet_address) {
+                    loadOrGenerateAvatar(userData.wallet_address);
+                }
             } else {
                 setIsAuthenticated(false);
                 setUser(null);
@@ -73,6 +109,8 @@ export const AuthProvider = ({ children }) => {
             if (response.ok) {
                 // Check auth status after successful login
                 await checkAuthStatus();
+                // Load or generate avatar immediately after sign-in
+                loadOrGenerateAvatar(walletAddress);
                 return { success: true };
             } else {
                 const error = await response.text();
@@ -109,6 +147,8 @@ export const AuthProvider = ({ children }) => {
         logout,
         checkAuthStatus,
         fetchProfile,
+        loadOrGenerateAvatar,
+        generateNewAvatarVariation,
     };
 
     return (
