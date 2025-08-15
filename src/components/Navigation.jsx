@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Logo from './Logo';
+import WalletButton from './WalletButton';
 
 const Navigation = () => {
   const location = useLocation();
@@ -67,6 +68,11 @@ const Navigation = () => {
                 SOON
               </span>
             </div>
+          </div>
+
+          {/* Wallet Button */}
+          <div className="hidden md:block relative">
+            <WalletButton />
           </div>
 
           {/* Mobile Menu Button */}
@@ -143,6 +149,11 @@ const Navigation = () => {
                 <span className="absolute -top-1 left-20 md:-right-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-1 py-0.5 rounded-full font-bold" style={{transform: 'scale(0.7)'}}>
                   SOON
                 </span>
+              </div>
+              
+              {/* Mobile Wallet Button */}
+              <div className="pt-4 border-t border-cyan-400/30">
+                <WalletButton />
               </div>
             </div>
           </div>
