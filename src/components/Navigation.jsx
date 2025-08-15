@@ -19,59 +19,50 @@ const Navigation = () => {
           <div className="hidden md:flex items-center space-x-8">
             <Link
               to="/"
-              className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${
-                location.pathname === '/' 
-                  ? 'text-cyan-400' 
-                  : 'text-gray-300'
-              }`}
+              className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${location.pathname === '/'
+                ? 'text-cyan-400'
+                : 'text-gray-300'
+                }`}
             >
               HOME
             </Link>
             <Link
               to="/about"
-              className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${
-                location.pathname === '/about' 
-                  ? 'text-cyan-400 ' 
-                  : 'text-gray-300'
-              }`}
+              className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${location.pathname === '/about'
+                ? 'text-cyan-400 '
+                : 'text-gray-300'
+                }`}
             >
               ABOUT
             </Link>
             <div className="relative">
               <Link
                 to="/worminal"
-                className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${
-                  location.pathname === '/worminal' 
-                    ? 'text-cyan-400 ' 
-                    : 'text-gray-300'
-                }`}
+                className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${location.pathname === '/worminal'
+                  ? 'text-cyan-400 '
+                  : 'text-gray-300'
+                  }`}
               >
                 WORMINAL
               </Link>
-              <span className="absolute -top-1 -right-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-1 py-0.5 rounded-full font-bold" style={{transform: 'scale(0.7)'}}>
+              <span className="absolute -top-1 -right-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-1 py-0.5 rounded-full font-bold" style={{ transform: 'scale(0.7)' }}>
                 SOON
               </span>
             </div>
-            <div className="relative">
-              <Link
-                to="/airdrop"
-                className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${
-                  location.pathname === '/airdrop' 
-                    ? 'text-cyan-400 ' 
-                    : 'text-gray-300'
+            <Link
+              to="/airdrop"
+              className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${location.pathname === '/airdrop'
+                ? 'text-cyan-400 '
+                : 'text-gray-300'
                 }`}
-              >
-                AIRDROP
-              </Link>
-              <span className="absolute -top-1 -right-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-1 py-0.5 rounded-full font-bold" style={{transform: 'scale(0.7)'}}>
-                SOON
-              </span>
-            </div>
+            >
+              AIRDROP
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
           <div className="md:hidden">
-            <button 
+            <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-gray-300 hover:text-cyan-400 focus:outline-none"
             >
@@ -93,22 +84,20 @@ const Navigation = () => {
               <Link
                 to="/"
                 onClick={() => setIsMenuOpen(false)}
-                className={`block text-lg font-medium transition-colors duration-200 hover:text-cyan-400 ${
-                  location.pathname === '/' 
-                    ? 'text-cyan-400' 
-                    : 'text-gray-300'
-                }`}
+                className={`block text-lg font-medium transition-colors duration-200 hover:text-cyan-400 ${location.pathname === '/'
+                  ? 'text-cyan-400'
+                  : 'text-gray-300'
+                  }`}
               >
                 HOME
               </Link>
               <Link
                 to="/about"
                 onClick={() => setIsMenuOpen(false)}
-                className={`block text-lg font-medium transition-colors duration-200 hover:text-cyan-400 ${
-                  location.pathname === '/about' 
-                    ? 'text-cyan-400' 
-                    : 'text-gray-300'
-                }`}
+                className={`block text-lg font-medium transition-colors duration-200 hover:text-cyan-400 ${location.pathname === '/about'
+                  ? 'text-cyan-400'
+                  : 'text-gray-300'
+                  }`}
               >
                 ABOUT
               </Link>
@@ -116,34 +105,27 @@ const Navigation = () => {
                 <Link
                   to="/worminal"
                   onClick={() => setIsMenuOpen(false)}
-                  className={`block text-lg font-medium transition-colors duration-200 hover:text-cyan-400 ${
-                    location.pathname === '/worminal' 
-                      ? 'text-cyan-400' 
-                      : 'text-gray-300'
-                  }`}
+                  className={`block text-lg font-medium transition-colors duration-200 hover:text-cyan-400 ${location.pathname === '/worminal'
+                    ? 'text-cyan-400'
+                    : 'text-gray-300'
+                    }`}
                 >
                   WORMINAL
                 </Link>
-                <span className="absolute -top-1 left-24 md:-right-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-1 py-0.5 rounded-full font-bold" style={{transform: 'scale(0.7)'}}>
+                <span className="absolute -top-1 left-24 md:-right-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-1 py-0.5 rounded-full font-bold" style={{ transform: 'scale(0.7)' }}>
                   SOON
                 </span>
               </div>
-              <div className="relative block">
-                <Link
-                  to="/airdrop"
-                  onClick={() => setIsMenuOpen(false)}
-                  className={`block text-lg font-medium transition-colors duration-200 hover:text-cyan-400 ${
-                    location.pathname === '/airdrop' 
-                      ? 'text-cyan-400' 
-                      : 'text-gray-300'
+              <Link
+                to="/airdrop"
+                onClick={() => setIsMenuOpen(false)}
+                className={`block text-lg font-medium transition-colors duration-200 hover:text-cyan-400 ${location.pathname === '/airdrop'
+                  ? 'text-cyan-400'
+                  : 'text-gray-300'
                   }`}
-                >
-                  AIRDROP
-                </Link>
-                <span className="absolute -top-1 left-20 md:-right-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-1 py-0.5 rounded-full font-bold" style={{transform: 'scale(0.7)'}}>
-                  SOON
-                </span>
-              </div>
+              >
+                AIRDROP
+              </Link>
             </div>
           </div>
         )}
