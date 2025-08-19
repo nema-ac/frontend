@@ -5,18 +5,18 @@ const EmotionVisualization = ({ neuralStates = [], timestamps = [] }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1000);
 
-  // Define emotion colors
+  // Define emotion colors using Nema theme
   const emotionColors = {
-    curiosity: '#3b82f6', // blue
-    anxiety: '#ef4444', // red
-    contentment: '#22c55e', // green
-    excitement: '#f59e0b', // amber
-    focus: '#8b5cf6', // violet
+    curiosity: '#22d3ee', // nema-cyan
+    anxiety: '#ef4444', // red (kept for contrast)
+    contentment: '#22c55e', // nema-green
+    excitement: '#fb923c', // nema-orange
+    focus: '#a855f7', // nema-purple
     attraction: '#ec4899', // pink
-    hunger: '#f97316', // orange
+    hunger: '#f59e0b', // amber
     defensive: '#dc2626', // dark red
-    fatigue: '#6b7280', // gray
-    confusion: '#a855f7' // purple
+    fatigue: '#6b7280', // nema-gray-500
+    confusion: '#9659D4' // cyber-purple
   };
 
   // Helper functions for emotion calculations
@@ -160,7 +160,9 @@ const EmotionVisualization = ({ neuralStates = [], timestamps = [] }) => {
         return acc;
       }, {});
     }
-    return calculateEmotions(neuralStates[currentStateIndex]);
+    const emotions = calculateEmotions(neuralStates[currentStateIndex]);
+    console.log('Calculated emotions:', emotions); // Debug log
+    return emotions;
   }, [neuralStates, currentStateIndex]);
 
   // Auto-play functionality
@@ -218,36 +220,52 @@ const EmotionVisualization = ({ neuralStates = [], timestamps = [] }) => {
         </div>
       </div>
 
-      {/* Emotion Bars */}
-      <div className="space-y-3 mb-6">
+      {/* Emotion Bars - Vertical Layout */}
+      <div className="flex justify-between items-end space-x-1 mb-6">
         {Object.entries(emotionColors).map(([emotion, color]) => {
           const value = currentEmotions[emotion] || 0;
           return (
-            <div key={emotion} className="group">
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-sm font-medium capitalize" style={{ color }}>
-                  {emotion}
-                </label>
-                <span className="text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {value.toFixed(1)}
-                </span>
-              </div>
-              <div className="relative h-6 bg-gray-900 rounded-full overflow-hidden">
+            <div key={emotion} className="group flex flex-col items-center flex-1">
+              {/* Bar Container */}
+              <div className="relative w-full bg-gray-900 rounded-lg overflow-hidden mb-2 h-48 border border-gray-700">
+                {/* Bar */}
                 <div
-                  className="h-full rounded-full transition-all duration-500 ease-out"
+                  className="absolute bottom-0 w-full transition-all duration-500 ease-out"
                   style={{
-                    width: `${value}%`,
+                    height: `${Math.max(2, value)}%`, // Minimum 2% height for visibility
                     backgroundColor: color,
-                    boxShadow: value > 0 ? `0 0 10px ${color}40` : 'none'
+                    boxShadow: value > 0 ? `0 0 15px ${color}60` : 'none'
                   }}
-                />
-                <div 
-                  className="absolute inset-0 flex items-center justify-end pr-2 text-xs font-medium"
-                  style={{ color: value > 50 ? '#000' : color }}
                 >
-                  {value > 10 && `${Math.round(value)}%`}
+                  {/* Value label inside bar */}
+                  {value > 15 && (
+                    <div 
+                      className="absolute inset-x-0 top-1 text-xs font-bold text-center"
+                      style={{ color: value > 30 ? '#000' : '#fff' }}
+                    >
+                      {Math.round(value)}
+                    </div>
+                  )}
+                </div>
+                
+                {/* Hover tooltip */}
+                <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black/90 border border-cyan-400/30 text-cyan-400 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                  {emotion}: {value.toFixed(1)}%
+                </div>
+                
+                {/* Debug value display */}
+                <div className="absolute top-1 left-1 text-xs text-gray-400 opacity-50">
+                  {Math.round(value)}
                 </div>
               </div>
+              
+              {/* Label */}
+              <label 
+                className="text-xs font-medium capitalize text-center leading-tight"
+                style={{ color }}
+              >
+                {emotion}
+              </label>
             </div>
           );
         })}
