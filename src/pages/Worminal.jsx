@@ -1,5 +1,6 @@
 import InteractiveTerminal from '../components/InteractiveTerminal.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
+import EmotionVisualization from '../components/EmotionVisualization.jsx';
 
 const Worminal = () => {
   return (
@@ -37,6 +38,30 @@ const Worminal = () => {
         <div className="mb-16">
           <ErrorBoundary>
             <InteractiveTerminal />
+          </ErrorBoundary>
+        </div>
+
+        {/* Emotion Visualization */}
+        <div className="mb-16">
+          <ErrorBoundary>
+            <EmotionVisualization 
+              neuralStates={[
+                // Sample neural states for demonstration
+                {
+                  motorNeurons: { N_AVAL: 45, N_AVAR: 50, N_AVBL: -20, N_AVBR: -15, MVL01: 30, MVR01: 35 },
+                  sensoryNeurons: { N_AWAL: 60, N_AWAR: 55, N_AWCL: 40, N_AWCR: 45, N_ASHL: 10, N_ASHR: 15 }
+                },
+                {
+                  motorNeurons: { N_AVAL: 50, N_AVAR: 55, N_AVBL: -10, N_AVBR: -5, MVL01: 40, MVR01: 45 },
+                  sensoryNeurons: { N_AWAL: 70, N_AWAR: 65, N_AWCL: 50, N_AWCR: 55, N_ASHL: 5, N_ASHR: 10 }
+                },
+                {
+                  motorNeurons: { N_AVAL: 30, N_AVAR: 25, N_AVBL: -30, N_AVBR: -25, MVL01: 20, MVR01: 15 },
+                  sensoryNeurons: { N_AWAL: 40, N_AWAR: 35, N_AWCL: 30, N_AWCR: 25, N_ASHL: 20, N_ASHR: 25 }
+                }
+              ]}
+              timestamps={['12:00:00', '12:00:30', '12:01:00']}
+            />
           </ErrorBoundary>
         </div>
 
