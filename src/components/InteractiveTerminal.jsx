@@ -9,7 +9,7 @@ import { ErrorDisplay } from './ErrorBoundary.jsx';
 import nemaService from '../services/nema.js';
 import EmotionalRadar from './EmotionalRadar.jsx';
 
-const InteractiveTerminal = () => {
+const InteractiveTerminal = ({ emotionRanges = null }) => {
   const [input, setInput] = useState('');
   const [commandHistory, setCommandHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -587,7 +587,14 @@ Or simply type a message to chat with NEMA!`,
                 {/* Emotional Radar */}
                 <div className="border-t border-gray-700 pt-4">
                   <div className="text-purple-400 mb-2 font-semibold">Emotional State</div>
-                  <EmotionalRadar neuralState={currentNeuralState} size={260} />
+                  <EmotionalRadar 
+                    neuralState={currentNeuralState} 
+                    emotionRanges={emotionRanges}
+                    size={200} 
+                  />
+                  <div className="text-xs text-gray-500 mt-2">
+                    {emotionRanges ? 'Normalized to timeline data' : 'Live state only'} (click emotions for details)
+                  </div>
                 </div>
                 
                 {/* Recent Neural Changes */}
