@@ -7,6 +7,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useConversation } from '../hooks/useNema.js';
 import { ErrorDisplay } from './ErrorBoundary.jsx';
 import nemaService from '../services/nema.js';
+import EmotionalRadar from './EmotionalRadar.jsx';
 
 const InteractiveTerminal = () => {
   const [input, setInput] = useState('');
@@ -581,6 +582,12 @@ Or simply type a message to chat with NEMA!`,
                   <div>State Count: {currentNeuralState.stateCount}</div>
                   <div>Updated: {currentNeuralState.updatedAt.toLocaleString()}</div>
                   <div>Total Neurons: {currentNeuralState.totalNeurons}</div>
+                </div>
+                
+                {/* Emotional Radar */}
+                <div className="border-t border-gray-700 pt-4">
+                  <div className="text-purple-400 mb-2 font-semibold">Emotional State</div>
+                  <EmotionalRadar neuralState={currentNeuralState} size={260} />
                 </div>
                 
                 {/* Recent Neural Changes */}

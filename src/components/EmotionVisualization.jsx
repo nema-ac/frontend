@@ -205,11 +205,12 @@ const EmotionVisualization = ({ neuralStates = [], timestamps = [] }) => {
     return `State ${currentStateIndex + 1}`;
   };
 
+
   return (
     <div className="bg-black/80 border border-cyan-400/30 rounded-lg p-6 font-mono">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-bold text-cyan-400">NEMA Emotional State</h3>
+        <h3 className="text-xl font-bold text-cyan-400">NEMA Emotional Timeline</h3>
         <div className="flex items-center space-x-4 text-sm">
           <div className="text-gray-400">
             {getCurrentTimestamp()}
