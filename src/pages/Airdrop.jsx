@@ -1,17 +1,4 @@
-import { useEffect } from 'react';
-
 const Airdrop = () => {
-  useEffect(() => {
-    window.Jupiter.init({
-      displayMode: "integrated",
-      integratedTargetId: "target-container",
-      formProps: {
-        initialInputMint: "So11111111111111111111111111111111111111112",
-        initialOutputMint: "5hUL8iHMXcUj9AS7yBErJmmTXyRvbdwwUqbtB2udjups",
-        fixedMint: "So11111111111111111111111111111111111111112",
-        },
-      });
-  }, []);
 
   return (
     <div className="min-h-screen bg-black text-white pt-28">
@@ -21,57 +8,8 @@ const Airdrop = () => {
             <span className="text-cyan-400">TOKENOMICS & TOKEN</span>
           </h1>
 
-          <div className="neon-border p-8 my-8 rounded-lg bg-gradient-to-br from-purple-900/20 to-black/50">
-            <div id="target-container"></div>
-          </div>
-
           <div className="neon-border p-8 rounded-lg bg-gradient-to-br from-purple-900/20 to-black/50">
-            <h2 className="text-3xl font-bold text-cyan-400 mb-8 text-center">Launch Details, Tokenomics & Token</h2>
-
-            {/* Basic Launch Info */}
-            <div className="grid sm:grid-cols-3 gap-6 text-lg mb-8">
-              <div className="text-center">
-                <div className="text-purple-400 font-bold mb-2">Platform</div>
-                <div className="flex items-center justify-center space-x-2 mb-2">
-                  <img
-                    src="/jupiter-logo.webp"
-                    alt="Jupiter Logo"
-                    className="w-6 h-6 object-contain"
-                  />
-                  <span className="text-gray-300">Jupiter Studio</span>
-                </div>
-                <a
-                  href="https://lfg.jup.ag/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-orange-400 hover:opacity-80 transition-colors underline"
-                >
-                  Visit Launchpad →
-                </a>
-              </div>
-              <div className="text-center">
-                <div className="text-purple-400 font-bold mb-2">Blockchain</div>
-                <div className="flex items-center justify-center space-x-2 mb-2">
-                  <img
-                    src="/solana-logo.png"
-                    alt="Solana Logo"
-                    className="w-6 h-6 object-contain"
-                  />
-                  <span className="text-gray-300">Solana</span>
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-purple-400 font-bold mb-2">Token</div>
-                <div className="flex items-center justify-center space-x-2 mb-2">
-                  <img
-                    src="/nema-logo.svg"
-                    alt="NEMA Logo"
-                    className="w-6 h-6 object-cover rounded-full"
-                  />
-                  <span className="text-gray-300">$NEMA</span>
-                </div>
-              </div>
-            </div>
+            <h2 className="text-3xl font-bold text-cyan-400 mb-8 text-center">Tokenomics & Token</h2>
 
             {/* Token Economics */}
             <div className="grid lg:grid-cols-2 gap-8 mb-8">

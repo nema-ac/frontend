@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Logo from './Logo';
 import WalletButton from './WalletButton';
+import BuyTokenButton from './BuyTokenButton';
 
 const Navigation = () => {
   const location = useLocation();
@@ -10,11 +11,48 @@ const Navigation = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b border-cyan-400">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center">
-            <Logo size={36} />
-          </Link>
+        <div className="flex justify-between items-center h-16 md:justify-between">
+          {/* Mobile: Logo */}
+          <div className="md:hidden">
+            <Link to="/" className="flex items-center">
+              <img
+                src="/nema-logo.svg"
+                alt="NEMA"
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            </Link>
+          </div>
+
+          {/* Mobile: Buy Button (centered) */}
+          <div className="md:hidden">
+            <BuyTokenButton />
+          </div>
+
+          {/* Mobile: Wallet + Menu */}
+          <div className="md:hidden flex items-center space-x-2">
+            <div className="relative">
+              <WalletButton />
+            </div>
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-gray-300 hover:text-cyan-400 focus:outline-none"
+            >
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                {isMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
+
+          {/* Desktop: Logo */}
+          <div className="hidden md:block">
+            <Link to="/" className="flex items-center">
+              <Logo size={36} />
+            </Link>
+          </div>
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center space-x-8">
@@ -56,34 +94,16 @@ const Navigation = () => {
           </div>
 
           {/* Desktop Navigation and Wallet */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-4">
+            {/* Buy Token Button */}
+            <BuyTokenButton />
+            
             {/* Wallet Button */}
             <div className="relative">
               <WalletButton />
             </div>
           </div>
 
-          {/* Mobile: Wallet Button and Menu Button */}
-          <div className="md:hidden flex items-center space-x-3">
-            {/* Mobile Wallet Button */}
-            <div className="relative">
-              <WalletButton />
-            </div>
-
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-300 hover:text-cyan-400 focus:outline-none"
-            >
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                {isMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
-            </button>
-          </div>
         </div>
 
         {/* Mobile Menu */}
