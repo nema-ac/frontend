@@ -112,7 +112,7 @@ const Profile = () => {
 
   const handleDownloadAvatar = () => {
     if (!contextProfile?.avatar_base64) return;
-    
+
     try {
       // Create canvas to render circular avatar with border
       const canvas = document.createElement('canvas');
@@ -120,49 +120,49 @@ const Profile = () => {
       const size = 256; // Higher resolution for better quality
       const borderWidth = 8;
       const radius = (size - borderWidth * 2) / 2;
-      
+
       canvas.width = size;
       canvas.height = size;
-      
+
       // Create image from base64
       const img = new Image();
       img.onload = () => {
         // Clear canvas with transparent background
         ctx.clearRect(0, 0, size, size);
-        
+
         // Draw border circle
         ctx.beginPath();
         ctx.arc(size / 2, size / 2, radius + borderWidth / 2, 0, 2 * Math.PI);
         ctx.fillStyle = '#00BCD4'; // Cyan border color
         ctx.fill();
-        
+
         // Create clipping mask for circular image
         ctx.beginPath();
         ctx.arc(size / 2, size / 2, radius, 0, 2 * Math.PI);
         ctx.clip();
-        
+
         // Draw the avatar image (scaled and centered)
         ctx.imageSmoothingEnabled = false; // Preserve pixelated look
         ctx.drawImage(img, borderWidth, borderWidth, size - borderWidth * 2, size - borderWidth * 2);
-        
+
         // Convert canvas to blob and download
         canvas.toBlob((blob) => {
           const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
           link.download = `nema-worm-avatar-${contextProfile.wallet_address?.slice(-8) || 'avatar'}.png`;
-          
+
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
-          
+
           // Clean up
           URL.revokeObjectURL(url);
         }, 'image/png');
       };
-      
+
       img.src = contextProfile.avatar_base64;
-      
+
     } catch (error) {
       console.error('Error downloading avatar:', error);
       // Fallback: download original image
@@ -176,12 +176,12 @@ const Profile = () => {
   };
 
   const handleShareOnTwitter = () => {
-    const tweetText = `Just generated my unique C. elegans avatar on @Nema_Lab! 🪱 
+    const tweetText = `Just generated my unique C. elegans avatar on @Nema_Lab! 🪱
 
 Building the future of digital biology with $NEMA 🧠`;
-    
+
     const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(window.location.origin)}`;
-    
+
     // Open Twitter in a new window/tab
     window.open(tweetUrl, '_blank', 'width=600,height=400');
   };
@@ -250,8 +250,8 @@ Building the future of digital biology with $NEMA 🧠`;
                 <div className="flex items-center space-x-4 mb-6">
                   {/* Worm Avatar */}
                   {contextProfile.avatar_base64 && (
-                    <img 
-                      src={contextProfile.avatar_base64} 
+                    <img
+                      src={contextProfile.avatar_base64}
                       alt="Your Worm Avatar"
                       className="w-16 h-16 rounded-full border-3 border-cyan-400"
                       style={{ imageRendering: 'pixelated' }}
@@ -262,7 +262,7 @@ Building the future of digital biology with $NEMA 🧠`;
                     <p className="text-sm text-gray-400">Unique C. elegans avatar generated from your wallet</p>
                   </div>
                 </div>
-                
+
                 <h3 className="text-lg font-medium text-cyan-400 mb-4">Wallet Information</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full">
@@ -313,26 +313,26 @@ Building the future of digital biology with $NEMA 🧠`;
                     <h3 className="text-lg font-medium text-cyan-400">Share Your Nema Worm</h3>
                     <p className="text-sm text-gray-400">Show off your unique digital C. elegans avatar</p>
                   </div>
-                  
+
                   <div className="flex items-center space-x-4 mb-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
-                    <img 
-                      src={contextProfile.avatar_base64} 
+                    <img
+                      src={contextProfile.avatar_base64}
                       alt="Your Worm Avatar Preview"
                       className="w-12 h-12 rounded-full border-2 border-cyan-400"
                       style={{ imageRendering: 'pixelated' }}
                     />
                     <div className="flex-1">
                       <p className="text-sm text-gray-300 leading-relaxed">
-                        "Just generated my unique C. elegans avatar on @Nema_Lab! 🪱 
+                        "Just generated my unique C. elegans avatar on @Nema_Lab! 🪱
                         Building the future of digital biology with $NEMA 🧠"
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="flex gap-3">
                     <button
                       onClick={handleDownloadAvatar}
-                      className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+                      className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 cursor-pointer"
                     >
                       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -341,10 +341,10 @@ Building the future of digital biology with $NEMA 🧠`;
                       </svg>
                       <span>Download Avatar</span>
                     </button>
-                    
+
                     <button
                       onClick={handleShareOnTwitter}
-                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 cursor-pointer"
                     >
                       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
@@ -509,7 +509,7 @@ Building the future of digital biology with $NEMA 🧠`;
                     <span className="text-white ml-2">{contextProfile.updated_at ? formatDate(contextProfile.updated_at) : 'N/A'}</span>
                   </div>
                 </div>
-                
+
                 {/* Disconnect Button */}
                 <div className="pt-4 border-t border-gray-600">
                   <button
