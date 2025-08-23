@@ -1,4 +1,25 @@
+import { useEffect, useState } from 'react';
+import { tokenService } from '../services/tokenService';
+
 const Airdrop = () => {
+  const [tokenData, setTokenData] = useState(null);
+  const [loadingTokenData, setLoadingTokenData] = useState(true);
+
+  // Fetch token supply data
+  useEffect(() => {
+    const fetchTokenData = async () => {
+      try {
+        const data = await tokenService.getTokenSupply();
+        setTokenData(data);
+      } catch (error) {
+        console.error('Failed to fetch token data:', error);
+      } finally {
+        setLoadingTokenData(false);
+      }
+    };
+
+    fetchTokenData();
+  }, []);
 
   return (
     <div className="min-h-screen bg-black text-white pt-28">
@@ -17,17 +38,29 @@ const Airdrop = () => {
               <div className="bg-black/30 p-6 rounded-lg border border-cyan-400/20">
                 <h4 className="text-xl font-bold text-cyan-400 mb-4">Token Supply</h4>
                 <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Total Supply</span>
-                    <span className="text-white font-bold">1B $NEMA</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300 text-left">Initial Supply</span>
+                    <span className="text-white font-bold text-right">
+                      {loadingTokenData ? 'Loading...' : '1B $NEMA'}
+                    </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Initial Market Cap</span>
-                    <span className="text-purple-400 font-bold">$20K</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300 text-left">Current Supply</span>
+                    <span className="text-cyan-400 font-bold text-right">
+                      {loadingTokenData 
+                        ? 'Loading...' 
+                        : `${tokenData?.currentSupply?.toLocaleString() || '0'} $NEMA`
+                      }
+                    </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-300">Bonding Target</span>
-                    <span className="text-cyan-400 font-bold">$500K</span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-300 text-left">Tokens Burned</span>
+                    <span className="text-red-400 font-bold text-right">
+                      {loadingTokenData 
+                        ? 'Loading...' 
+                        : `${tokenData?.burnedTokens?.toLocaleString() || '0'} $NEMA`
+                      }
+                    </span>
                   </div>
                 </div>
               </div>
