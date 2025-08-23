@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Logo from './Logo';
+import WalletButton from './WalletButton';
 
 const Navigation = () => {
   const location = useLocation();
@@ -17,31 +18,14 @@ const Navigation = () => {
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link
-              to="/"
-              className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${location.pathname === '/'
-                ? 'text-cyan-400'
-                : 'text-gray-300'
-                }`}
-            >
-              HOME
-            </Link>
-            <Link
-              to="/about"
-              className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${location.pathname === '/about'
-                ? 'text-cyan-400 '
-                : 'text-gray-300'
-                }`}
-            >
-              ABOUT
-            </Link>
             <div className="relative">
               <Link
-                to="/worminal"
-                className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${location.pathname === '/worminal'
-                  ? 'text-cyan-400 '
-                  : 'text-gray-300'
-                  }`}
+                to="/"
+                className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${
+                  location.pathname === '/'
+                    ? 'text-cyan-400 '
+                    : 'text-gray-300'
+                }`}
               >
                 WORMINAL
               </Link>
@@ -50,18 +34,43 @@ const Navigation = () => {
               </span>
             </div>
             <Link
-              to="/airdrop"
-              className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${location.pathname === '/airdrop'
-                ? 'text-cyan-400 '
-                : 'text-gray-300'
-                }`}
+              to="/about"
+              className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${
+                location.pathname === '/about'
+                  ? 'text-cyan-400 '
+                  : 'text-gray-300'
+              }`}
             >
-              AIRDROP
+              ABOUT
+            </Link>
+            <Link
+              to="/airdrop"
+              className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${
+                location.pathname === '/airdrop'
+                  ? 'text-cyan-400'
+                  : 'text-gray-300'
+              }`}
+            >
+              TOKEN
             </Link>
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="md:hidden">
+          {/* Desktop Navigation and Wallet */}
+          <div className="hidden md:flex items-center space-x-8">
+            {/* Wallet Button */}
+            <div className="relative">
+              <WalletButton />
+            </div>
+          </div>
+
+          {/* Mobile: Wallet Button and Menu Button */}
+          <div className="md:hidden flex items-center space-x-3">
+            {/* Mobile Wallet Button */}
+            <div className="relative">
+              <WalletButton />
+            </div>
+
+            {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-gray-300 hover:text-cyan-400 focus:outline-none"
@@ -81,16 +90,22 @@ const Navigation = () => {
         {isMenuOpen && (
           <div className="md:hidden bg-black/95 backdrop-blur-sm border-t border-cyan-400/30">
             <div className="px-4 py-6 space-y-6">
-              <Link
-                to="/"
-                onClick={() => setIsMenuOpen(false)}
-                className={`block text-lg font-medium transition-colors duration-200 hover:text-cyan-400 ${location.pathname === '/'
-                  ? 'text-cyan-400'
-                  : 'text-gray-300'
+              <div className="relative block">
+                <Link
+                  to="/"
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`block text-lg font-medium transition-colors duration-200 hover:text-cyan-400 ${
+                    location.pathname === '/'
+                      ? 'text-cyan-400'
+                      : 'text-gray-300'
                   }`}
-              >
-                HOME
-              </Link>
+                >
+                  WORMINAL
+                </Link>
+                <span className="absolute -top-1 left-24 md:-right-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-1 py-0.5 rounded-full font-bold" style={{transform: 'scale(0.7)'}}>
+                  SOON
+                </span>
+              </div>
               <Link
                 to="/about"
                 onClick={() => setIsMenuOpen(false)}
@@ -101,30 +116,16 @@ const Navigation = () => {
               >
                 ABOUT
               </Link>
-              <div className="relative block">
-                <Link
-                  to="/worminal"
-                  onClick={() => setIsMenuOpen(false)}
-                  className={`block text-lg font-medium transition-colors duration-200 hover:text-cyan-400 ${location.pathname === '/worminal'
-                    ? 'text-cyan-400'
-                    : 'text-gray-300'
-                    }`}
-                >
-                  WORMINAL
-                </Link>
-                <span className="absolute -top-1 left-24 md:-right-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-1 py-0.5 rounded-full font-bold" style={{ transform: 'scale(0.7)' }}>
-                  SOON
-                </span>
-              </div>
               <Link
                 to="/airdrop"
                 onClick={() => setIsMenuOpen(false)}
-                className={`block text-lg font-medium transition-colors duration-200 hover:text-cyan-400 ${location.pathname === '/airdrop'
-                  ? 'text-cyan-400'
-                  : 'text-gray-300'
-                  }`}
+                className={`block text-lg font-medium transition-colors duration-200 hover:text-cyan-400 ${
+                  location.pathname === '/airdrop'
+                    ? 'text-cyan-400'
+                    : 'text-gray-300'
+                }`}
               >
-                AIRDROP
+                TOKEN
               </Link>
             </div>
           </div>

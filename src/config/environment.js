@@ -10,10 +10,13 @@ const isProduction = import.meta.env.PROD;
 const config = {
   // API Settings
   api: {
-    baseUrl: isDevelopment 
-      ? 'http://localhost:8080' 
-      : 'https://nema.fly.dev', // Update this to match your production backend URL
+    baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080', // Fallback for local development
     timeout: 30000, // 30 seconds
+  },
+  
+  // Solana RPC Settings
+  solana: {
+    rpcUrl: `https://mainnet.helius-rpc.com/?api-key=${import.meta.env.VITE_HELIUS_API_KEY}`,
   },
   
   // Development settings

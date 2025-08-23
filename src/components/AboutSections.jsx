@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import InteractiveNeuralNetwork from './InteractiveNeuralNetwork';
 
 const TechSpecPanel = ({ title, subtitle, specs, icon, color = "cyan", delay = 0 }) => {
   const [isVisible, setIsVisible] = useState(false);
@@ -205,6 +206,11 @@ const AboutSections = () => {
             establishing new possibilities for autonomous digital organisms.
           </p>
         </div>
+      </div>
+
+      {/* Interactive Neural Network */}
+      <div>
+        <InteractiveNeuralNetwork />
       </div>
 
       {/* Technical Specifications Grid */}

@@ -21,23 +21,23 @@ const InteractiveTerminal = () => {
   const [sensoryExpanded, setSensoryExpanded] = useState(false);
   const [showActiveOnly, setShowActiveOnly] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
-  
+
   const inputRef = useRef(null);
   const messagesEndRef = useRef(null);
   const initializationRef = useRef(false);
-  
+
   // Calculate differences between two neural states
   const calculateNeuralChanges = (oldState, newState) => {
     if (!oldState || !newState) return [];
-    
+
     const changes = [];
-    
+
     // Check motor neuron changes
     const allMotorNeurons = new Set([
       ...Object.keys(oldState.motorNeurons || {}),
       ...Object.keys(newState.motorNeurons || {})
     ]);
-    
+
     for (const neuron of allMotorNeurons) {
       const oldValue = oldState.motorNeurons?.[neuron] || 0;
       const newValue = newState.motorNeurons?.[neuron] || 0;
@@ -51,13 +51,13 @@ const InteractiveTerminal = () => {
         });
       }
     }
-    
+
     // Check sensory neuron changes
     const allSensoryNeurons = new Set([
       ...Object.keys(oldState.sensoryNeurons || {}),
       ...Object.keys(newState.sensoryNeurons || {})
     ]);
-    
+
     for (const neuron of allSensoryNeurons) {
       const oldValue = oldState.sensoryNeurons?.[neuron] || 0;
       const newValue = newState.sensoryNeurons?.[neuron] || 0;
@@ -71,14 +71,14 @@ const InteractiveTerminal = () => {
         });
       }
     }
-    
+
     return changes;
   };
 
   // Format neural changes for display
   const formatNeuralChanges = (changes) => {
     if (!changes || changes.length === 0) return 'No neural changes';
-    
+
     return changes
       .slice(0, 5) // Limit to first 5 changes to avoid clutter
       .map(change => {
@@ -91,37 +91,37 @@ const InteractiveTerminal = () => {
   // Filter neurons based on search term and active-only toggle
   const filterNeurons = (neurons) => {
     if (!neurons) return {};
-    
+
     let filtered = { ...neurons };
-    
+
     // Filter by search term
     if (neuralSearchTerm) {
       filtered = Object.fromEntries(
-        Object.entries(filtered).filter(([name]) => 
+        Object.entries(filtered).filter(([name]) =>
           name.toLowerCase().includes(neuralSearchTerm.toLowerCase())
         )
       );
     }
-    
+
     // Filter by active-only
     if (showActiveOnly) {
       filtered = Object.fromEntries(
         Object.entries(filtered).filter(([, value]) => value !== 0)
       );
     }
-    
+
     return filtered;
   };
-  
+
   // Remove health checks to avoid CORS issues - we'll show connection status based on actual API calls
-  const { 
-    conversation, 
-    isTyping, 
-    loading, 
-    error, 
+  const {
+    conversation,
+    isTyping,
+    loading,
+    error,
     isLoadingHistory,
     historyLoaded,
-    sendMessage, 
+    sendMessage,
     clearConversation,
     addMessage
   } = useConversation({
@@ -135,7 +135,7 @@ const InteractiveTerminal = () => {
       // Calculate changes between previous and new state
       const changes = calculateNeuralChanges(currentNeuralState, neuralState);
       setRecentNeuralChanges(changes);
-      
+
       // Update states
       setPreviousNeuralState(currentNeuralState);
       setCurrentNeuralState(neuralState);
@@ -147,7 +147,7 @@ const InteractiveTerminal = () => {
   useEffect(() => {
     if (!initializationRef.current && !isLoadingHistory && (historyLoaded || error)) {
       initializationRef.current = true;
-      
+
       // If history was loaded successfully, show a brief status
       if (historyLoaded && conversation.length > 0) {
         setTimeout(() => {
@@ -166,13 +166,13 @@ const InteractiveTerminal = () => {
             '348 neurons online | C. elegans connectome active',
             'Type "help" for available commands or start chatting with NEMA'
           ];
-          
+
           // Add messages with delays for typing effect
           welcomeMessages.forEach((content, index) => {
             setTimeout(() => {
               addMessage({
-                type: 'system', 
-                content, 
+                type: 'system',
+                content,
                 timestamp: new Date()
               });
             }, index * 800);
@@ -213,14 +213,14 @@ const InteractiveTerminal = () => {
   useEffect(() => {
     const terminalElement = messagesEndRef.current?.closest('.neon-border');
     if (!terminalElement) return;
-    
+
     const handleTerminalClick = (e) => {
       // Only focus if the click target is not an input or button
       if (!e.target.matches('input, button, a, [contenteditable="true"]')) {
         inputRef.current?.focus();
       }
     };
-    
+
     terminalElement.addEventListener('click', handleTerminalClick);
     return () => terminalElement.removeEventListener('click', handleTerminalClick);
   }, []);
@@ -242,7 +242,7 @@ const InteractiveTerminal = () => {
   // Command history navigation
   const navigateHistory = (direction) => {
     if (commandHistory.length === 0) return;
-    
+
     const newIndex = historyIndex + direction;
     if (newIndex >= -1 && newIndex < commandHistory.length) {
       setHistoryIndex(newIndex);
@@ -253,7 +253,7 @@ const InteractiveTerminal = () => {
   // Handle terminal commands
   const handleCommand = (command) => {
     const cmd = command.toLowerCase().trim();
-    
+
     switch (cmd) {
       case 'help':
         return {
@@ -267,7 +267,7 @@ const InteractiveTerminal = () => {
 Or simply type a message to chat with NEMA!`,
           timestamp: new Date()
         };
-        
+
       case 'status':
         return {
           type: 'system',
@@ -278,14 +278,14 @@ Or simply type a message to chat with NEMA!`,
 • Terminal: Active and ready`,
           timestamp: new Date()
         };
-        
+
       case 'ping':
         return {
           type: 'system',
           content: 'PONG - Terminal ready. Send a message to test NEMA connectivity.',
           timestamp: new Date()
         };
-        
+
       case 'state':
         // Toggle neural state sidebar
         if (showNeuralState) {
@@ -303,9 +303,13 @@ Or simply type a message to chat with NEMA!`,
             timestamp: new Date()
           };
         }
-        
+
       default:
-        return null; // Not a command, treat as regular message
+        return {
+          type: 'system',
+          content: `Command "${cmd}" not recognized. The Worminal is still in development and will be available soon! For now, you can use basic commands like "help", "status", "ping", and "state"`,
+          timestamp: new Date()
+        };
     }
   };
 
@@ -317,7 +321,7 @@ Or simply type a message to chat with NEMA!`,
     // Add to command history
     setCommandHistory(prev => [...prev, trimmedInput]);
     setHistoryIndex(-1);
-    
+
     // Check if it's a command
     const commandResponse = handleCommand(trimmedInput);
     if (commandResponse) {
@@ -362,7 +366,7 @@ Or simply type a message to chat with NEMA!`,
       setShowNeuralState(true);
       return;
     }
-    
+
     try {
       const neuralState = await nemaService.getNeuralState();
       setCurrentNeuralState(neuralState);
@@ -378,9 +382,9 @@ Or simply type a message to chat with NEMA!`,
 
   // Format timestamp for messages
   const formatTimestamp = (timestamp) => {
-    return new Date(timestamp).toLocaleTimeString('en-US', { 
-      hour12: false, 
-      hour: '2-digit', 
+    return new Date(timestamp).toLocaleTimeString('en-US', {
+      hour12: false,
+      hour: '2-digit',
       minute: '2-digit',
       second: '2-digit'
     });
@@ -418,9 +422,9 @@ Or simply type a message to chat with NEMA!`,
   };
 
   return (
-    <div className="flex gap-4">
+    <div className="flex flex-col lg:flex-row gap-4">
       {/* Terminal */}
-      <div className={`neon-border bg-black rounded-lg font-mono text-sm h-[600px] flex flex-col transition-all duration-300 ${showNeuralState ? 'w-2/3' : 'w-full'}`}>
+      <div className={`neon-border bg-black rounded-lg font-mono text-sm h-[600px] flex flex-col transition-all duration-300 ${showNeuralState ? 'w-full lg:w-2/3' : 'w-full'}`}>
       {/* Terminal Header */}
       <div className="flex items-center justify-between p-4 border-b border-cyan-400/30">
         <div className="flex items-center space-x-4">
@@ -446,8 +450,8 @@ Or simply type a message to chat with NEMA!`,
       <div className="flex-1 p-4 overflow-y-auto">
         {/* Error Display */}
         {error && (
-          <ErrorDisplay 
-            error={error} 
+          <ErrorDisplay
+            error={error}
             className="mb-4"
             onRetry={() => window.location.reload()}
           />
@@ -455,7 +459,7 @@ Or simply type a message to chat with NEMA!`,
 
         {/* Loading History Indicator */}
         {isLoadingHistory && (
-          <div className="flex items-start space-x-2">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:space-x-2">
             <span className="text-yellow-400 text-xs min-w-fit">
               [{formatTimestamp(new Date())}] system@worminal:~#
             </span>
@@ -474,18 +478,18 @@ Or simply type a message to chat with NEMA!`,
         <div className="space-y-2">
           {allMessages.map((message, index) => (
             <div key={message.id || index} className="flex flex-col">
-              <div className="flex items-start space-x-2">
+              <div className="flex flex-col lg:flex-row lg:items-start lg:space-x-2">
                 <span className={`${getMessageStyle(message.type)} text-xs min-w-fit`}>
                   [{formatTimestamp(message.timestamp)}] {getPromptPrefix(message.type, message.id)}
                 </span>
-                <div className={`${getMessageStyle(message.type)} flex-1 whitespace-pre-wrap break-words`}>
+                <div className={`${getMessageStyle(message.type)} lg:flex-1 whitespace-pre-wrap break-words`}>
                   {message.content}
                 </div>
               </div>
-              
+
               {/* Show neural changes for the most recent assistant message */}
-              {message.type === 'assistant' && 
-               index === allMessages.length - 1 && 
+              {message.type === 'assistant' &&
+               index === allMessages.length - 1 &&
                recentNeuralChanges.length > 0 && (
                 <div className="ml-4 mt-1 text-xs">
                   <span className="text-gray-400">Neural changes:</span>{' '}
@@ -502,7 +506,7 @@ Or simply type a message to chat with NEMA!`,
 
           {/* Typing Indicator */}
           {isTyping && (
-            <div className="flex items-start space-x-2">
+            <div className="flex flex-col lg:flex-row lg:items-start lg:space-x-2">
               <span className="text-blue-400 text-xs min-w-fit">
                 [{formatTimestamp(new Date())}] nema@neural:~&gt;
               </span>
@@ -517,32 +521,34 @@ Or simply type a message to chat with NEMA!`,
             </div>
           )}
         </div>
-        
+
         <div ref={messagesEndRef} />
       </div>
 
       {/* Terminal Input */}
       <div className="p-4 border-t border-cyan-400/30">
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:space-x-2">
           <span className="text-cyan-400 text-xs min-w-fit">
             [{formatTimestamp(new Date())}] user@worminal:~$
           </span>
-          <input
-            ref={inputRef}
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="flex-1 bg-transparent text-cyan-400 outline-none caret-cyan-400"
-            placeholder="Type a message or command..."
-            disabled={loading}
-            autoFocus
-          />
-          {loading && (
-            <div className="text-yellow-400 text-xs">
-              <span className="animate-pulse">...</span>
-            </div>
-          )}
+          <div className="flex items-center space-x-2 lg:flex-1">
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="flex-1 bg-transparent text-cyan-400 outline-none caret-cyan-400"
+              placeholder="Type a message or command..."
+              disabled={loading}
+              autoFocus
+            />
+            {loading && (
+              <div className="text-yellow-400 text-xs">
+                <span className="animate-pulse">...</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -561,18 +567,18 @@ Or simply type a message to chat with NEMA!`,
 
       {/* Neural State Sidebar */}
       {showNeuralState && (
-        <div className="w-1/3 neon-border bg-black rounded-lg font-mono text-sm h-[600px] flex flex-col">
+        <div className="w-full lg:w-1/3 neon-border bg-black rounded-lg font-mono text-sm h-[600px] flex flex-col">
           {/* Sidebar Header */}
           <div className="flex items-center justify-between p-4 border-b border-purple-400/30">
             <div className="text-purple-400 font-semibold">Neural State</div>
-            <button 
+            <button
               onClick={() => setShowNeuralState(false)}
               className="text-gray-400 hover:text-red-400 transition-colors"
             >
               ✕
             </button>
           </div>
-          
+
           {/* Neural State Content */}
           <div className="flex-1 p-4 overflow-y-auto">
             {currentNeuralState ? (
@@ -582,7 +588,7 @@ Or simply type a message to chat with NEMA!`,
                   <div>Updated: {currentNeuralState.updatedAt.toLocaleString()}</div>
                   <div>Total Neurons: {currentNeuralState.totalNeurons}</div>
                 </div>
-                
+
                 {/* Recent Neural Changes */}
                 {recentNeuralChanges.length > 0 && (
                   <div className="border-t border-gray-700 pt-4">
@@ -609,7 +615,7 @@ Or simply type a message to chat with NEMA!`,
                     </div>
                   </div>
                 )}
-                
+
                 {/* Search and Filter Controls */}
                 <div className="border-t border-gray-700 pt-4">
                   <div className="space-y-2">
@@ -631,7 +637,7 @@ Or simply type a message to chat with NEMA!`,
                     </label>
                   </div>
                 </div>
-                
+
                 {/* Motor Neurons */}
                 <div className="border-t border-gray-700 pt-4">
                   <button
@@ -649,7 +655,7 @@ Or simply type a message to chat with NEMA!`,
                     </pre>
                   )}
                 </div>
-                
+
                 {/* Sensory Neurons */}
                 <div className="border-t border-gray-700 pt-4">
                   <button
