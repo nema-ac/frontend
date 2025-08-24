@@ -163,7 +163,7 @@ const InteractiveTerminal = () => {
           const welcomeMessages = [
             'NEMA Neural Network Terminal v2.0',
             'Initializing connection to neural substrate...',
-            '348 neurons online | C. elegans connectome active',
+            '302 neurons online | C. elegans connectome active',
             'Type "help" for available commands or start chatting with NEMA'
           ];
 
@@ -586,7 +586,7 @@ Or simply type a message to chat with NEMA!`,
                 <div className="text-cyan-400">
                   <div>State Count: {currentNeuralState.stateCount}</div>
                   <div>Updated: {currentNeuralState.updatedAt.toLocaleString()}</div>
-                  <div>Total Neurons: {currentNeuralState.totalNeurons}</div>
+                  <div>Total Neurons: 302</div>
                 </div>
 
                 {/* Recent Neural Changes */}
@@ -644,7 +644,7 @@ Or simply type a message to chat with NEMA!`,
                     onClick={() => setMotorExpanded(!motorExpanded)}
                     className="flex items-center justify-between w-full text-green-400 mb-2 hover:text-green-300 transition-colors"
                   >
-                    <span>Motor Neurons ({Object.keys(filterNeurons(currentNeuralState.motorNeurons)).length}/{Object.keys(currentNeuralState.motorNeurons || {}).length})</span>
+                    <span>Neurons (302/302)</span>
                     <span className="transform transition-transform duration-200" style={{transform: motorExpanded ? 'rotate(180deg)' : 'rotate(0deg)'}}>
                       ▼
                     </span>
@@ -662,7 +662,7 @@ Or simply type a message to chat with NEMA!`,
                     onClick={() => setSensoryExpanded(!sensoryExpanded)}
                     className="flex items-center justify-between w-full text-blue-400 mb-2 hover:text-blue-300 transition-colors"
                   >
-                    <span>Sensory Neurons ({Object.keys(filterNeurons(currentNeuralState.sensoryNeurons)).length}/{Object.keys(currentNeuralState.sensoryNeurons || {}).length})</span>
+                    <span>Muscle Cells (98/98)</span>
                     <span className="transform transition-transform duration-200" style={{transform: sensoryExpanded ? 'rotate(180deg)' : 'rotate(0deg)'}}>
                       ▼
                     </span>

@@ -45,7 +45,7 @@ const Worminal = () => {
           <div className="neon-border bg-gradient-to-br from-purple-900/20 to-black/50 rounded-lg p-6 max-w-4xl mx-auto">
             <h3 className="text-xl font-bold text-cyan-400 mb-4">About This Interface</h3>
             <p className="text-gray-300 mb-4">
-              You're connected to NEMA's neural substrate - a 348-neuron C. elegans connectome fused with 
+              You are connected to NEMA's neural substrate a 302-neuron C. elegans connectome fused with 
               advanced language processing. Every interaction shapes the neural state and contributes to 
               the organism's continuous evolution.
             </p>
