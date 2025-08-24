@@ -95,8 +95,21 @@ class ApiClient {
       }
     }
 
-    // Parse JSON response
-    const data = await response.json();
+    // Parse JSON response if there's content
+    let data = null;
+    const contentType = response.headers.get('content-type');
+    const contentLength = response.headers.get('content-length');
+    
+    // Only parse JSON if there's content and it's JSON
+    if (contentLength !== '0' && contentType && contentType.includes('application/json')) {
+      try {
+        data = await response.json();
+      } catch (error) {
+        // If JSON parsing fails, return null for empty responses
+        data = null;
+      }
+    }
+    
     this.logResponse(method, url, response, data);
     return data;
   }
@@ -105,7 +118,7 @@ class ApiClient {
    * Make HTTP request with timeout (single attempt, no retries)
    */
   async makeRequest(endpoint, options = {}) {
-    const { method = 'GET', headers = {}, body } = options;
+    const { method = 'GET', headers = {}, body, credentials } = options;
     const url = `${this.baseUrl}${endpoint}`;
     
     const requestOptions = {
@@ -115,6 +128,10 @@ class ApiClient {
         ...headers,
       },
     };
+
+    if (credentials) {
+      requestOptions.credentials = credentials;
+    }
 
     if (body) {
       requestOptions.body = typeof body === 'string' ? body : JSON.stringify(body);
@@ -133,29 +150,33 @@ class ApiClient {
   /**
    * GET request
    */
-  async get(endpoint, headers = {}) {
-    return this.makeRequest(endpoint, { method: 'GET', headers });
+  async get(endpoint, options = {}) {
+    const { headers = {}, credentials } = options;
+    return this.makeRequest(endpoint, { method: 'GET', headers, credentials });
   }
 
   /**
    * POST request
    */
-  async post(endpoint, body = null, headers = {}) {
-    return this.makeRequest(endpoint, { method: 'POST', body, headers });
+  async post(endpoint, body = null, options = {}) {
+    const { headers = {}, credentials } = options;
+    return this.makeRequest(endpoint, { method: 'POST', body, headers, credentials });
   }
 
   /**
    * PUT request
    */
-  async put(endpoint, body = null, headers = {}) {
-    return this.makeRequest(endpoint, { method: 'PUT', body, headers });
+  async put(endpoint, body = null, options = {}) {
+    const { headers = {}, credentials } = options;
+    return this.makeRequest(endpoint, { method: 'PUT', body, headers, credentials });
   }
 
   /**
    * DELETE request
    */
-  async delete(endpoint, headers = {}) {
-    return this.makeRequest(endpoint, { method: 'DELETE', headers });
+  async delete(endpoint, options = {}) {
+    const { headers = {}, credentials } = options;
+    return this.makeRequest(endpoint, { method: 'DELETE', headers, credentials });
   }
 
   /**
