@@ -6,6 +6,17 @@ import { useAuth } from '../hooks/useAuth';
 import { authAPI } from '../utils/api';
 import bs58 from 'bs58';
 
+// Format token amounts for display (e.g., 1.2M, 45.3K)
+const formatTokenAmount = (amount) => {
+  if (amount >= 1000000) {
+    return (amount / 1000000).toFixed(1) + 'M';
+  } else if (amount >= 1000) {
+    return (amount / 1000).toFixed(1) + 'K';
+  } else {
+    return amount.toLocaleString();
+  }
+};
+
 // Module-level flag to prevent double authentication across React StrictMode
 let isAuthenticatingGlobal = false;
 let lastWalletGlobal = null;
@@ -170,7 +181,7 @@ const WalletButton = () => {
                         {profile?.username || 'Anonymous'}
                     </div>
                     <div className="text-xs text-gray-400 group-hover:text-cyan-300">
-                        {(profile?.nema_balance || 0).toLocaleString()} NEMA
+                        {formatTokenAmount(profile?.nema_balance || 0)} NEMA
                     </div>
                 </div>
             </Link>
