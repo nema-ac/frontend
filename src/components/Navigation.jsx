@@ -16,9 +16,9 @@ const Navigation = () => {
           <div className="md:hidden">
             <Link to="/" className="flex items-center">
               <img
-                src="/nema-logo.svg"
+                src="/mobile-nema-logo.png"
                 alt="NEMA"
-                className="w-10 h-10 rounded-full object-cover"
+                className="w-10 h-10 object-contain rounded-full"
               />
             </Link>
           </div>

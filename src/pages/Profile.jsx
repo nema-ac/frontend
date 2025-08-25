@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { AuthContext } from '../contexts/AuthContext';
@@ -19,6 +19,8 @@ const Profile = () => {
   const [updateLoading, setUpdateLoading] = useState(false);
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const [balanceRefreshing, setBalanceRefreshing] = useState(false);
+  const [shouldHighlightUsername, setShouldHighlightUsername] = useState(false);
+  const usernameInputRef = useRef(null);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -34,6 +36,24 @@ const Profile = () => {
         telegram_handle: contextProfile.telegram_handle || ''
       });
       setLoading(false);
+      
+      // Check if username is blank after sign-in and prompt user to fill it
+      const isUsernameBlank = !contextProfile.username || contextProfile.username.trim() === '';
+      if (isUsernameBlank) {
+        setShouldHighlightUsername(true);
+        setIsEditing(true); // Unlock all inputs
+        
+        // Scroll to username field and focus it after a brief delay
+        setTimeout(() => {
+          if (usernameInputRef.current) {
+            usernameInputRef.current.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center' 
+            });
+            usernameInputRef.current.focus();
+          }
+        }, 500); // Small delay to ensure DOM is ready
+      }
     }
   }, [contextProfile]);
 
@@ -54,10 +74,33 @@ const Profile = () => {
       ...prev,
       [name]: value
     }));
+    
+    // Remove highlight when user starts typing in username
+    if (name === 'username' && shouldHighlightUsername) {
+      setShouldHighlightUsername(false);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate username is required
+    if (!formData.username || formData.username.trim() === '') {
+      setError('Username is required. Please enter a username to continue.');
+      setShouldHighlightUsername(true);
+      // Scroll to and focus username field
+      setTimeout(() => {
+        if (usernameInputRef.current) {
+          usernameInputRef.current.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+          });
+          usernameInputRef.current.focus();
+        }
+      }, 100);
+      return;
+    }
+    
     setUpdateLoading(true);
     setError('');
     setUpdateSuccess(false);
@@ -65,6 +108,7 @@ const Profile = () => {
     try {
       await profileService.updateProfile(formData);
       setUpdateSuccess(true);
+      setShouldHighlightUsername(false);
       // Refresh profile data
       await fetchProfile();
       setIsEditing(false);
@@ -84,6 +128,7 @@ const Profile = () => {
     });
     setIsEditing(false);
     setError('');
+    setShouldHighlightUsername(false);
   };
 
   const handleRefreshBalance = async () => {
@@ -243,6 +288,21 @@ Building the future of digital biology with $NEMA 🧠`;
             </div>
           )}
 
+          {/* Username Required Alert */}
+          {shouldHighlightUsername && (
+            <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded-lg mb-6">
+              <div className="flex items-center space-x-2">
+                <svg className="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <div>
+                  <strong>Username Required:</strong> Please fill out your username below to complete your profile setup. 
+                  Twitter and Telegram handles are optional.
+                </div>
+              </div>
+            </div>
+          )}
+
           {contextProfile && (
             <div className="space-y-6">
               {/* Avatar & Wallet Info Card */}
@@ -329,7 +389,7 @@ Building the future of digital biology with $NEMA 🧠`;
                     </div>
                   </div>
 
-                  <div className="flex gap-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <button
                       onClick={handleDownloadAvatar}
                       className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 cursor-pointer"
@@ -361,17 +421,22 @@ Building the future of digital biology with $NEMA 🧠`;
                   {/* Username */}
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Username
+                      Username <span className="text-red-400">*</span>
                     </label>
                     <div className="relative">
                       {isEditing ? (
                         <input
+                          ref={usernameInputRef}
                           type="text"
                           name="username"
                           value={formData.username}
                           onChange={handleInputChange}
-                          className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-3 pr-12 text-white focus:outline-none focus:border-cyan-400 transition-colors"
-                          placeholder="Enter username"
+                          className={`w-full bg-gray-800 border rounded-lg px-3 py-3 pr-12 text-white focus:outline-none transition-colors ${
+                            shouldHighlightUsername 
+                              ? 'border-red-500 focus:border-red-400 shadow-red-500/20 shadow-lg' 
+                              : 'border-gray-600 focus:border-cyan-400'
+                          }`}
+                          placeholder="Enter username (required)"
                         />
                       ) : (
                         <>
@@ -396,7 +461,7 @@ Building the future of digital biology with $NEMA 🧠`;
                   {/* Twitter Handle */}
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Twitter Handle
+                      Twitter Handle <span className="text-gray-500 text-xs">(optional)</span>
                     </label>
                     <div className="relative">
                       {isEditing ? (
@@ -408,7 +473,7 @@ Building the future of digital biology with $NEMA 🧠`;
                             value={formData.twitter_handle}
                             onChange={handleInputChange}
                             className="w-full bg-gray-800 border border-gray-600 rounded-lg pl-8 pr-12 py-3 text-white focus:outline-none focus:border-cyan-400 transition-colors"
-                            placeholder="twitter_handle"
+                            placeholder="twitter_handle (optional)"
                           />
                         </>
                       ) : (
@@ -435,7 +500,7 @@ Building the future of digital biology with $NEMA 🧠`;
                   {/* Telegram Handle */}
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Telegram Handle
+                      Telegram Handle <span className="text-gray-500 text-xs">(optional)</span>
                     </label>
                     <div className="relative">
                       {isEditing ? (
@@ -447,7 +512,7 @@ Building the future of digital biology with $NEMA 🧠`;
                             value={formData.telegram_handle}
                             onChange={handleInputChange}
                             className="w-full bg-gray-800 border border-gray-600 rounded-lg pl-8 pr-12 py-3 text-white focus:outline-none focus:border-cyan-400 transition-colors"
-                            placeholder="telegram_handle"
+                            placeholder="telegram_handle (optional)"
                           />
                         </>
                       ) : (
@@ -483,7 +548,7 @@ Building the future of digital biology with $NEMA 🧠`;
                       {updateLoading && (
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></div>
                       )}
-                      {updateLoading ? 'Updating...' : 'Save Changes'}
+                      {updateLoading ? 'Updating Profile...' : 'Save Profile'}
                     </button>
                     <button
                       type="button"

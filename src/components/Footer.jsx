@@ -7,7 +7,15 @@ const Footer = () => {
         <div className="flex flex-col items-center space-y-6">
           {/* Logo */}
           <div className="flex items-center">
-            <Logo size={40} />
+            <img
+              src="/nema-lab-logo.png"
+              alt="NEMA LAB Logo"
+              className="object-contain"
+              style={{
+                height: 40,
+                width: 'auto'
+              }}
+            />
           </div>
           
           {/* Social Links */}
@@ -35,11 +43,6 @@ const Footer = () => {
               </svg>
               <span>Twitter</span>
             </a>
-          </div>
-          
-          {/* Copyright */}
-          <div className="text-gray-500 text-sm text-center">
-            <p>Made with ❤️ from Nema Lab</p>
           </div>
         </div>
       </div>
