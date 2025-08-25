@@ -20,6 +20,7 @@ const Profile = () => {
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const [balanceRefreshing, setBalanceRefreshing] = useState(false);
   const [shouldHighlightUsername, setShouldHighlightUsername] = useState(false);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
   const usernameInputRef = useRef(null);
 
   useEffect(() => {
@@ -205,13 +206,35 @@ const Profile = () => {
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <style>
                   body { margin: 0; padding: 20px; background: #000; color: #fff; font-family: Arial, sans-serif; text-align: center; }
-                  img { max-width: 100%; height: auto; border: 4px solid #00BCD4; border-radius: 50%; }
+                  .avatar-container { 
+                    display: inline-block; 
+                    width: 256px; 
+                    height: 256px; 
+                    background: #00BCD4; 
+                    border-radius: 50%; 
+                    padding: 8px; 
+                    box-sizing: border-box;
+                  }
+                  img { 
+                    width: 100%; 
+                    height: 100%; 
+                    border-radius: 50%; 
+                    object-fit: cover;
+                    image-rendering: pixelated;
+                    image-rendering: -moz-crisp-edges;
+                    image-rendering: crisp-edges;
+                  }
                   p { margin-top: 20px; font-size: 16px; }
+                  @media (max-width: 400px) {
+                    .avatar-container { width: 200px; height: 200px; }
+                  }
                 </style>
               </head>
               <body>
                 <h2>Your NEMA Worm Avatar</h2>
-                <img src="${contextProfile.avatar_base64}" alt="NEMA Avatar" />
+                <div class="avatar-container">
+                  <img src="${contextProfile.avatar_base64}" alt="NEMA Avatar" />
+                </div>
                 <p>Long press the image above and select "Save Image" or "Download"</p>
                 <p style="font-size: 14px; color: #888;">Tip: You can also screenshot this page!</p>
               </body>
@@ -355,8 +378,15 @@ Building the future of digital biology with $NEMA 🧠`;
                     <img
                       src={contextProfile.avatar_base64}
                       alt="Your Worm Avatar"
-                      className="w-16 h-16 rounded-full border-3 border-cyan-400"
+                      className="w-16 h-16 rounded-full border-3 border-cyan-400 cursor-pointer md:cursor-default"
                       style={{ imageRendering: 'pixelated' }}
+                      onClick={() => {
+                        // Only open modal on mobile/touch devices
+                        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                        if (isTouchDevice) {
+                          setShowAvatarModal(true);
+                        }
+                      }}
                     />
                   )}
                   <div>
@@ -416,7 +446,27 @@ Building the future of digital biology with $NEMA 🧠`;
                     <p className="text-sm text-gray-400">Show off your unique digital C. elegans avatar</p>
                   </div>
 
-                  <div className="flex items-center space-x-4 mb-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
+                  {/* Mobile layout: Avatar on top, message below */}
+                  <div className="block sm:hidden mb-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
+                    <div className="text-center mb-4">
+                      <img
+                        src={contextProfile.avatar_base64}
+                        alt="Your Worm Avatar Preview"
+                        className="w-16 h-16 rounded-full border-2 border-cyan-400 mx-auto cursor-pointer"
+                        style={{ imageRendering: 'pixelated' }}
+                        onClick={() => setShowAvatarModal(true)}
+                      />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-300 leading-relaxed text-center">
+                        "Just generated my unique C. elegans avatar on @Nema_Lab! 🪱
+                        Building the future of digital biology with $NEMA 🧠"
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Desktop layout: Avatar on left, message on right */}
+                  <div className="hidden sm:flex items-center space-x-4 mb-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
                     <img
                       src={contextProfile.avatar_base64}
                       alt="Your Worm Avatar Preview"
@@ -631,6 +681,57 @@ Building the future of digital biology with $NEMA 🧠`;
           )}
         </div>
       </div>
+
+      {/* Avatar Modal for Mobile */}
+      {showAvatarModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
+          <div className="relative max-w-sm w-full">
+            {/* Close button */}
+            <button
+              onClick={() => setShowAvatarModal(false)}
+              className="absolute -top-12 right-0 text-white hover:text-cyan-400 transition-colors"
+              aria-label="Close modal"
+            >
+              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Avatar with border */}
+            <div className="bg-cyan-400 p-2 rounded-full mx-auto w-fit mb-6">
+              <img
+                src={contextProfile?.avatar_base64}
+                alt="Your Worm Avatar"
+                className="w-64 h-64 rounded-full object-cover"
+                style={{ imageRendering: 'pixelated' }}
+              />
+            </div>
+
+            {/* Instructions and Download Button */}
+            <div className="text-center space-y-4">
+              <h3 className="text-xl font-bold text-cyan-400">Your NEMA Worm Avatar</h3>
+              <p className="text-gray-300 text-sm">
+                Long press the image above to save it to your photos, or use the download button below.
+              </p>
+              
+              <button
+                onClick={() => {
+                  handleDownloadAvatar();
+                  setShowAvatarModal(false);
+                }}
+                className="w-full bg-cyan-500 hover:bg-cyan-600 text-black font-medium px-6 py-3 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7,10 12,15 17,10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span>Download Avatar</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
