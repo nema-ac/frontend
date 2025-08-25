@@ -36,11 +36,6 @@ const Footer = () => {
               <span>Twitter</span>
             </a>
           </div>
-          
-          {/* Copyright */}
-          <div className="text-gray-500 text-sm text-center">
-            <p>Made with ❤️ from Nema Lab</p>
-          </div>
         </div>
       </div>
     </footer>

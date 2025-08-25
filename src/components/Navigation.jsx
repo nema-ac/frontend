@@ -18,7 +18,7 @@ const Navigation = () => {
               <img
                 src="/nema-logo.svg"
                 alt="NEMA"
-                className="w-10 h-10 rounded-full object-cover"
+                className="w-10 h-10 rounded-full"
               />
             </Link>
           </div>
