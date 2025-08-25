@@ -20,6 +20,7 @@ const Profile = () => {
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const [balanceRefreshing, setBalanceRefreshing] = useState(false);
   const [shouldHighlightUsername, setShouldHighlightUsername] = useState(false);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
   const usernameInputRef = useRef(null);
 
   useEffect(() => {
@@ -158,65 +159,182 @@ const Profile = () => {
   const handleDownloadAvatar = () => {
     if (!contextProfile?.avatar_base64) return;
 
-    try {
-      // Create canvas to render circular avatar with border
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const size = 256; // Higher resolution for better quality
-      const borderWidth = 8;
-      const radius = (size - borderWidth * 2) / 2;
+    const filename = `nema-worm-avatar-${contextProfile.wallet_address?.slice(-8) || 'avatar'}.png`;
+    
+    // Create bordered version using canvas
+    const createBorderedAvatar = () => {
+      return new Promise((resolve, reject) => {
+        try {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          const size = 256;
+          const borderWidth = 8;
+          const radius = (size - borderWidth * 2) / 2;
 
-      canvas.width = size;
-      canvas.height = size;
+          canvas.width = size;
+          canvas.height = size;
 
-      // Create image from base64
-      const img = new Image();
-      img.onload = () => {
-        // Clear canvas with transparent background
-        ctx.clearRect(0, 0, size, size);
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          
+          img.onload = () => {
+            try {
+              // Clear canvas with transparent background
+              ctx.clearRect(0, 0, size, size);
 
-        // Draw border circle
-        ctx.beginPath();
-        ctx.arc(size / 2, size / 2, radius + borderWidth / 2, 0, 2 * Math.PI);
-        ctx.fillStyle = '#00BCD4'; // Cyan border color
-        ctx.fill();
+              // Draw border circle
+              ctx.beginPath();
+              ctx.arc(size / 2, size / 2, radius + borderWidth / 2, 0, 2 * Math.PI);
+              ctx.fillStyle = '#00BCD4'; // Cyan border color
+              ctx.fill();
 
-        // Create clipping mask for circular image
-        ctx.beginPath();
-        ctx.arc(size / 2, size / 2, radius, 0, 2 * Math.PI);
-        ctx.clip();
+              // Create clipping mask for circular image
+              ctx.save();
+              ctx.beginPath();
+              ctx.arc(size / 2, size / 2, radius, 0, 2 * Math.PI);
+              ctx.clip();
 
-        // Draw the avatar image (scaled and centered)
-        ctx.imageSmoothingEnabled = false; // Preserve pixelated look
-        ctx.drawImage(img, borderWidth, borderWidth, size - borderWidth * 2, size - borderWidth * 2);
+              // Draw the avatar image (scaled and centered)
+              ctx.imageSmoothingEnabled = false; // Preserve pixelated look
+              ctx.drawImage(img, borderWidth, borderWidth, size - borderWidth * 2, size - borderWidth * 2);
+              ctx.restore();
 
-        // Convert canvas to blob and download
-        canvas.toBlob((blob) => {
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `nema-worm-avatar-${contextProfile.wallet_address?.slice(-8) || 'avatar'}.png`;
+              // Convert to base64
+              const borderedBase64 = canvas.toDataURL('image/png');
+              resolve(borderedBase64);
+            } catch (canvasError) {
+              console.warn('Canvas processing failed, using original:', canvasError);
+              resolve(contextProfile.avatar_base64);
+            }
+          };
 
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+          img.onerror = () => {
+            console.warn('Image loading failed, using original');
+            resolve(contextProfile.avatar_base64);
+          };
 
-          // Clean up
-          URL.revokeObjectURL(url);
-        }, 'image/png');
-      };
+          img.src = contextProfile.avatar_base64;
+        } catch (error) {
+          console.warn('Canvas creation failed, using original:', error);
+          resolve(contextProfile.avatar_base64);
+        }
+      });
+    };
 
-      img.src = contextProfile.avatar_base64;
+    // Detect mobile/embedded browser environment using modern APIs
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const isSmallScreen = window.matchMedia('(max-width: 768px)').matches;
+    const isMobile = isTouchDevice && isSmallScreen;
+    const isEmbeddedBrowser = window.navigator.standalone || 
+                             window.matchMedia('(display-mode: standalone)').matches ||
+                             !window.location.ancestorOrigins;
 
-    } catch (error) {
-      console.error('Error downloading avatar:', error);
-      // Fallback: download original image
-      const link = document.createElement('a');
-      link.href = contextProfile.avatar_base64;
-      link.download = `nema-worm-avatar-${contextProfile.wallet_address?.slice(-8) || 'avatar'}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    // Create the bordered version first
+    createBorderedAvatar().then((borderedImage) => {
+      // Try Web Share API first (best for mobile)
+      if (navigator.share && (isMobile || isEmbeddedBrowser)) {
+        try {
+          // Convert bordered base64 to blob for sharing
+          fetch(borderedImage)
+            .then(res => res.blob())
+            .then(blob => {
+              const file = new File([blob], filename, { type: 'image/png' });
+              navigator.share({
+                title: 'My NEMA Worm Avatar',
+                text: 'Check out my unique C. elegans avatar from NEMA!',
+                files: [file]
+              }).catch(() => {
+                handleMobileFallback(borderedImage);
+              });
+            })
+            .catch(() => handleMobileFallback(borderedImage));
+          return;
+        } catch (error) {
+          console.log('Share API failed, using fallback');
+        }
+      }
+      
+      // Fallback methods
+      handleMobileFallback(borderedImage);
+    });
+    
+    // Mobile fallback: Open in new tab for long-press save
+    function handleMobileFallback(imageData) {
+      if (isMobile || isEmbeddedBrowser) {
+        const newWindow = window.open('', '_blank');
+        if (newWindow) {
+          newWindow.document.write(`
+            <html>
+              <head>
+                <title>NEMA Avatar - Long press to save</title>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                  body { 
+                    margin: 0; 
+                    padding: 20px; 
+                    background: #000; 
+                    color: #fff; 
+                    font-family: Arial, sans-serif; 
+                    text-align: center; 
+                  }
+                  img { 
+                    max-width: 90vw;
+                    max-height: 70vh;
+                    width: auto;
+                    height: auto;
+                    image-rendering: pixelated;
+                    image-rendering: -moz-crisp-edges;
+                    image-rendering: crisp-edges;
+                  }
+                  p { margin-top: 20px; font-size: 16px; }
+                </style>
+              </head>
+              <body>
+                <h2>Your NEMA Worm Avatar</h2>
+                <img src="${imageData}" alt="NEMA Avatar" />
+                <p>Long press the image above and select "Save Image" or "Download"</p>
+                <p style="font-size: 14px; color: #888;">Tip: You can also screenshot this page!</p>
+              </body>
+            </html>
+          `);
+          newWindow.document.close();
+        } else {
+          handleCopyFallback();
+        }
+      } else {
+        // Desktop: Use direct download with bordered image
+        handleDirectDownload(imageData);
+      }
+    }
+    
+    // Copy base64 to clipboard fallback
+    function handleCopyFallback() {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(contextProfile.avatar_base64).then(() => {
+          alert('Avatar image data copied to clipboard! You can paste it into any image editor or messaging app.');
+        }).catch(() => {
+          alert('Unable to download avatar. Please take a screenshot of your avatar image on the profile page.');
+        });
+      } else {
+        alert('Unable to download avatar. Please take a screenshot of your avatar image on the profile page.');
+      }
+    }
+    
+    // Direct download for desktop
+    function handleDirectDownload(imageData) {
+      try {
+        const link = document.createElement('a');
+        link.href = imageData;
+        link.download = filename;
+        link.style.display = 'none';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (error) {
+        console.error('Direct download failed:', error);
+        handleMobileFallback(imageData);
+      }
     }
   };
 
@@ -313,8 +431,15 @@ Building the future of digital biology with $NEMA 🧠`;
                     <img
                       src={contextProfile.avatar_base64}
                       alt="Your Worm Avatar"
-                      className="w-16 h-16 rounded-full border-3 border-cyan-400"
+                      className="w-16 h-16 rounded-full border-3 border-cyan-400 cursor-pointer md:cursor-default"
                       style={{ imageRendering: 'pixelated' }}
+                      onClick={() => {
+                        // Only open modal on mobile/touch devices
+                        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                        if (isTouchDevice) {
+                          setShowAvatarModal(true);
+                        }
+                      }}
                     />
                   )}
                   <div>
@@ -374,7 +499,27 @@ Building the future of digital biology with $NEMA 🧠`;
                     <p className="text-sm text-gray-400">Show off your unique digital C. elegans avatar</p>
                   </div>
 
-                  <div className="flex items-center space-x-4 mb-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
+                  {/* Mobile layout: Avatar on top, message below */}
+                  <div className="block sm:hidden mb-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
+                    <div className="text-center mb-4">
+                      <img
+                        src={contextProfile.avatar_base64}
+                        alt="Your Worm Avatar Preview"
+                        className="w-16 h-16 rounded-full border-2 border-cyan-400 mx-auto cursor-pointer"
+                        style={{ imageRendering: 'pixelated' }}
+                        onClick={() => setShowAvatarModal(true)}
+                      />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-300 leading-relaxed text-center">
+                        "Just generated my unique C. elegans avatar on @Nema_Lab! 🪱
+                        Building the future of digital biology with $NEMA 🧠"
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Desktop layout: Avatar on left, message on right */}
+                  <div className="hidden sm:flex items-center space-x-4 mb-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
                     <img
                       src={contextProfile.avatar_base64}
                       alt="Your Worm Avatar Preview"
@@ -589,6 +734,57 @@ Building the future of digital biology with $NEMA 🧠`;
           )}
         </div>
       </div>
+
+      {/* Avatar Modal for Mobile */}
+      {showAvatarModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
+          <div className="relative max-w-sm w-full">
+            {/* Close button */}
+            <button
+              onClick={() => setShowAvatarModal(false)}
+              className="absolute -top-12 right-0 text-white hover:text-cyan-400 transition-colors"
+              aria-label="Close modal"
+            >
+              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Avatar with border */}
+            <div className="bg-cyan-400 p-2 rounded-full mx-auto w-fit mb-6">
+              <img
+                src={contextProfile?.avatar_base64}
+                alt="Your Worm Avatar"
+                className="w-64 h-64 rounded-full object-cover"
+                style={{ imageRendering: 'pixelated' }}
+              />
+            </div>
+
+            {/* Instructions and Download Button */}
+            <div className="text-center space-y-4">
+              <h3 className="text-xl font-bold text-cyan-400">Your NEMA Worm Avatar</h3>
+              <p className="text-gray-300 text-sm">
+                Long press the image above to save it to your photos, or use the download button below.
+              </p>
+              
+              <button
+                onClick={() => {
+                  handleDownloadAvatar();
+                  setShowAvatarModal(false);
+                }}
+                className="w-full bg-cyan-500 hover:bg-cyan-600 text-black font-medium px-6 py-3 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7,10 12,15 17,10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span>Download Avatar</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
