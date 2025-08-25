@@ -158,66 +158,108 @@ const Profile = () => {
   const handleDownloadAvatar = () => {
     if (!contextProfile?.avatar_base64) return;
 
-    try {
-      // Create canvas to render circular avatar with border
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const size = 256; // Higher resolution for better quality
-      const borderWidth = 8;
-      const radius = (size - borderWidth * 2) / 2;
-
-      canvas.width = size;
-      canvas.height = size;
-
-      // Create image from base64
-      const img = new Image();
-      img.onload = () => {
-        // Clear canvas with transparent background
-        ctx.clearRect(0, 0, size, size);
-
-        // Draw border circle
-        ctx.beginPath();
-        ctx.arc(size / 2, size / 2, radius + borderWidth / 2, 0, 2 * Math.PI);
-        ctx.fillStyle = '#00BCD4'; // Cyan border color
-        ctx.fill();
-
-        // Create clipping mask for circular image
-        ctx.beginPath();
-        ctx.arc(size / 2, size / 2, radius, 0, 2 * Math.PI);
-        ctx.clip();
-
-        // Draw the avatar image (scaled and centered)
-        ctx.imageSmoothingEnabled = false; // Preserve pixelated look
-        ctx.drawImage(img, borderWidth, borderWidth, size - borderWidth * 2, size - borderWidth * 2);
-
-        // Convert canvas to blob and download
-        canvas.toBlob((blob) => {
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `nema-worm-avatar-${contextProfile.wallet_address?.slice(-8) || 'avatar'}.png`;
-
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-
-          // Clean up
-          URL.revokeObjectURL(url);
-        }, 'image/png');
-      };
-
-      img.src = contextProfile.avatar_base64;
-
-    } catch (error) {
-      console.error('Error downloading avatar:', error);
-      // Fallback: download original image
-      const link = document.createElement('a');
-      link.href = contextProfile.avatar_base64;
-      link.download = `nema-worm-avatar-${contextProfile.wallet_address?.slice(-8) || 'avatar'}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    const filename = `nema-worm-avatar-${contextProfile.wallet_address?.slice(-8) || 'avatar'}.png`;
+    
+    // Detect mobile/embedded browser environment using modern APIs
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const isSmallScreen = window.matchMedia('(max-width: 768px)').matches;
+    const isMobile = isTouchDevice && isSmallScreen;
+    const isEmbeddedBrowser = window.navigator.standalone || 
+                             window.matchMedia('(display-mode: standalone)').matches ||
+                             !window.location.ancestorOrigins; // Likely iframe/webview
+    
+    // Try Web Share API first (best for mobile)
+    if (navigator.share && (isMobile || isEmbeddedBrowser)) {
+      try {
+        // Convert base64 to blob for sharing
+        fetch(contextProfile.avatar_base64)
+          .then(res => res.blob())
+          .then(blob => {
+            const file = new File([blob], filename, { type: 'image/png' });
+            navigator.share({
+              title: 'My NEMA Worm Avatar',
+              text: 'Check out my unique C. elegans avatar from NEMA!',
+              files: [file]
+            }).catch(() => {
+              // Fallback if share fails
+              handleMobileFallback();
+            });
+          })
+          .catch(() => handleMobileFallback());
+        return;
+      } catch (error) {
+        console.log('Share API failed, using fallback');
+      }
     }
+    
+    // Mobile fallback: Open in new tab for long-press save
+    function handleMobileFallback() {
+      if (isMobile || isEmbeddedBrowser) {
+        // Open image in new tab where user can long-press to save
+        const newWindow = window.open('', '_blank');
+        if (newWindow) {
+          newWindow.document.write(`
+            <html>
+              <head>
+                <title>NEMA Avatar - Long press to save</title>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                  body { margin: 0; padding: 20px; background: #000; color: #fff; font-family: Arial, sans-serif; text-align: center; }
+                  img { max-width: 100%; height: auto; border: 4px solid #00BCD4; border-radius: 50%; }
+                  p { margin-top: 20px; font-size: 16px; }
+                </style>
+              </head>
+              <body>
+                <h2>Your NEMA Worm Avatar</h2>
+                <img src="${contextProfile.avatar_base64}" alt="NEMA Avatar" />
+                <p>Long press the image above and select "Save Image" or "Download"</p>
+                <p style="font-size: 14px; color: #888;">Tip: You can also screenshot this page!</p>
+              </body>
+            </html>
+          `);
+          newWindow.document.close();
+        } else {
+          // If popup blocked, copy to clipboard as fallback
+          handleCopyFallback();
+        }
+      } else {
+        // Desktop: Use direct download
+        handleDirectDownload();
+      }
+    }
+    
+    // Copy base64 to clipboard fallback
+    function handleCopyFallback() {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(contextProfile.avatar_base64).then(() => {
+          alert('Avatar image data copied to clipboard! You can paste it into any image editor or messaging app.');
+        }).catch(() => {
+          alert('Unable to download avatar. Please take a screenshot of your avatar image on the profile page.');
+        });
+      } else {
+        alert('Unable to download avatar. Please take a screenshot of your avatar image on the profile page.');
+      }
+    }
+    
+    // Direct download for desktop
+    function handleDirectDownload() {
+      try {
+        const link = document.createElement('a');
+        link.href = contextProfile.avatar_base64;
+        link.download = filename;
+        link.style.display = 'none';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (error) {
+        console.error('Direct download failed:', error);
+        handleMobileFallback();
+      }
+    }
+    
+    // Start with the fallback logic
+    handleMobileFallback();
   };
 
   const handleShareOnTwitter = () => {
