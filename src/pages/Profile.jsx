@@ -161,42 +161,106 @@ const Profile = () => {
 
     const filename = `nema-worm-avatar-${contextProfile.wallet_address?.slice(-8) || 'avatar'}.png`;
     
+    // Create bordered version using canvas
+    const createBorderedAvatar = () => {
+      return new Promise((resolve, reject) => {
+        try {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          const size = 256;
+          const borderWidth = 8;
+          const radius = (size - borderWidth * 2) / 2;
+
+          canvas.width = size;
+          canvas.height = size;
+
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          
+          img.onload = () => {
+            try {
+              // Clear canvas with transparent background
+              ctx.clearRect(0, 0, size, size);
+
+              // Draw border circle
+              ctx.beginPath();
+              ctx.arc(size / 2, size / 2, radius + borderWidth / 2, 0, 2 * Math.PI);
+              ctx.fillStyle = '#00BCD4'; // Cyan border color
+              ctx.fill();
+
+              // Create clipping mask for circular image
+              ctx.save();
+              ctx.beginPath();
+              ctx.arc(size / 2, size / 2, radius, 0, 2 * Math.PI);
+              ctx.clip();
+
+              // Draw the avatar image (scaled and centered)
+              ctx.imageSmoothingEnabled = false; // Preserve pixelated look
+              ctx.drawImage(img, borderWidth, borderWidth, size - borderWidth * 2, size - borderWidth * 2);
+              ctx.restore();
+
+              // Convert to base64
+              const borderedBase64 = canvas.toDataURL('image/png');
+              resolve(borderedBase64);
+            } catch (canvasError) {
+              console.warn('Canvas processing failed, using original:', canvasError);
+              resolve(contextProfile.avatar_base64);
+            }
+          };
+
+          img.onerror = () => {
+            console.warn('Image loading failed, using original');
+            resolve(contextProfile.avatar_base64);
+          };
+
+          img.src = contextProfile.avatar_base64;
+        } catch (error) {
+          console.warn('Canvas creation failed, using original:', error);
+          resolve(contextProfile.avatar_base64);
+        }
+      });
+    };
+
     // Detect mobile/embedded browser environment using modern APIs
     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     const isSmallScreen = window.matchMedia('(max-width: 768px)').matches;
     const isMobile = isTouchDevice && isSmallScreen;
     const isEmbeddedBrowser = window.navigator.standalone || 
                              window.matchMedia('(display-mode: standalone)').matches ||
-                             !window.location.ancestorOrigins; // Likely iframe/webview
-    
-    // Try Web Share API first (best for mobile)
-    if (navigator.share && (isMobile || isEmbeddedBrowser)) {
-      try {
-        // Convert base64 to blob for sharing
-        fetch(contextProfile.avatar_base64)
-          .then(res => res.blob())
-          .then(blob => {
-            const file = new File([blob], filename, { type: 'image/png' });
-            navigator.share({
-              title: 'My NEMA Worm Avatar',
-              text: 'Check out my unique C. elegans avatar from NEMA!',
-              files: [file]
-            }).catch(() => {
-              // Fallback if share fails
-              handleMobileFallback();
-            });
-          })
-          .catch(() => handleMobileFallback());
-        return;
-      } catch (error) {
-        console.log('Share API failed, using fallback');
+                             !window.location.ancestorOrigins;
+
+    // Create the bordered version first
+    createBorderedAvatar().then((borderedImage) => {
+      // Try Web Share API first (best for mobile)
+      if (navigator.share && (isMobile || isEmbeddedBrowser)) {
+        try {
+          // Convert bordered base64 to blob for sharing
+          fetch(borderedImage)
+            .then(res => res.blob())
+            .then(blob => {
+              const file = new File([blob], filename, { type: 'image/png' });
+              navigator.share({
+                title: 'My NEMA Worm Avatar',
+                text: 'Check out my unique C. elegans avatar from NEMA!',
+                files: [file]
+              }).catch(() => {
+                handleMobileFallback(borderedImage);
+              });
+            })
+            .catch(() => handleMobileFallback(borderedImage));
+          return;
+        } catch (error) {
+          console.log('Share API failed, using fallback');
+        }
       }
-    }
+      
+      // Fallback methods
+      handleMobileFallback(borderedImage);
+    });
     
     // Mobile fallback: Open in new tab for long-press save
-    function handleMobileFallback() {
+    function handleMobileFallback(imageData) {
       if (isMobile || isEmbeddedBrowser) {
-        // Open image in new tab where user can long-press to save
         const newWindow = window.open('', '_blank');
         if (newWindow) {
           newWindow.document.write(`
@@ -205,36 +269,29 @@ const Profile = () => {
                 <title>NEMA Avatar - Long press to save</title>
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <style>
-                  body { margin: 0; padding: 20px; background: #000; color: #fff; font-family: Arial, sans-serif; text-align: center; }
-                  .avatar-container { 
-                    display: inline-block; 
-                    width: 256px; 
-                    height: 256px; 
-                    background: #00BCD4; 
-                    border-radius: 50%; 
-                    padding: 8px; 
-                    box-sizing: border-box;
+                  body { 
+                    margin: 0; 
+                    padding: 20px; 
+                    background: #000; 
+                    color: #fff; 
+                    font-family: Arial, sans-serif; 
+                    text-align: center; 
                   }
                   img { 
-                    width: 100%; 
-                    height: 100%; 
-                    border-radius: 50%; 
-                    object-fit: cover;
+                    max-width: 90vw;
+                    max-height: 70vh;
+                    width: auto;
+                    height: auto;
                     image-rendering: pixelated;
                     image-rendering: -moz-crisp-edges;
                     image-rendering: crisp-edges;
                   }
                   p { margin-top: 20px; font-size: 16px; }
-                  @media (max-width: 400px) {
-                    .avatar-container { width: 200px; height: 200px; }
-                  }
                 </style>
               </head>
               <body>
                 <h2>Your NEMA Worm Avatar</h2>
-                <div class="avatar-container">
-                  <img src="${contextProfile.avatar_base64}" alt="NEMA Avatar" />
-                </div>
+                <img src="${imageData}" alt="NEMA Avatar" />
                 <p>Long press the image above and select "Save Image" or "Download"</p>
                 <p style="font-size: 14px; color: #888;">Tip: You can also screenshot this page!</p>
               </body>
@@ -242,12 +299,11 @@ const Profile = () => {
           `);
           newWindow.document.close();
         } else {
-          // If popup blocked, copy to clipboard as fallback
           handleCopyFallback();
         }
       } else {
-        // Desktop: Use direct download
-        handleDirectDownload();
+        // Desktop: Use direct download with bordered image
+        handleDirectDownload(imageData);
       }
     }
     
@@ -265,10 +321,10 @@ const Profile = () => {
     }
     
     // Direct download for desktop
-    function handleDirectDownload() {
+    function handleDirectDownload(imageData) {
       try {
         const link = document.createElement('a');
-        link.href = contextProfile.avatar_base64;
+        link.href = imageData;
         link.download = filename;
         link.style.display = 'none';
         
@@ -277,12 +333,9 @@ const Profile = () => {
         document.body.removeChild(link);
       } catch (error) {
         console.error('Direct download failed:', error);
-        handleMobileFallback();
+        handleMobileFallback(imageData);
       }
     }
-    
-    // Start with the fallback logic
-    handleMobileFallback();
   };
 
   const handleShareOnTwitter = () => {
