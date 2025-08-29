@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { AuthContext } from '../contexts/AuthContext';
 import profileService from '../services/profile.js';
+import ProfileTabs from '../components/ProfileTabs.jsx';
+import NemaCreationFlow from '../components/NemaCreationFlow.jsx';
+import NemaCard from '../components/NemaCard.jsx';
 
 const Profile = () => {
   const { isAuthenticated, logout, profile: contextProfile, fetchProfile: contextFetchProfile, refreshNemaBalance } = useContext(AuthContext);
@@ -21,6 +24,8 @@ const Profile = () => {
   const [balanceRefreshing, setBalanceRefreshing] = useState(false);
   const [shouldHighlightUsername, setShouldHighlightUsername] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [activeTab, setActiveTab] = useState('nemas');
+  const [nemas, setNemas] = useState([]);
   const usernameInputRef = useRef(null);
 
   useEffect(() => {
@@ -43,6 +48,7 @@ const Profile = () => {
       if (isUsernameBlank) {
         setShouldHighlightUsername(true);
         setIsEditing(true); // Unlock all inputs
+        setActiveTab('personal'); // Make sure we're on personal tab
         
         // Scroll to username field and focus it after a brief delay
         setTimeout(() => {
@@ -54,6 +60,12 @@ const Profile = () => {
             usernameInputRef.current.focus();
           }
         }, 500); // Small delay to ensure DOM is ready
+      }
+      
+      // Set nemas from context profile
+      if (contextProfile.nemas) {
+        setNemas(contextProfile.nemas);
+        // Keep nemas tab active by default unless username is blank (already handled above)
       }
     }
   }, [contextProfile]);
@@ -349,6 +361,24 @@ Building the future of digital biology with $NEMA 🧠`;
     window.open(tweetUrl, '_blank', 'width=600,height=400');
   };
 
+  const handleNemaCreated = async (newNema) => {
+    // Add the new nema to the local state
+    setNemas([newNema]);
+    // Refresh the profile to get updated data
+    await fetchProfile();
+  };
+
+  const handleNemaUpdated = (updatedNema) => {
+    setNemas(prevNemas => 
+      prevNemas.map(nema => nema.id === updatedNema.id ? updatedNema : nema)
+    );
+  };
+
+  const handleNemaDeleted = async (nemaId) => {
+    setNemas(prevNemas => prevNemas.filter(nema => nema.id !== nemaId));
+    // Refresh the profile to get updated data
+    await fetchProfile();
+  };
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -392,6 +422,9 @@ Building the future of digital biology with $NEMA 🧠`;
             </div>
           </div>
 
+          {/* Profile Tabs */}
+          <ProfileTabs activeTab={activeTab} onTabChange={setActiveTab} />
+
           {/* Error Message */}
           {error && (
             <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded-lg mb-6">
@@ -423,6 +456,42 @@ Building the future of digital biology with $NEMA 🧠`;
 
           {contextProfile && (
             <div className="space-y-6">
+              {/* Nemas Tab */}
+              {activeTab === 'nemas' && (
+                <div className="space-y-6">
+                  {nemas.length === 0 ? (
+                    <NemaCreationFlow 
+                      onNemaCreated={handleNemaCreated} 
+                    />
+                  ) : nemas.length >= 1 ? (
+                    <div>
+                      <div className="bg-yellow-900/50 border border-yellow-500 text-yellow-200 px-4 py-3 rounded-lg mb-6">
+                        <div className="flex items-center space-x-2">
+                          <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          <div>
+                            <strong>Maximum Limit Reached:</strong> You can only have 1 Nema at a time. 
+                            Delete your current Nema if you want to create a new one.
+                          </div>
+                        </div>
+                      </div>
+                      {nemas.map((nema) => (
+                        <NemaCard
+                          key={nema.id}
+                          nema={nema}
+                          onNemaUpdated={handleNemaUpdated}
+                          onNemaDeleted={handleNemaDeleted}
+                        />
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              )}
+
+              {/* Personal Info Tab */}
+              {activeTab === 'personal' && (
+                <div className="space-y-6">
               {/* Avatar & Wallet Info Card */}
               <div className="bg-gray-800/50 border border-gray-600 rounded-lg p-6">
                 <div className="flex items-center space-x-4 mb-6">
@@ -730,6 +799,8 @@ Building the future of digital biology with $NEMA 🧠`;
                   </button>
                 </div>
               </div>
+                </div>
+              )}
             </div>
           )}
         </div>
