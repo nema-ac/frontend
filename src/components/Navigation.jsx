@@ -82,6 +82,16 @@ const Navigation = () => {
               ABOUT
             </Link>
             <Link
+              to="/roadmap"
+              className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${
+                location.pathname === '/roadmap'
+                  ? 'text-cyan-400 '
+                  : 'text-gray-300'
+              }`}
+            >
+              ROADMAP
+            </Link>
+            <Link
               to="/airdrop"
               className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${
                 location.pathname === '/airdrop'
@@ -135,6 +145,16 @@ const Navigation = () => {
                   }`}
               >
                 ABOUT
+              </Link>
+              <Link
+                to="/roadmap"
+                onClick={() => setIsMenuOpen(false)}
+                className={`block text-lg font-medium transition-colors duration-200 hover:text-cyan-400 ${location.pathname === '/roadmap'
+                  ? 'text-cyan-400'
+                  : 'text-gray-300'
+                  }`}
+              >
+                ROADMAP
               </Link>
               <Link
                 to="/airdrop"
