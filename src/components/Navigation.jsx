@@ -13,7 +13,7 @@ const Navigation = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 md:justify-between">
           {/* Mobile: Logo */}
-          <div className="md:hidden">
+          <div className="lg:hidden">
             <Link to="/" className="flex items-center">
               <img
                 src="/mobile-nema-logo.png"
@@ -48,7 +48,7 @@ const Navigation = () => {
           </div>
 
           {/* Desktop: Logo */}
-          <div className="hidden md:block">
+          <div className="hidden lg:block">
             <Link to="/" className="flex items-center">
               <Logo size={36} />
             </Link>

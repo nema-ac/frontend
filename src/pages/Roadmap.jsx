@@ -1,7 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
 
 const Roadmap = () => {
   const [expandedPhases, setExpandedPhases] = useState({});
+  const [activePhase, setActivePhase] = useState(0);
+  const containerRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"]
+  });
+
+  // Update active phase based on scroll progress
+  useEffect(() => {
+    const unsubscribe = scrollYProgress.on("change", (progress) => {
+      if (progress < 0.3) {
+        setActivePhase(0);
+      } else if (progress < 0.7) {
+        setActivePhase(1);
+      } else {
+        setActivePhase(2);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [scrollYProgress]);
 
   const togglePhase = (index) => {
     setExpandedPhases(prev => ({
@@ -60,117 +82,154 @@ const Roadmap = () => {
         </div>
 
         {/* Roadmap Timeline */}
-        <div className="relative">
-          {/* Timeline Line */}
-          <div className="absolute left-4 md:left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-cyan-400 via-purple-500 to-pink-500 z-0"></div>
+        <div ref={containerRef} className="relative min-h-[300vh]">
+          {/* Phase Items with Stacking Animation */}
+          <div className="sticky top-20">
+            {phases.map((phase, index) => {
+              const cardStart = index === 0 ? 0 : index * 0.3;
+              const cardEnd = index === 0 ? 0.1 : cardStart + 0.3;
+              
+              const y = useTransform(
+                scrollYProgress,
+                [cardStart, cardEnd],
+                index === 0 ? [0, 0] : [200, 0]
+              );
+              
+              const scale = useTransform(
+                scrollYProgress,
+                [cardStart, cardEnd],
+                index === 0 ? [1, 1] : [0.85, 1]
+              );
+              
+              const opacity = useTransform(
+                scrollYProgress,
+                [cardStart - 0.05, cardStart],
+                index === 0 ? [1, 1] : [0, 1]
+              );
 
-          {/* Phase Items */}
-          <div className="space-y-16">
-            {phases.map((phase, index) => (
-              <div key={index} className="relative flex items-center">
-                {/* Timeline Node */}
-                <div className="absolute left-4 md:left-8 transform -translate-x-1/2 w-4 h-4 rounded-full border-2 border-cyan-400 bg-black z-10">
-                  {phase.status === 'current' && (
-                    <div className="absolute inset-0 rounded-full bg-cyan-400 animate-pulse"></div>
-                  )}
-                </div>
+              const rotateX = useTransform(
+                scrollYProgress,
+                [cardStart, cardEnd],
+                index === 0 ? [0, 0] : [15, 0]
+              );
 
-                {/* Content */}
-                <div className="flex-1 ml-8 md:ml-20">
-                  <div className="bg-gradient-to-br from-gray-900/80 to-gray-800/60 backdrop-blur-sm border border-gray-700/50 rounded-xl p-8 hover:border-cyan-400/30 transition-all duration-300">
-                    {/* Phase Badge */}
-                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium mb-4 ${
-                      phase.status === 'current'
-                        ? 'bg-cyan-400/20 text-cyan-400 border border-cyan-400/30'
-                        : phase.status === 'upcoming'
-                        ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                        : 'bg-gray-600/20 text-gray-400 border border-gray-600/30'
-                    }`}>
-                      {phase.subtitle}
-                      {phase.status === 'current' && (
-                        <span className="ml-2 w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></span>
-                      )}
-                    </div>
-
-                    {/* Title */}
-                    <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
-                      {phase.title}
-                    </h3>
-
-                    {/* Description */}
-                    <p className="text-gray-400 mb-6 text-lg">
-                      {phase.description}
-                    </p>
-
-                    {/* Details */}
-                    <div className="space-y-3">
-                      {phase.details.map((detail, detailIndex) => (
-                        <div key={detailIndex} className="flex items-start gap-3">
-                          <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2.5 flex-shrink-0"></div>
-                          <p className="text-gray-300 text-sm leading-relaxed">
-                            {detail}
-                          </p>
+              return (
+                <motion.div
+                  key={index}
+                  style={{
+                    y,
+                    scale,
+                    opacity,
+                    rotateX,
+                    zIndex: index + 10,
+                    position: index === 0 ? 'relative' : 'absolute',
+                    top: index === 0 ? 0 : `${index * 30}px`,
+                    left: 0,
+                    right: 0,
+                    transformPerspective: 1000,
+                    pointerEvents: index === activePhase ? 'auto' : 'none'
+                  }}
+                  className="w-full"
+                >
+                  <div className="flex items-center relative">
+                    {/* Content */}
+                    <div className="flex-1">
+                      <div className="bg-gradient-to-br from-gray-900/95 to-gray-800/90 backdrop-blur-sm border border-gray-700/50 rounded-xl p-8 hover:border-cyan-400/30 transition-all duration-300 shadow-2xl">
+                        {/* Phase Badge */}
+                        <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium mb-4 ${
+                          phase.status === 'current'
+                            ? 'bg-cyan-400/20 text-cyan-400 border border-cyan-400/30'
+                            : phase.status === 'upcoming'
+                            ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                            : 'bg-gray-600/20 text-gray-400 border border-gray-600/30'
+                        }`}>
+                          {phase.subtitle}
+                          {phase.status === 'current' && (
+                            <span className="ml-2 w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></span>
+                          )}
                         </div>
-                      ))}
-                    </div>
 
-                    {/* Collapsible Section Toggle */}
-                    <div className="mt-6 border-t border-gray-700/50 pt-6">
-                      <button
-                        onClick={() => togglePhase(index)}
-                        className="flex items-center justify-between w-full text-left hover:text-cyan-400 transition-colors duration-200 cursor-pointer"
-                      >
-                        <span className="text-gray-300 font-medium">More Details</span>
-                        <svg
-                          className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${
-                            expandedPhases[index] ? 'rotate-180' : ''
-                          }`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-                      
-                      {/* Collapsible Content */}
-                      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                        expandedPhases[index] ? 'max-h-96 opacity-100 mt-4' : 'max-h-0 opacity-0'
-                      }`}>
-                        <div className="bg-gray-800/30 rounded-lg p-4 border border-gray-700/30">
-                          <h4 className="text-cyan-400 font-semibold mb-3">Technical Implementation</h4>
-                          <p className="text-gray-300 text-sm leading-relaxed mb-4">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
-                          </p>
+                        {/* Title */}
+                        <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
+                          {phase.title}
+                        </h3>
+
+                        {/* Description */}
+                        <p className="text-gray-400 mb-6 text-lg">
+                          {phase.description}
+                        </p>
+
+                        {/* Details */}
+                        <div className="space-y-3">
+                          {phase.details.map((detail, detailIndex) => (
+                            <div key={detailIndex} className="flex items-start gap-3">
+                              <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-2.5 flex-shrink-0"></div>
+                              <p className="text-gray-300 text-sm leading-relaxed">
+                                {detail}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Collapsible Section Toggle */}
+                        <div className="mt-6 border-t border-gray-700/50 pt-6">
+                          <button
+                            onClick={() => togglePhase(index)}
+                            className="flex items-center justify-between w-full text-left hover:text-cyan-400 transition-colors duration-200 cursor-pointer relative z-10"
+                          >
+                            <span className="text-gray-300 font-medium">More Details</span>
+                            <svg
+                              className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${
+                                expandedPhases[index] ? 'rotate-180' : ''
+                              }`}
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
                           
-                          <h4 className="text-cyan-400 font-semibold mb-3">Key Milestones</h4>
-                          <ul className="space-y-2 text-sm text-gray-300">
-                            <li className="flex items-start gap-2">
-                              <span className="text-cyan-400 mt-1">•</span>
-                              <span>Initial architecture design and proof of concept development</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                              <span className="text-cyan-400 mt-1">•</span>
-                              <span>Core system integration and testing framework establishment</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                              <span className="text-cyan-400 mt-1">•</span>
-                              <span>User interface development and beta testing deployment</span>
-                            </li>
-                          </ul>
-                          
-                          <div className="mt-4 pt-3 border-t border-gray-700/50">
-                            <p className="text-xs text-gray-400">
-                              Timeline: This phase is expected to be completed within the current development cycle.
-                            </p>
+                          {/* Collapsible Content */}
+                          <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                            expandedPhases[index] ? 'max-h-96 opacity-100 mt-4' : 'max-h-0 opacity-0'
+                          }`}>
+                            <div className="bg-gray-800/30 rounded-lg p-4 border border-gray-700/30">
+                              <h4 className="text-cyan-400 font-semibold mb-3">Technical Implementation</h4>
+                              <p className="text-gray-300 text-sm leading-relaxed mb-4">
+                                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
+                              </p>
+                              
+                              <h4 className="text-cyan-400 font-semibold mb-3">Key Milestones</h4>
+                              <ul className="space-y-2 text-sm text-gray-300">
+                                <li className="flex items-start gap-2">
+                                  <span className="text-cyan-400 mt-1">•</span>
+                                  <span>Initial architecture design and proof of concept development</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                  <span className="text-cyan-400 mt-1">•</span>
+                                  <span>Core system integration and testing framework establishment</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                  <span className="text-cyan-400 mt-1">•</span>
+                                  <span>User interface development and beta testing deployment</span>
+                                </li>
+                              </ul>
+                              
+                              <div className="mt-4 pt-3 border-t border-gray-700/50">
+                                <p className="text-xs text-gray-400">
+                                  Timeline: This phase is expected to be completed within the current development cycle.
+                                </p>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            ))}
+                </motion.div>
+              );
+            })}
           </div>
         </div>
 
