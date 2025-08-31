@@ -4,32 +4,96 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 const Roadmap = () => {
   const [expandedPhases, setExpandedPhases] = useState({});
   const [activePhase, setActivePhase] = useState(0);
+  const [cardHeights, setCardHeights] = useState({});
   const containerRef = useRef(null);
+  const cardRefs = useRef({});
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"]
   });
 
-  // Update active phase based on scroll progress
+  // Calculate dynamic scroll thresholds based on expanded states
+  const getScrollThresholds = () => {
+    const baseHeight = 400; // Base card height
+    const expandedHeight = 200; // Additional height when expanded
+    
+    let cumulativeHeight = 0;
+    const thresholds = [];
+    
+    phases.forEach((_, index) => {
+      const cardHeight = baseHeight + (expandedPhases[index] ? expandedHeight : 0);
+      cumulativeHeight += cardHeight;
+      thresholds.push(cumulativeHeight);
+    });
+    
+    const totalHeight = cumulativeHeight;
+    return thresholds.map(h => h / totalHeight);
+  };
+
+  // Update active phase based on dynamic scroll progress
   useEffect(() => {
     const unsubscribe = scrollYProgress.on("change", (progress) => {
-      if (progress < 0.3) {
-        setActivePhase(0);
-      } else if (progress < 0.7) {
-        setActivePhase(1);
+      const thresholds = getScrollThresholds();
+      
+      let newActivePhase;
+      if (progress < thresholds[0] * 0.8) {
+        newActivePhase = 0;
+      } else if (progress < thresholds[1] * 0.8) {
+        newActivePhase = 1;
       } else {
-        setActivePhase(2);
+        newActivePhase = 2;
       }
+
+      // If active phase changed, collapse all expanded sections except the new active one
+      if (newActivePhase !== activePhase) {
+        setExpandedPhases(prev => {
+          const newExpanded = {};
+          // Keep the new active phase's expanded state, collapse others
+          Object.keys(prev).forEach(key => {
+            if (parseInt(key) === newActivePhase) {
+              newExpanded[key] = prev[key];
+            } else {
+              newExpanded[key] = false;
+            }
+          });
+          return newExpanded;
+        });
+      }
+
+      setActivePhase(newActivePhase);
     });
 
     return () => unsubscribe();
-  }, [scrollYProgress]);
+  }, [scrollYProgress, expandedPhases, activePhase]);
 
   const togglePhase = (index) => {
+    const wasExpanded = expandedPhases[index];
+    
     setExpandedPhases(prev => ({
       ...prev,
       [index]: !prev[index]
     }));
+
+    // If collapsing an expanded section, scroll up smoothly to show the full card
+    if (wasExpanded) {
+      setTimeout(() => {
+        const currentScroll = window.scrollY;
+        const cardElement = cardRefs.current[index];
+        
+        if (cardElement) {
+          const cardRect = cardElement.getBoundingClientRect();
+          const cardTop = currentScroll + cardRect.top;
+          const targetScroll = Math.max(0, cardTop - 100); // 100px padding from top
+          
+          if (currentScroll > targetScroll) {
+            window.scrollTo({
+              top: targetScroll,
+              behavior: 'smooth'
+            });
+          }
+        }
+      }, 100); // Small delay to let the collapse animation start
+    }
   };
 
   const phases = [
@@ -82,12 +146,17 @@ const Roadmap = () => {
         </div>
 
         {/* Roadmap Timeline */}
-        <div ref={containerRef} className="relative min-h-[300vh]">
+        <div ref={containerRef} className="relative" style={{
+          minHeight: `${300 + Object.keys(expandedPhases).filter(key => expandedPhases[key]).length * 50}vh`
+        }}>
           {/* Phase Items with Stacking Animation */}
           <div className="sticky top-20">
             {phases.map((phase, index) => {
-              const cardStart = index === 0 ? 0 : index * 0.3;
-              const cardEnd = index === 0 ? 0.1 : cardStart + 0.3;
+              const thresholds = getScrollThresholds();
+              
+              // Dynamic scroll ranges based on expanded states
+              const cardStart = index === 0 ? 0 : (index === 1 ? thresholds[0] * 0.8 : thresholds[1] * 0.8);
+              const cardEnd = index === 0 ? 0.1 : cardStart + 0.25;
               
               const y = useTransform(
                 scrollYProgress,
@@ -116,6 +185,7 @@ const Roadmap = () => {
               return (
                 <motion.div
                   key={index}
+                  ref={el => cardRefs.current[index] = el}
                   style={{
                     y,
                     scale,
