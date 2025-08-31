@@ -1,4 +1,15 @@
+import { useState } from 'react';
+
 const Roadmap = () => {
+  const [expandedPhases, setExpandedPhases] = useState({});
+
+  const togglePhase = (index) => {
+    setExpandedPhases(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
+
   const phases = [
     {
       title: "POC & Worminal",
@@ -101,6 +112,60 @@ const Roadmap = () => {
                           </p>
                         </div>
                       ))}
+                    </div>
+
+                    {/* Collapsible Section Toggle */}
+                    <div className="mt-6 border-t border-gray-700/50 pt-6">
+                      <button
+                        onClick={() => togglePhase(index)}
+                        className="flex items-center justify-between w-full text-left hover:text-cyan-400 transition-colors duration-200 cursor-pointer"
+                      >
+                        <span className="text-gray-300 font-medium">More Details</span>
+                        <svg
+                          className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${
+                            expandedPhases[index] ? 'rotate-180' : ''
+                          }`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      
+                      {/* Collapsible Content */}
+                      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                        expandedPhases[index] ? 'max-h-96 opacity-100 mt-4' : 'max-h-0 opacity-0'
+                      }`}>
+                        <div className="bg-gray-800/30 rounded-lg p-4 border border-gray-700/30">
+                          <h4 className="text-cyan-400 font-semibold mb-3">Technical Implementation</h4>
+                          <p className="text-gray-300 text-sm leading-relaxed mb-4">
+                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
+                          </p>
+                          
+                          <h4 className="text-cyan-400 font-semibold mb-3">Key Milestones</h4>
+                          <ul className="space-y-2 text-sm text-gray-300">
+                            <li className="flex items-start gap-2">
+                              <span className="text-cyan-400 mt-1">•</span>
+                              <span>Initial architecture design and proof of concept development</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="text-cyan-400 mt-1">•</span>
+                              <span>Core system integration and testing framework establishment</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="text-cyan-400 mt-1">•</span>
+                              <span>User interface development and beta testing deployment</span>
+                            </li>
+                          </ul>
+                          
+                          <div className="mt-4 pt-3 border-t border-gray-700/50">
+                            <p className="text-xs text-gray-400">
+                              Timeline: This phase is expected to be completed within the current development cycle.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
