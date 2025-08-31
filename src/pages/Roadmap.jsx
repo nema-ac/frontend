@@ -86,7 +86,6 @@ const Roadmap = () => {
         { text: "Decentralized, verifiable on-chain Nema brains", status: "unstarted" },
         { text: "Full blockchain integration with Solana infrastructure", status: "unstarted" },
         { text: "Open integrations & expanded use cases", status: "unstarted" },
-        { text: "DAO governance system", status: "unstarted" }
       ],
       status: "future",
       technicalImplementation: "Phase 3 represents the ultimate evolution of the Nema ecosystem: fully decentralized, on-chain neural networks operating on Solana blockchain infrastructure. Neural states become verifiable through zero-knowledge proofs, enabling trustless interaction and evolution. Smart contracts govern Nema lifecycle, breeding, and evolution, while maintaining the complex neural computations through a hybrid on-chain/off-chain architecture. This creates an autonomous digital biology ecosystem where Nemas can interact, evolve, and develop independently of centralized infrastructure.",
@@ -94,8 +93,7 @@ const Roadmap = () => {
         "Develop zero-knowledge proof system for verifiable neural state transitions on Solana",
         "Implement smart contract architecture for autonomous Nema lifecycle management",
         "Create decentralized compute network for complex neural simulations using Solana validators",
-        "Deploy cross-platform integration APIs enabling third-party applications and games",
-        "Launch DAO governance system allowing community control over ecosystem evolution and parameters"
+        "Deploy cross-platform integration APIs enabling third-party applications and games"
       ],
       timeline: "Phase 3 represents the long-term vision for the Nema ecosystem, beginning research and development in 2026. Full deployment is projected for 2027-2028, establishing Nema as the first fully decentralized digital biology platform."
     }
