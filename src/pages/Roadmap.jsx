@@ -14,12 +14,12 @@ const Roadmap = () => {
     {
       title: "Initial Setup & User Accounts",
       subtitle: "Phase 0",
-      description: "Foundation infrastructure and user onboarding systems",
+      description: "Getting the platform ready for users to join and create their first Nema",
       details: [
-        { text: "Core system architecture design and implementation", status: "completed" },
-        { text: "Database infrastructure and API development", status: "completed" },
-        { text: "User authentication and wallet integration", status: "completed" },
-        { text: "Nema avatar generation", status: "completed" }
+        { text: "Website launch with user registration", status: "completed" },
+        { text: "Wallet connection for $NEMA holders", status: "completed" },
+        { text: "Personal Nema avatar creation", status: "completed" },
+        { text: "Account dashboard and profile setup", status: "completed" }
       ],
       status: "completed",
       technicalImplementation: "Phase 0 establishes the fundamental infrastructure required for the entire Nema ecosystem. This includes designing and implementing a scalable backend architecture using Go with PostgreSQL for data persistence, creating secure user authentication flows with Solana wallet integration, and developing the core API endpoints that will support future phases. Security measures include proper key management, encrypted data storage, and secure communication protocols between all system components.",
@@ -37,13 +37,13 @@ const Roadmap = () => {
     {
       title: "POC & Worminal",
       subtitle: "Phase 1",
-      description: "Building the foundational communication pipelines and interface between a user and their Nema. Opening up the Worminal interface to single users at a time and sharing Nema state with the public.",
+      description: "First hands-on experience with your Nema through the Worminal interface, limited to one user at a time",
       details: [
-        { text: "User <-> LLM <-> Nema architecture integration", status: "completed" },
-        { text: "LLM System prompt and guided learning & interpretability of Connectome", status: "in-progress" },
-        { text: "User management and $NEMA utility system with rewards", status: "in-progress" },
-        { text: "Single user Nema access system that grants limited Worminal access", status: "in-progress" },
-        { text: "Nema state visualization and evolution tracking", status: "unstarted" }
+        { text: "Chat with your Nema through the Worminal terminal", status: "completed" },
+        { text: "Nema learns and responds based on simulated neural behavior", status: "in-progress" },
+        { text: "Earn badges and rewards for Nema interactions", status: "in-progress" },
+        { text: "Queue system for accessing the shared Nema experience", status: "in-progress" },
+        { text: "Live tracking of Nema's growth and personality development through visualizations of connectome and higher level interpretability", status: "unstarted" }
       ],
       status: "in-progress",
       technicalImplementation: "Phase 1 establishes the core infrastructure for neural state interaction using Large Language Models to mock and simulate C. elegans connectome behavior. Rather than implementing the full 302-neuron network, this phase uses sophisticated LLM prompting to simulate neural responses and behaviors that mirror what a real connectome would produce. The Worminal interface serves as the primary interaction point, translating user inputs into simulated neural stimulations and interpreting the organism's responses through structured LLM processing. This phase will restrict Nema access to a single user at a time and will be used to guide the development of the Nema project.",
@@ -59,12 +59,12 @@ const Roadmap = () => {
     {
       title: "Individual Nemas",
       subtitle: "Phase 2",
-      description: "Personal Nema creation with bespoke neural networks and unrestricted access",
+      description: "Get your own personal Nema with real neural networks - no more waiting in line",
       details: [
-        { text: "Implementation of bespoke C. elegans 302-neuron connectome", status: "unstarted" },
-        { text: "Personal Nema creation for $NEMA holders with unrestricted access", status: "unstarted" },
-        { text: "$NEMA token becomes official currency for all LLM and neural computation costs", status: "unstarted" },
-        { text: "Advanced persistent memory systems for long-term behavioral evolution", status: "unstarted" }
+        { text: "Upgrade to real neural networks powering each Nema", status: "unstarted" },
+        { text: "Every $NEMA holder gets their own personal Nema companion", status: "unstarted" },
+        { text: "Use $NEMA tokens to interact with and train your Nema", status: "unstarted" },
+        { text: "Your Nema remembers you and develops unique personality over time", status: "unstarted" }
       ],
       status: "upcoming",
       technicalImplementation: "Phase 2 introduces the actual bespoke neural network implementation, replacing the LLM-mocked connectome from Phase 1 with a real 302-neuron C. elegans connectome based on OpenWorm research. Each individual Nema will possess distinct neural pathways influenced by the holder's interaction history, creating emergent behaviors and personalities. Users will have on-demand access to their Nemas rather than the single-user restriction from Phase 1. This phase establishes $NEMA as the official payment method for all LLM and Nema interaction costs, creating the token's core utility within the ecosystem.",
@@ -82,11 +82,11 @@ const Roadmap = () => {
     {
       title: "Fully On-Chain Brain",
       subtitle: "Phase 3",
-      description: "Decentralized neural networks on blockchain",
+      description: "Your Nema lives permanently on the blockchain - truly owned digital life",
       details: [
-        { text: "Decentralized, verifiable on-chain Nema brains", status: "unstarted" },
-        { text: "Full blockchain integration with Solana infrastructure", status: "unstarted" },
-        { text: "Open integrations & expanded use cases", status: "unstarted" },
+        { text: "Nema brains stored and verified on Solana blockchain", status: "unstarted" },
+        { text: "Trade, breed, and showcase your Nemas with full ownership", status: "unstarted" },
+        { text: "Third-party apps and games can integrate with your Nemas", status: "unstarted" }
       ],
       status: "future",
       technicalImplementation: "Phase 3 represents the ultimate evolution of the Nema ecosystem: fully decentralized, on-chain neural networks operating on Solana blockchain infrastructure. Neural states become verifiable through zero-knowledge proofs, enabling trustless interaction and evolution. Smart contracts govern Nema lifecycle, breeding, and evolution, while maintaining the complex neural computations through a hybrid on-chain/off-chain architecture. This creates an autonomous digital biology ecosystem where Nemas can interact, evolve, and develop independently of centralized infrastructure.",
