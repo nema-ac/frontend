@@ -226,32 +226,33 @@ const Roadmap = () => {
                       </button>
 
                       {/* Collapsible Content */}
-                      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${expandedPhases[index] ? 'max-h-[800px] opacity-100 mt-4' : 'max-h-0 opacity-0'
-                        }`}>
-                        <div className="bg-gray-800/30 rounded-lg p-6 border border-gray-700/30">
-                          <h4 className="text-cyan-400 font-semibold mb-3">Technical Implementation</h4>
-                          <p className="text-gray-300 text-sm leading-relaxed mb-6">
-                            {phase.technicalImplementation}
-                          </p>
-
-                          <h4 className="text-cyan-400 font-semibold mb-3">Key Milestones</h4>
-                          <ul className="space-y-3 text-sm text-gray-300 mb-6">
-                            {phase.keyMilestones.map((milestone, milestoneIndex) => (
-                              <li key={milestoneIndex} className="flex items-start gap-3">
-                                <span className="text-cyan-400 mt-1 flex-shrink-0">•</span>
-                                <span className="leading-relaxed">{milestone}</span>
-                              </li>
-                            ))}
-                          </ul>
-
-                          <div className="pt-4 border-t border-gray-700/50">
-                            <h4 className="text-cyan-400 font-semibold mb-2 text-sm">Timeline</h4>
-                            <p className="text-xs text-gray-400 leading-relaxed">
-                              {phase.timeline}
+                      {expandedPhases[index] && (
+                        <div className="mt-4 animate-in slide-in-from-top-2 duration-300">
+                          <div className="bg-gray-800/30 rounded-lg p-6 border border-gray-700/30">
+                            <h4 className="text-cyan-400 font-semibold mb-3">Technical Implementation</h4>
+                            <p className="text-gray-300 text-sm leading-relaxed mb-6">
+                              {phase.technicalImplementation}
                             </p>
+
+                            <h4 className="text-cyan-400 font-semibold mb-3">Key Milestones</h4>
+                            <ul className="space-y-3 text-sm text-gray-300 mb-6">
+                              {phase.keyMilestones.map((milestone, milestoneIndex) => (
+                                <li key={milestoneIndex} className="flex items-start gap-3">
+                                  <span className="text-cyan-400 mt-1 flex-shrink-0">•</span>
+                                  <span className="leading-relaxed">{milestone}</span>
+                                </li>
+                              ))}
+                            </ul>
+
+                            <div className="pt-4 border-t border-gray-700/50">
+                              <h4 className="text-cyan-400 font-semibold mb-2 text-sm">Timeline</h4>
+                              <p className="text-xs text-gray-400 leading-relaxed">
+                                {phase.timeline}
+                              </p>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 </div>
