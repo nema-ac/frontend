@@ -37,12 +37,13 @@ const Roadmap = () => {
     {
       title: "POC & Worminal",
       subtitle: "Phase 1",
-      description: "Building the foundational communication pipelines and interface between a user and their Nema",
+      description: "Building the foundational communication pipelines and interface between a user and their Nema. Opening up the Worminal interface to single users at a time and sharing Nema state with the public.",
       details: [
         { text: "User <-> LLM <-> Nema architecture integration", status: "completed" },
         { text: "LLM System prompt and guided learning & interpretability of Connectome", status: "in-progress" },
         { text: "User management and $NEMA utility system with rewards", status: "in-progress" },
-        { text: "Nema Access system", status: "in-progress" }
+        { text: "Single user Nema access system that grants limited Worminal access", status: "in-progress" },
+        { text: "Nema state visualization and evolution tracking", status: "unstarted" }
       ],
       status: "in-progress",
       technicalImplementation: "Phase 1 establishes the core infrastructure for neural state interaction using Large Language Models to mock and simulate C. elegans connectome behavior. Rather than implementing the full 302-neuron network, this phase uses sophisticated LLM prompting to simulate neural responses and behaviors that mirror what a real connectome would produce. The Worminal interface serves as the primary interaction point, translating user inputs into simulated neural stimulations and interpreting the organism's responses through structured LLM processing. This phase will restrict Nema access to a single user at a time and will be used to guide the development of the Nema project.",
