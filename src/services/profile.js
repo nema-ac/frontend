@@ -33,7 +33,7 @@ export const profileService = {
     // Create a new request promise
     const requestPromise = (async () => {
       try {
-        const result = await apiClient.get('/users/profile', {
+        const result = await apiClient.get('/user/profile', {
           // Include credentials for auth cookie
           credentials: 'include'
         });
@@ -81,7 +81,7 @@ export const profileService = {
     if (telegram_handle !== undefined) body.telegram_handle = telegram_handle;
     if (avatar_base64 !== undefined) body.avatar_base64 = avatar_base64;
 
-    const result = await apiClient.put('/users/profile', body, {
+    const result = await apiClient.put('/user/profile', body, {
       credentials: 'include'
     });
     
@@ -97,7 +97,7 @@ export const profileService = {
    * @returns {Promise<void>}
    */
   async setAvatar(avatarEncoded) {
-    const result = await apiClient.put('/users/profile/avatar', {
+    const result = await apiClient.put('/user/profile/avatar', {
       avatar_encoded: avatarEncoded
     }, {
       credentials: 'include'
@@ -125,9 +125,88 @@ export const profileService = {
    * @returns {Promise<void>}
    */
   async deleteProfile() {
-    return await apiClient.delete('/users/profile', {
+    return await apiClient.delete('/user/profile', null, {
       credentials: 'include'
     });
+  },
+
+  /**
+   * Get user's nemas only (extracted from profile)
+   * @returns {Promise<Array>} Array of user's nemas
+   */
+  async getNemas() {
+    const profile = await this.getProfile();
+    return profile.nemas || [];
+  },
+
+  /**
+   * Create a new nema
+   * @param {Object} nemaData - Nema data to create
+   * @param {string} nemaData.name - Nema name
+   * @param {string} nemaData.description - Nema description (optional)
+   * @returns {Promise<Object>} Created nema object
+   */
+  async createNema({ name, description = '' }) {
+    try {
+      const result = await apiClient.post('/user/nema', {
+        name,
+        description
+      }, {
+        credentials: 'include'
+      });
+      
+      // Clear cache after successful creation to refresh nemas list
+      this.clearCache();
+      
+      return result;
+    } catch (error) {
+      throw new Error(`Failed to create nema: ${error.message}`);
+    }
+  },
+
+  /**
+   * Update an existing nema
+   * @param {Object} nemaData - Nema data to update
+   * @param {number} nemaData.id - Nema ID
+   * @param {string} nemaData.name - Nema name
+   * @param {string} nemaData.description - Nema description (optional)
+   * @param {boolean} nemaData.archived - Archived status (optional)
+   * @returns {Promise<void>}
+   */
+  async updateNema({ id, name, description, archived }) {
+    try {
+      const body = { id };
+      if (name !== undefined) body.name = name;
+      if (description !== undefined) body.description = description;
+      if (archived !== undefined) body.archived = archived;
+
+      await apiClient.put('/user/nema', body, {
+        credentials: 'include'
+      });
+      
+      // Clear cache after successful update
+      this.clearCache();
+    } catch (error) {
+      throw new Error(`Failed to update nema: ${error.message}`);
+    }
+  },
+
+  /**
+   * Delete a nema
+   * @param {number} nemaId - Nema ID to delete
+   * @returns {Promise<void>}
+   */
+  async deleteNema(nemaId) {
+    try {
+      await apiClient.delete('/user/nema', { id: nemaId }, {
+        credentials: 'include'
+      });
+      
+      // Clear cache after successful deletion
+      this.clearCache();
+    } catch (error) {
+      throw new Error(`Failed to delete nema: ${error.message}`);
+    }
   }
 };
 

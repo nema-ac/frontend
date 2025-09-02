@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { NemaProvider } from './contexts/NemaContext';
 import Navigation from './components/Navigation';
 import AnimatedBackground from './components/AnimatedBackground';
 import Footer from './components/Footer';
@@ -14,19 +15,21 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <div className="min-h-screen bg-black text-white relative">
-          <AnimatedBackground />
-          <Navigation />
-          <Routes>
-            <Route path="/" element={<Worminal />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/roadmap" element={<Roadmap />} />
-            <Route path="/docs" element={<Docs />} />
-            <Route path="/airdrop" element={<Airdrop />} />
-            <Route path="/profile" element={<Profile />} />
-          </Routes>
-          <Footer />
-        </div>
+        <NemaProvider>
+          <div className="min-h-screen bg-black text-white relative">
+            <AnimatedBackground />
+            <Navigation />
+            <Routes>
+              <Route path="/" element={<Worminal />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/roadmap" element={<Roadmap />} />
+              <Route path="/docs" element={<Docs />} />
+              <Route path="/airdrop" element={<Airdrop />} />
+              <Route path="/profile" element={<Profile />} />
+            </Routes>
+            <Footer />
+          </div>
+        </NemaProvider>
       </AuthProvider>
     </Router>
   );

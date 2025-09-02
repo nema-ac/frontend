@@ -174,9 +174,9 @@ class ApiClient {
   /**
    * DELETE request
    */
-  async delete(endpoint, options = {}) {
+  async delete(endpoint, body = null, options = {}) {
     const { headers = {}, credentials } = options;
-    return this.makeRequest(endpoint, { method: 'DELETE', headers, credentials });
+    return this.makeRequest(endpoint, { method: 'DELETE', body, headers, credentials });
   }
 
   /**
