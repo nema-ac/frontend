@@ -57,19 +57,32 @@ const validatePromptResponse = (data) => {
 class NemaService {
   /**
    * Get current neural state from backend
-   * GET /nema/state
+   * GET /nema/state/history/{nemaID}
    */
-  async getNeuralState() {
+  async getNeuralState(nemaId) {
+    if (!nemaId) {
+      throw new Error('Nema ID is required to fetch neural state');
+    }
+
     try {
-      const data = await apiClient.get('/nema/state');
-      validateNeuralState(data);
+      const data = await apiClient.get(`/nema/state/history/${nemaId}?limit=1&order=desc`, {
+        credentials: 'include'
+      });
+      
+      // Get the most recent state from the history
+      if (!data.states || data.states.length === 0) {
+        throw new Error('No neural states found for this nema');
+      }
+
+      const latestState = data.states[0];
+      validateNeuralState(latestState);
       
       return {
-        stateCount: data.id, // Use id as state count
-        updatedAt: new Date(data.updated_at),
-        motorNeurons: data.motor_neurons,
-        sensoryNeurons: data.sensory_neurons,
-        totalNeurons: Object.keys(data.motor_neurons).length + Object.keys(data.sensory_neurons).length,
+        stateCount: latestState.id,
+        updatedAt: new Date(latestState.updated_at),
+        motorNeurons: latestState.motor_neurons,
+        sensoryNeurons: latestState.sensory_neurons,
+        totalNeurons: Object.keys(latestState.motor_neurons).length + Object.keys(latestState.sensory_neurons).length,
       };
     } catch (error) {
       if (error instanceof NetworkError || error instanceof ServerError) {
@@ -81,46 +94,69 @@ class NemaService {
 
   /**
    * Send prompt to Nema and get response with neural state updates
-   * POST /nema/prompt
+   * POST /nema/interaction
    */
-  async sendPrompt(message) {
+  async sendPrompt(nemaId, message) {
+    if (!nemaId) {
+      throw new Error('Nema ID is required to send prompt');
+    }
+    
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
       throw new Error('Prompt message cannot be empty');
     }
 
     try {
       const requestBody = {
-        prompt: message.trim(),
+        nema_id: nemaId,
+        content: message.trim(),
       };
 
-      const data = await apiClient.post('/nema/prompt', requestBody);
-      validatePromptResponse(data);
+      const data = await apiClient.post('/nema/interaction', requestBody, {
+        credentials: 'include'
+      });
       
-      // Structure response based on Go backend's AskResponse
-      const response = {
-        message: data.human_message,
-        timestamp: new Date(),
-        stateId: data.state_id,
-        changed: data.changed,
-      };
-
-      // Include neural state from response
-      if (data.neural_state) {
-        const neuralData = data.neural_state;
-        response.neuralState = {
-          stateCount: neuralData.state_count,
-          updatedAt: new Date(neuralData.updated_at),
-          motorNeurons: neuralData.motor_neurons,
-          sensoryNeurons: neuralData.sensory_neurons,
-          totalNeurons: Object.keys(neuralData.motor_neurons || {}).length + 
-                       Object.keys(neuralData.sensory_neurons || {}).length,
-        };
+      // Validate the API response structure (from README)
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid interaction response: missing data object');
       }
 
-      // Note: State changes are implicit in the neural_state difference
-      // The backend doesn't explicitly return changes, but we can infer from the 'changed' field
-      if (data.changed) {
-        response.stateChanges = { changed: true };
+      if (!data.message) {
+        throw new Error('Invalid interaction response: missing message');
+      }
+      
+      // Structure response based on API documentation format
+      const response = {
+        message: data.message,
+        timestamp: new Date(),
+        success: true, // Assume success if we got a response
+      };
+
+      // Process data section if available
+      if (data.data) {
+        const interactionData = data.data;
+        
+        // Include neural state changes if available
+        if (interactionData.neural_changes) {
+          response.stateChanges = interactionData.neural_changes;
+        }
+        
+        // Include current state if available for neural state updates
+        if (interactionData.current_state) {
+          const currentState = interactionData.current_state;
+          response.neuralState = {
+            stateCount: currentState.id || interactionData.state_id,
+            updatedAt: new Date(currentState.updated_at || new Date()),
+            motorNeurons: currentState.motor_neurons || {},
+            sensoryNeurons: currentState.sensory_neurons || {},
+            totalNeurons: Object.keys(currentState.motor_neurons || {}).length + 
+                         Object.keys(currentState.sensory_neurons || {}).length,
+          };
+        }
+        
+        // Track if neural state changed
+        if (interactionData.neural_state_changed !== undefined) {
+          response.changed = interactionData.neural_state_changed;
+        }
       }
 
       return response;
@@ -145,15 +181,21 @@ class NemaService {
 
   /**
    * Get message history from backend
-   * GET /nema/history
+   * GET /nema/interaction/history/{nemaID}
    */
-  async getHistory(limit = 20) {
+  async getHistory(nemaId, limit = 20) {
+    if (!nemaId) {
+      throw new Error('Nema ID is required to get history');
+    }
+    
     if (typeof limit !== 'number' || limit <= 0) {
       throw new Error('Limit must be a positive number');
     }
 
     try {
-      const data = await apiClient.get(`/nema/history?limit=${limit}`);
+      const data = await apiClient.get(`/nema/interaction/history/${nemaId}?limit=${limit}&order=desc`, {
+        credentials: 'include'
+      });
       
       // Validate response structure
       if (!data || !Array.isArray(data.messages)) {
@@ -168,6 +210,9 @@ class NemaService {
           content: msg.content,
           timestamp: new Date(msg.created_at),
           createdAt: msg.created_at,
+          nemaId: msg.nema_id,
+          neuralStateId: msg.neural_state_id,
+          sequenceOrder: msg.sequence_order,
         })),
         total: data.total || data.messages.length,
         limit: data.limit || limit,
@@ -183,9 +228,13 @@ class NemaService {
   /**
    * Get neural activity summary
    */
-  async getNeuralSummary() {
+  async getNeuralSummary(nemaId) {
+    if (!nemaId) {
+      throw new Error('Nema ID is required to get neural summary');
+    }
+
     try {
-      const state = await this.getNeuralState();
+      const state = await this.getNeuralState(nemaId);
       
       // Calculate activity statistics
       const allNeurons = { ...state.motorNeurons, ...state.sensoryNeurons };
