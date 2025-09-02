@@ -42,26 +42,26 @@ const Profile = () => {
         telegram_handle: contextProfile.telegram_handle || ''
       });
       setLoading(false);
-      
+
       // Check if username is blank after sign-in and prompt user to fill it
       const isUsernameBlank = !contextProfile.username || contextProfile.username.trim() === '';
       if (isUsernameBlank) {
         setShouldHighlightUsername(true);
         setIsEditing(true); // Unlock all inputs
         setActiveTab('personal'); // Make sure we're on personal tab
-        
+
         // Scroll to username field and focus it after a brief delay
         setTimeout(() => {
           if (usernameInputRef.current) {
-            usernameInputRef.current.scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'center' 
+            usernameInputRef.current.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center'
             });
             usernameInputRef.current.focus();
           }
         }, 500); // Small delay to ensure DOM is ready
       }
-      
+
       // Set nemas from context profile
       if (contextProfile.nemas) {
         setNemas(contextProfile.nemas);
@@ -87,7 +87,7 @@ const Profile = () => {
       ...prev,
       [name]: value
     }));
-    
+
     // Remove highlight when user starts typing in username
     if (name === 'username' && shouldHighlightUsername) {
       setShouldHighlightUsername(false);
@@ -96,7 +96,7 @@ const Profile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validate username is required
     if (!formData.username || formData.username.trim() === '') {
       setError('Username is required. Please enter a username to continue.');
@@ -104,16 +104,16 @@ const Profile = () => {
       // Scroll to and focus username field
       setTimeout(() => {
         if (usernameInputRef.current) {
-          usernameInputRef.current.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'center' 
+          usernameInputRef.current.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
           });
           usernameInputRef.current.focus();
         }
       }, 100);
       return;
     }
-    
+
     setUpdateLoading(true);
     setError('');
     setUpdateSuccess(false);
@@ -169,10 +169,10 @@ const Profile = () => {
   };
 
   const handleDownloadAvatar = () => {
-    if (!contextProfile?.avatar_base64) return;
+    if (!contextProfile?.profile_pic) return;
 
     const filename = `nema-worm-avatar-${contextProfile.wallet_address?.slice(-8) || 'avatar'}.png`;
-    
+
     // Create bordered version using canvas
     const createBorderedAvatar = () => {
       return new Promise((resolve, reject) => {
@@ -188,7 +188,7 @@ const Profile = () => {
 
           const img = new Image();
           img.crossOrigin = 'anonymous';
-          
+
           img.onload = () => {
             try {
               // Clear canvas with transparent background
@@ -216,19 +216,19 @@ const Profile = () => {
               resolve(borderedBase64);
             } catch (canvasError) {
               console.warn('Canvas processing failed, using original:', canvasError);
-              resolve(contextProfile.avatar_base64);
+              resolve(contextProfile.profile_pic);
             }
           };
 
           img.onerror = () => {
             console.warn('Image loading failed, using original');
-            resolve(contextProfile.avatar_base64);
+            resolve(contextProfile.profile_pic);
           };
 
-          img.src = contextProfile.avatar_base64;
+          img.src = contextProfile.profile_pic;
         } catch (error) {
           console.warn('Canvas creation failed, using original:', error);
-          resolve(contextProfile.avatar_base64);
+          resolve(contextProfile.profile_pic);
         }
       });
     };
@@ -237,7 +237,7 @@ const Profile = () => {
     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     const isSmallScreen = window.matchMedia('(max-width: 768px)').matches;
     const isMobile = isTouchDevice && isSmallScreen;
-    const isEmbeddedBrowser = window.navigator.standalone || 
+    const isEmbeddedBrowser = window.navigator.standalone ||
                              window.matchMedia('(display-mode: standalone)').matches ||
                              !window.location.ancestorOrigins;
 
@@ -265,11 +265,11 @@ const Profile = () => {
           console.log('Share API failed, using fallback');
         }
       }
-      
+
       // Fallback methods
       handleMobileFallback(borderedImage);
     });
-    
+
     // Mobile fallback: Open in new tab for long-press save
     function handleMobileFallback(imageData) {
       if (isMobile || isEmbeddedBrowser) {
@@ -281,15 +281,15 @@ const Profile = () => {
                 <title>NEMA Avatar - Long press to save</title>
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <style>
-                  body { 
-                    margin: 0; 
-                    padding: 20px; 
-                    background: #000; 
-                    color: #fff; 
-                    font-family: Arial, sans-serif; 
-                    text-align: center; 
+                  body {
+                    margin: 0;
+                    padding: 20px;
+                    background: #000;
+                    color: #fff;
+                    font-family: Arial, sans-serif;
+                    text-align: center;
                   }
-                  img { 
+                  img {
                     max-width: 90vw;
                     max-height: 70vh;
                     width: auto;
@@ -318,11 +318,11 @@ const Profile = () => {
         handleDirectDownload(imageData);
       }
     }
-    
+
     // Copy base64 to clipboard fallback
     function handleCopyFallback() {
       if (navigator.clipboard) {
-        navigator.clipboard.writeText(contextProfile.avatar_base64).then(() => {
+        navigator.clipboard.writeText(contextProfile.profile_pic).then(() => {
           alert('Avatar image data copied to clipboard! You can paste it into any image editor or messaging app.');
         }).catch(() => {
           alert('Unable to download avatar. Please take a screenshot of your avatar image on the profile page.');
@@ -331,7 +331,7 @@ const Profile = () => {
         alert('Unable to download avatar. Please take a screenshot of your avatar image on the profile page.');
       }
     }
-    
+
     // Direct download for desktop
     function handleDirectDownload(imageData) {
       try {
@@ -339,7 +339,7 @@ const Profile = () => {
         link.href = imageData;
         link.download = filename;
         link.style.display = 'none';
-        
+
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -369,7 +369,7 @@ Building the future of digital biology with $NEMA 🧠`;
   };
 
   const handleNemaUpdated = (updatedNema) => {
-    setNemas(prevNemas => 
+    setNemas(prevNemas =>
       prevNemas.map(nema => nema.id === updatedNema.id ? updatedNema : nema)
     );
   };
@@ -416,9 +416,21 @@ Building the future of digital biology with $NEMA 🧠`;
         <div className="bg-gray-900/50 backdrop-blur-sm border border-cyan-400/30 rounded-lg p-8">
           {/* Header */}
           <div className="mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-cyan-400 mb-2">Profile</h1>
-              <p className="text-gray-300">Manage your Nema account settings</p>
+            <div className="flex items-center space-x-4">
+              {contextProfile?.profile_pic && (
+                <div className="bg-cyan-400 p-1 rounded-full">
+                  <img
+                    src={contextProfile.profile_pic}
+                    alt="Profile Picture"
+                    className="w-16 h-16 rounded-full object-cover"
+                    style={{ imageRendering: 'pixelated' }}
+                  />
+                </div>
+              )}
+              <div>
+                <h1 className="text-3xl font-bold text-cyan-400 mb-2">Profile</h1>
+                <p className="text-gray-300">Manage your Nema account settings</p>
+              </div>
             </div>
           </div>
 
@@ -447,7 +459,7 @@ Building the future of digital biology with $NEMA 🧠`;
                   <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                 </svg>
                 <div>
-                  <strong>Username Required:</strong> Please fill out your username below to complete your profile setup. 
+                  <strong>Username Required:</strong> Please fill out your username below to complete your profile setup.
                   Twitter and Telegram handles are optional.
                 </div>
               </div>
@@ -460,22 +472,11 @@ Building the future of digital biology with $NEMA 🧠`;
               {activeTab === 'nemas' && (
                 <div className="space-y-6">
                   {nemas.length === 0 ? (
-                    <NemaCreationFlow 
-                      onNemaCreated={handleNemaCreated} 
+                    <NemaCreationFlow
+                      onNemaCreated={handleNemaCreated}
                     />
                   ) : nemas.length >= 1 ? (
                     <div>
-                      <div className="bg-yellow-900/50 border border-yellow-500 text-yellow-200 px-4 py-3 rounded-lg mb-6">
-                        <div className="flex items-center space-x-2">
-                          <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                          </svg>
-                          <div>
-                            <strong>Maximum Limit Reached:</strong> You can only have 1 Nema at a time. 
-                            Delete your current Nema if you want to create a new one.
-                          </div>
-                        </div>
-                      </div>
                       {nemas.map((nema) => (
                         <NemaCard
                           key={nema.id}
@@ -486,37 +487,15 @@ Building the future of digital biology with $NEMA 🧠`;
                       ))}
                     </div>
                   ) : null}
+
                 </div>
               )}
 
               {/* Personal Info Tab */}
               {activeTab === 'personal' && (
                 <div className="space-y-6">
-              {/* Avatar & Wallet Info Card */}
+              {/* Wallet Info Card */}
               <div className="bg-gray-800/50 border border-gray-600 rounded-lg p-6">
-                <div className="flex items-center space-x-4 mb-6">
-                  {/* Worm Avatar */}
-                  {contextProfile.avatar_base64 && (
-                    <img
-                      src={contextProfile.avatar_base64}
-                      alt="Your Worm Avatar"
-                      className="w-16 h-16 rounded-full border-3 border-cyan-400 cursor-pointer md:cursor-default"
-                      style={{ imageRendering: 'pixelated' }}
-                      onClick={() => {
-                        // Only open modal on mobile/touch devices
-                        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-                        if (isTouchDevice) {
-                          setShowAvatarModal(true);
-                        }
-                      }}
-                    />
-                  )}
-                  <div>
-                    <h3 className="text-lg font-medium text-cyan-400">Your Nema Worm</h3>
-                    <p className="text-sm text-gray-400">Unique C. elegans avatar generated from your wallet</p>
-                  </div>
-                </div>
-
                 <h3 className="text-lg font-medium text-cyan-400 mb-4">Wallet Information</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full">
@@ -560,74 +539,6 @@ Building the future of digital biology with $NEMA 🧠`;
                 </div>
               </div>
 
-              {/* Share on Twitter Section */}
-              {contextProfile.avatar_base64 && (
-                <div className="bg-gray-800/50 border border-gray-600 rounded-lg p-6">
-                  <div className="mb-4">
-                    <h3 className="text-lg font-medium text-cyan-400">Share Your Nema Worm</h3>
-                    <p className="text-sm text-gray-400">Show off your unique digital C. elegans avatar</p>
-                  </div>
-
-                  {/* Mobile layout: Avatar on top, message below */}
-                  <div className="block sm:hidden mb-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
-                    <div className="text-center mb-4">
-                      <img
-                        src={contextProfile.avatar_base64}
-                        alt="Your Worm Avatar Preview"
-                        className="w-16 h-16 rounded-full border-2 border-cyan-400 mx-auto cursor-pointer"
-                        style={{ imageRendering: 'pixelated' }}
-                        onClick={() => setShowAvatarModal(true)}
-                      />
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-300 leading-relaxed text-center">
-                        "Just generated my unique C. elegans avatar on @Nema_Lab! 🪱
-                        Building the future of digital biology with $NEMA 🧠"
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Desktop layout: Avatar on left, message on right */}
-                  <div className="hidden sm:flex items-center space-x-4 mb-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
-                    <img
-                      src={contextProfile.avatar_base64}
-                      alt="Your Worm Avatar Preview"
-                      className="w-12 h-12 rounded-full border-2 border-cyan-400"
-                      style={{ imageRendering: 'pixelated' }}
-                    />
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-300 leading-relaxed">
-                        "Just generated my unique C. elegans avatar on @Nema_Lab! 🪱
-                        Building the future of digital biology with $NEMA 🧠"
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <button
-                      onClick={handleDownloadAvatar}
-                      className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 cursor-pointer"
-                    >
-                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="7,10 12,15 17,10"/>
-                        <line x1="12" y1="15" x2="12" y2="3"/>
-                      </svg>
-                      <span>Download Avatar</span>
-                    </button>
-
-                    <button
-                      onClick={handleShareOnTwitter}
-                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 cursor-pointer"
-                    >
-                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                      </svg>
-                      <span>Share on X</span>
-                    </button>
-                  </div>
-                </div>
-              )}
 
               {/* Profile Form */}
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -646,8 +557,8 @@ Building the future of digital biology with $NEMA 🧠`;
                           value={formData.username}
                           onChange={handleInputChange}
                           className={`w-full bg-gray-800 border rounded-lg px-3 py-3 pr-12 text-white focus:outline-none transition-colors ${
-                            shouldHighlightUsername 
-                              ? 'border-red-500 focus:border-red-400 shadow-red-500/20 shadow-lg' 
+                            shouldHighlightUsername
+                              ? 'border-red-500 focus:border-red-400 shadow-red-500/20 shadow-lg'
                               : 'border-gray-600 focus:border-cyan-400'
                           }`}
                           placeholder="Enter username (required)"
@@ -824,7 +735,7 @@ Building the future of digital biology with $NEMA 🧠`;
             {/* Avatar with border */}
             <div className="bg-cyan-400 p-2 rounded-full mx-auto w-fit mb-6">
               <img
-                src={contextProfile?.avatar_base64}
+                src={contextProfile?.profile_pic}
                 alt="Your Worm Avatar"
                 className="w-64 h-64 rounded-full object-cover"
                 style={{ imageRendering: 'pixelated' }}
@@ -837,7 +748,7 @@ Building the future of digital biology with $NEMA 🧠`;
               <p className="text-gray-300 text-sm">
                 Long press the image above to save it to your photos, or use the download button below.
               </p>
-              
+
               <button
                 onClick={() => {
                   handleDownloadAvatar();

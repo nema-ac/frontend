@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
     const fetchProfile = async () => {
         try {
             const profileData = await profileService.getProfile();
-            
+
             // Fetch real NEMA balance from Solana if wallet address is available
             let nemaBalance = profileData.nema_balance || 0;
             if (profileData.wallet_address) {
@@ -31,12 +31,12 @@ export const AuthProvider = ({ children }) => {
                     nemaBalance = profileData.nema_balance || 0;
                 }
             }
-            
+
             setProfile({
                 ...profileData,
                 nema_balance: nemaBalance,
-                // Use server avatar if available
-                avatar_base64: profileData.avatar_encoded || profileData.avatar_base64
+                avatar_base64: profileData.profile_pic,
+                profile_pic: profileData.profile_pic
             });
         } catch (error) {
             console.error('Error fetching profile:', error);
@@ -48,37 +48,9 @@ export const AuthProvider = ({ children }) => {
         try {
             // Check if user already has an avatar from the server
             const currentProfile = await profileService.getProfile();
-            
-            // If no avatar exists, generate and upload one
-            if (!currentProfile.avatar_encoded) {
-                console.log('No server avatar found, generating new one');
-                try {
-                    const avatarBase64 = await profileService.generateAndSetAvatar(walletAddress);
-                    console.log('Avatar generated and uploaded successfully');
-                    
-                    // Update profile with new avatar
-                    setProfile(prev => ({
-                        ...prev,
-                        avatar_base64: avatarBase64,
-                        wallet_address: walletAddress
-                    }));
-                } catch (avatarError) {
-                    console.error('Error generating/setting avatar:', avatarError);
-                    // If avatar generation fails (409 conflict means already set), just fetch profile
-                    if (avatarError.message?.includes('409') || avatarError.message?.includes('already been set')) {
-                        console.log('Avatar already exists, fetching current profile');
-                        await fetchProfile();
-                    }
-                }
-            } else {
-                console.log('Server avatar found, using existing avatar');
-                // Use the server avatar
-                setProfile(prev => ({
-                    ...prev,
-                    avatar_base64: currentProfile.avatar_encoded,
-                    wallet_address: walletAddress
-                }));
-            }
+
+            // Set profile data (avatars are now handled per-Nema)
+            setProfile(currentProfile);
         } catch (error) {
             console.error('Error loading/generating avatar:', error);
         }
@@ -115,7 +87,7 @@ export const AuthProvider = ({ children }) => {
                 method: 'POST',
                 credentials: 'include', // Important for cookies
             });
-            
+
             if (response.ok) {
                 const userData = await response.json();
                 setIsAuthenticated(true);
