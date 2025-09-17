@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
+import { AuthContext } from '../contexts/AuthContext';
 import nemaService from '../services/nema.js';
+import EmotionRadarPlot from './EmotionRadarPlot.jsx';
 
 const NemaCard = ({ nema, onNemaUpdated, onNemaDeleted }) => {
+  const { profile } = useContext(AuthContext);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: nema.name,
@@ -16,6 +19,9 @@ const NemaCard = ({ nema, onNemaUpdated, onNemaDeleted }) => {
   const [loadingInteractions, setLoadingInteractions] = useState(false);
   const [interactionError, setInteractionError] = useState('');
   const [showAvatarModal, setShowAvatarModal] = useState(false);
+
+  // Get global avatar from profile
+  const userAvatar = profile?.profile_pic;
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -33,10 +39,6 @@ const NemaCard = ({ nema, onNemaUpdated, onNemaDeleted }) => {
       return;
     }
 
-    if (!formData.description.trim()) {
-      setError('Nema description is required');
-      return;
-    }
 
     setIsSubmitting(true);
     setError('');
@@ -45,7 +47,7 @@ const NemaCard = ({ nema, onNemaUpdated, onNemaDeleted }) => {
       await nemaService.updateNema({
         id: nema.id,
         name: formData.name.trim(),
-        description: formData.description.trim()
+        description: formData.description.trim() || undefined
       });
       
       const updatedNema = {
@@ -128,7 +130,7 @@ const NemaCard = ({ nema, onNemaUpdated, onNemaDeleted }) => {
   };
 
   const handleDownloadAvatar = () => {
-    if (!nema.avatar_encoded) return;
+    if (!userAvatar) return;
 
     const filename = `nema-${nema.name.replace(/[^a-zA-Z0-9]/g, '-')}-avatar.png`;
     
@@ -157,7 +159,7 @@ const NemaCard = ({ nema, onNemaUpdated, onNemaDeleted }) => {
           
           canvas.toBlob(resolve, 'image/png');
         };
-        img.src = nema.avatar_encoded;
+        img.src = userAvatar;
       });
     };
 
@@ -222,7 +224,7 @@ const NemaCard = ({ nema, onNemaUpdated, onNemaDeleted }) => {
 
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              Description <span className="text-red-400">*</span>
+              Description <span className="text-gray-500 text-xs">(optional)</span>
             </label>
             <textarea
               name="description"
@@ -230,7 +232,7 @@ const NemaCard = ({ nema, onNemaUpdated, onNemaDeleted }) => {
               onChange={handleInputChange}
               className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-3 text-white focus:outline-none focus:border-cyan-400 transition-colors"
               rows={3}
-              required
+              placeholder="Describe your Nema's personality or characteristics (optional)..."
             />
           </div>
 
@@ -260,10 +262,10 @@ const NemaCard = ({ nema, onNemaUpdated, onNemaDeleted }) => {
         <div>
           {/* Combined Header and Avatar */}
           <div className="mb-6">
-            {nema.avatar_encoded && (
-              <div className="flex items-center space-x-4 mb-4">
+            <div className="flex items-center space-x-4 mb-4">
+              {userAvatar && (
                 <img
-                  src={nema.avatar_encoded}
+                  src={userAvatar}
                   alt={`${nema.name} Avatar`}
                   className="w-16 h-16 rounded-full border-3 border-cyan-400 cursor-pointer"
                   style={{ imageRendering: 'pixelated' }}
@@ -274,28 +276,28 @@ const NemaCard = ({ nema, onNemaUpdated, onNemaDeleted }) => {
                     }
                   }}
                 />
-                <div className="flex-1">
-                  <h3 className="text-xl font-medium text-cyan-400 mb-1">{nema.name}</h3>
-                  <p className="text-sm text-gray-400">{nema.description || "My first C. elegans"}</p>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="text-gray-400 hover:text-cyan-400 transition-colors p-2"
-                    title="Edit Nema"
-                  >
-                    ✎
-                  </button>
-                  <button
-                    onClick={() => setShowDeleteConfirm(true)}
-                    className="text-gray-400 hover:text-red-400 transition-colors p-2"
-                    title="Delete Nema"
-                  >
-                    🗑️
-                  </button>
-                </div>
+              )}
+              <div className="flex-1">
+                <h3 className="text-xl font-medium text-cyan-400 mb-1">{nema.name}</h3>
+                <p className="text-sm text-gray-400">{nema.description || "My first C. elegans"}</p>
               </div>
-            )}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="text-gray-400 hover:text-cyan-400 transition-colors p-2"
+                  title="Edit Nema"
+                >
+                  ✎
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="text-gray-400 hover:text-red-400 transition-colors p-2"
+                  title="Delete Nema"
+                >
+                  🗑️
+                </button>
+              </div>
+            </div>
             
             <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
               <button
@@ -307,15 +309,17 @@ const NemaCard = ({ nema, onNemaUpdated, onNemaDeleted }) => {
                 </svg>
                 <span>Share on Twitter</span>
               </button>
-              <button
-                onClick={handleDownloadAvatar}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 cursor-pointer"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                <span>Download Avatar</span>
-              </button>
+              {userAvatar && (
+                <button
+                  onClick={handleDownloadAvatar}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 cursor-pointer"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  <span>Download Avatar</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -323,6 +327,9 @@ const NemaCard = ({ nema, onNemaUpdated, onNemaDeleted }) => {
             <div>Created: {formatDate(nema.created_at)}</div>
             <div>Updated: {formatDate(nema.updated_at)}</div>
           </div>
+
+          {/* Emotional State Radar Plot */}
+          <EmotionRadarPlot nemaId={nema.id} className="mb-4" />
 
           {/* Expandable Sections */}
           <div className="space-y-2">
@@ -401,7 +408,7 @@ const NemaCard = ({ nema, onNemaUpdated, onNemaDeleted }) => {
       )}
 
       {/* Avatar Modal for Mobile */}
-      {showAvatarModal && nema.avatar_encoded && (
+      {showAvatarModal && userAvatar && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
           <div className="bg-gray-800 border border-cyan-400 rounded-xl p-6 max-w-sm w-full mx-4 relative">
             {/* Close Button */}
@@ -416,7 +423,7 @@ const NemaCard = ({ nema, onNemaUpdated, onNemaDeleted }) => {
             <div className="text-center">
               <div className="bg-cyan-400 p-2 rounded-full mx-auto w-fit mb-6">
                 <img
-                  src={nema.avatar_encoded}
+                  src={userAvatar}
                   alt={`${nema.name} Worm Avatar`}
                   className="w-64 h-64 rounded-full object-cover"
                   style={{ imageRendering: 'pixelated' }}

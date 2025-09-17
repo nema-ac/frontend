@@ -22,7 +22,6 @@ const Profile = () => {
   const [updateLoading, setUpdateLoading] = useState(false);
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const [balanceRefreshing, setBalanceRefreshing] = useState(false);
-  const [shouldHighlightUsername, setShouldHighlightUsername] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [activeTab, setActiveTab] = useState('nemas');
   const [nemas, setNemas] = useState([]);
@@ -43,24 +42,7 @@ const Profile = () => {
       });
       setLoading(false);
 
-      // Check if username is blank after sign-in and prompt user to fill it
-      const isUsernameBlank = !contextProfile.username || contextProfile.username.trim() === '';
-      if (isUsernameBlank) {
-        setShouldHighlightUsername(true);
-        setIsEditing(true); // Unlock all inputs
-        setActiveTab('personal'); // Make sure we're on personal tab
-
-        // Scroll to username field and focus it after a brief delay
-        setTimeout(() => {
-          if (usernameInputRef.current) {
-            usernameInputRef.current.scrollIntoView({
-              behavior: 'smooth',
-              block: 'center'
-            });
-            usernameInputRef.current.focus();
-          }
-        }, 500); // Small delay to ensure DOM is ready
-      }
+      // Note: New user onboarding is now handled by OnboardingScreen component
 
       // Set nemas from context profile
       if (contextProfile.nemas) {
@@ -88,10 +70,6 @@ const Profile = () => {
       [name]: value
     }));
 
-    // Remove highlight when user starts typing in username
-    if (name === 'username' && shouldHighlightUsername) {
-      setShouldHighlightUsername(false);
-    }
   };
 
   const handleSubmit = async (e) => {
@@ -100,7 +78,6 @@ const Profile = () => {
     // Validate username is required
     if (!formData.username || formData.username.trim() === '') {
       setError('Username is required. Please enter a username to continue.');
-      setShouldHighlightUsername(true);
       // Scroll to and focus username field
       setTimeout(() => {
         if (usernameInputRef.current) {
@@ -121,7 +98,6 @@ const Profile = () => {
     try {
       await profileService.updateProfile(formData);
       setUpdateSuccess(true);
-      setShouldHighlightUsername(false);
       // Refresh profile data
       await fetchProfile();
       setIsEditing(false);
@@ -141,7 +117,6 @@ const Profile = () => {
     });
     setIsEditing(false);
     setError('');
-    setShouldHighlightUsername(false);
   };
 
   const handleRefreshBalance = async () => {
@@ -451,20 +426,6 @@ Building the future of digital biology with $NEMA 🧠`;
             </div>
           )}
 
-          {/* Username Required Alert */}
-          {shouldHighlightUsername && (
-            <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded-lg mb-6">
-              <div className="flex items-center space-x-2">
-                <svg className="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-                <div>
-                  <strong>Username Required:</strong> Please fill out your username below to complete your profile setup.
-                  Twitter and Telegram handles are optional.
-                </div>
-              </div>
-            </div>
-          )}
 
           {contextProfile && (
             <div className="space-y-6">
@@ -556,11 +517,7 @@ Building the future of digital biology with $NEMA 🧠`;
                           name="username"
                           value={formData.username}
                           onChange={handleInputChange}
-                          className={`w-full bg-gray-800 border rounded-lg px-3 py-3 pr-12 text-white focus:outline-none transition-colors ${
-                            shouldHighlightUsername
-                              ? 'border-red-500 focus:border-red-400 shadow-red-500/20 shadow-lg'
-                              : 'border-gray-600 focus:border-cyan-400'
-                          }`}
+                          className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-3 pr-12 text-white focus:outline-none focus:border-cyan-400 transition-colors"
                           placeholder="Enter username (required)"
                         />
                       ) : (

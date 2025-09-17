@@ -9,8 +9,9 @@ import { useNema } from '../contexts/NemaContext.jsx';
 import { AuthContext } from '../contexts/AuthContext.jsx';
 import { ErrorDisplay } from './ErrorBoundary.jsx';
 import nemaService from '../services/nema.js';
+import CompactEmotionRadar from './CompactEmotionRadar.jsx';
 
-const InteractiveTerminal = () => {
+const InteractiveTerminal = ({ isFullscreen = false, onToggleFullscreen }) => {
   const [input, setInput] = useState('');
   const [commandHistory, setCommandHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -21,6 +22,7 @@ const InteractiveTerminal = () => {
   const [neuralSearchTerm, setNeuralSearchTerm] = useState('');
   const [motorExpanded, setMotorExpanded] = useState(false);
   const [sensoryExpanded, setSensoryExpanded] = useState(false);
+  const [emotionsExpanded, setEmotionsExpanded] = useState(true); // Expanded by default
   const [showActiveOnly, setShowActiveOnly] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -531,7 +533,7 @@ Or simply type a message to chat with your selected NEMA!`,
   };
 
   return (
-    <div className="space-y-4">
+    <div className={`space-y-4 ${isFullscreen ? 'h-full flex flex-col' : ''}`}>
       {/* Nema Selection Interface */}
       <div className="neon-border bg-gray-900/50 rounded-lg p-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -592,9 +594,13 @@ Or simply type a message to chat with your selected NEMA!`,
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-4">
+      <div className={`flex flex-col lg:flex-row gap-4 ${isFullscreen ? 'flex-1 min-h-0' : ''}`}>
         {/* Terminal */}
-        <div className={`neon-border bg-black rounded-lg font-mono text-sm h-[600px] flex flex-col transition-all duration-300 ${showNeuralState ? 'w-full lg:w-2/3' : 'w-full'}`}>
+        <div className={`neon-border bg-black rounded-lg font-mono text-sm flex flex-col transition-all duration-300 ${
+          isFullscreen 
+            ? 'h-full w-full' 
+            : `h-[600px] ${showNeuralState ? 'w-full lg:w-2/3' : 'w-full'}`
+        }`}>
           {/* Terminal Header */}
           <div className="flex items-center justify-between p-4 border-b border-cyan-400/30">
             <div className="flex items-center space-x-4">
@@ -620,6 +626,18 @@ Or simply type a message to chat with your selected NEMA!`,
               <div className="text-gray-400">
                 {formatTimestamp(currentTime)}
               </div>
+              {/* Expand button - only show on large screens and when not in fullscreen */}
+              {!isFullscreen && onToggleFullscreen && (
+                <button
+                  onClick={onToggleFullscreen}
+                  className="hidden lg:flex items-center justify-center w-6 h-6 rounded bg-gray-700 hover:bg-cyan-600 text-gray-300 hover:text-white transition-colors duration-200 cursor-pointer"
+                  title="Expand to fullscreen"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
 
@@ -778,7 +796,11 @@ Or simply type a message to chat with your selected NEMA!`,
 
         {/* Neural State Sidebar */}
         {showNeuralState && (
-          <div className="w-full lg:w-1/3 neon-border bg-black rounded-lg font-mono text-sm h-[600px] flex flex-col">
+          <div className={`neon-border bg-black rounded-lg font-mono text-sm flex flex-col ${
+            isFullscreen 
+              ? 'w-full lg:w-1/3 h-full' 
+              : 'w-full lg:w-1/3 h-[600px]'
+          }`}>
             {/* Sidebar Header */}
             <div className="flex items-center justify-between p-4 border-b border-purple-400/30">
               <div className="text-purple-400 font-semibold">Neural State</div>
@@ -882,6 +904,27 @@ Or simply type a message to chat with your selected NEMA!`,
                       <pre className="text-xs text-blue-300 bg-gray-900 p-2 rounded overflow-x-auto max-h-40 overflow-y-auto">
                         {JSON.stringify(filterNeurons(currentNeuralState.sensoryNeurons), null, 2)}
                       </pre>
+                    )}
+                  </div>
+
+                  {/* Emotional State */}
+                  <div className="border-t border-gray-700 pt-4">
+                    <button
+                      onClick={() => setEmotionsExpanded(!emotionsExpanded)}
+                      className="flex items-center justify-between w-full text-purple-400 mb-2 hover:text-purple-300 transition-colors"
+                    >
+                      <span>Emotional State (8/8)</span>
+                      <span className="transform transition-transform duration-200" style={{ transform: emotionsExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                        ▼
+                      </span>
+                    </button>
+                    {emotionsExpanded && (
+                      <div className="mt-2">
+                        <CompactEmotionRadar 
+                          motorNeurons={currentNeuralState.motorNeurons}
+                          sensoryNeurons={currentNeuralState.sensoryNeurons}
+                        />
+                      </div>
                     )}
                   </div>
                 </div>

@@ -3,7 +3,6 @@
  */
 
 import apiClient from './api.js';
-import generateWormAvatar from '../utils/wormAvatarGenerator.js';
 
 // Cache to prevent duplicate profile requests
 const profileCache = {
@@ -91,34 +90,6 @@ export const profileService = {
     return result;
   },
 
-  /**
-   * Set user avatar (can only be set once)
-   * @param {string} avatarEncoded - Base64 encoded avatar data URL
-   * @returns {Promise<void>}
-   */
-  async setAvatar(avatarEncoded) {
-    const result = await apiClient.put('/user/profile/avatar', {
-      avatar_encoded: avatarEncoded
-    }, {
-      credentials: 'include'
-    });
-
-    // Clear cache after successful update
-    this.clearCache();
-
-    return result;
-  },
-
-  /**
-   * Generate and set worm avatar for user (only if not already set)
-   * @param {string} walletAddress - User's wallet address
-   * @returns {Promise<string>} Generated avatar base64 string
-   */
-  async generateAndSetAvatar(walletAddress) {
-    const avatarBase64 = generateWormAvatar(walletAddress);
-    await this.setAvatar(avatarBase64);
-    return avatarBase64;
-  },
 
   /**
    * Delete user profile

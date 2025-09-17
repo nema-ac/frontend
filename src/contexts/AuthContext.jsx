@@ -1,11 +1,14 @@
 import { createContext, useState, useEffect } from 'react';
+import { useWallet } from '@solana/wallet-adapter-react';
 import config from '../config/environment.js';
 import profileService from '../services/profile.js';
+import avatarService from '../services/avatar.js';
 import { fetchNemaBalance } from '../utils/solanaBalance.js';
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+    const { disconnect } = useWallet();
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [user, setUser] = useState(null);
     const [profile, setProfile] = useState(null);
@@ -32,33 +35,85 @@ export const AuthProvider = ({ children }) => {
                 }
             }
 
+            // Fetch user's avatar from the dedicated avatar endpoint
+            let userAvatar = null;
+            try {
+                userAvatar = await avatarService.getAvatar();
+            } catch (avatarError) {
+                console.error('Error fetching avatar:', avatarError);
+            }
+
             setProfile({
                 ...profileData,
                 nema_balance: nemaBalance,
-                avatar_base64: profileData.profile_pic,
-                profile_pic: profileData.profile_pic
+                profile_pic: userAvatar || profileData.profile_pic,
+                avatar_base64: userAvatar || profileData.profile_pic
             });
         } catch (error) {
             console.error('Error fetching profile:', error);
-            setProfile(null);
+            
+            // If we get a 404 error, it means the user profile doesn't exist
+            // This indicates the user session is invalid, so we should disconnect and clear everything
+            if (error.status === 404) {
+                console.log('Profile not found (404), disconnecting wallet and clearing session');
+                
+                // Clear authentication state
+                setIsAuthenticated(false);
+                setUser(null);
+                setProfile(null);
+                
+                // Disconnect the wallet
+                try {
+                    disconnect();
+                } catch (disconnectError) {
+                    console.error('Error disconnecting wallet:', disconnectError);
+                }
+            } else {
+                setProfile(null);
+            }
         }
     };
 
     const loadOrGenerateAvatar = async (walletAddress) => {
         try {
-            // Check if user already has an avatar from the server
-            const currentProfile = await profileService.getProfile();
-
-            // Set profile data (avatars are now handled per-Nema)
-            setProfile(currentProfile);
+            // Try to get or generate avatar using the new avatar service
+            const avatar = await avatarService.getOrGenerateAvatar(walletAddress);
+            
+            // Refresh profile after avatar operations
+            await fetchProfile();
+            
+            return avatar;
         } catch (error) {
             console.error('Error loading/generating avatar:', error);
+            
+            // If avatar already exists (409 error), just refresh profile
+            if (error.message.includes('already been set')) {
+                await fetchProfile();
+            }
+            
+            return null;
         }
     };
 
-    const generateNewAvatarVariation = (walletAddress) => {
-        console.warn('Avatar regeneration is not supported - avatars can only be set once per user');
-        return null;
+    const generateNewAvatarVariation = async (walletAddress) => {
+        try {
+            // Try to generate a new variation avatar
+            const avatar = await avatarService.generateAndSetVariationAvatar(walletAddress);
+            
+            // Refresh profile after avatar operations
+            await fetchProfile();
+            
+            return avatar;
+        } catch (error) {
+            console.error('Error generating new avatar variation:', error);
+            
+            // If avatar already exists (409 error), inform user
+            if (error.message.includes('already been set')) {
+                throw new Error('Avatar has already been set and cannot be changed');
+            }
+            
+            throw error;
+        }
     };
 
     const refreshNemaBalance = async (walletAddress = null) => {
