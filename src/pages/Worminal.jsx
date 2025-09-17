@@ -1,7 +1,18 @@
+import { useState } from 'react';
 import InteractiveTerminal from '../components/InteractiveTerminal.jsx';
+import WorminalModal from '../components/WorminalModal.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
 
 const Worminal = () => {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const handleToggleFullscreen = () => {
+    setIsFullscreen(true);
+  };
+
+  const handleCloseFullscreen = () => {
+    setIsFullscreen(false);
+  };
   return (
     <div className="min-h-screen bg-black text-white pt-28">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
@@ -36,7 +47,9 @@ const Worminal = () => {
         {/* Interactive Terminal */}
         <div className="mb-16">
           <ErrorBoundary>
-            <InteractiveTerminal />
+            <InteractiveTerminal 
+              onToggleFullscreen={handleToggleFullscreen}
+            />
           </ErrorBoundary>
         </div>
 
@@ -66,6 +79,12 @@ const Worminal = () => {
           </div>
         </div>
       </div>
+
+      {/* Fullscreen Modal */}
+      <WorminalModal 
+        isOpen={isFullscreen}
+        onClose={handleCloseFullscreen}
+      />
     </div>
   );
 };

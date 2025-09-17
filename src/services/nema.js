@@ -1,6 +1,6 @@
 /**
  * Nema service layer - interfaces with the Go backend neural network API
- * Handles neural state queries and prompt interactions
+ * Handles neural state queries, prompt interactions, and user nema management
  */
 
 import apiClient, { NetworkError, ServerError } from './api.js';
@@ -55,6 +55,118 @@ const validatePromptResponse = (data) => {
  * Nema service class
  */
 class NemaService {
+  /**
+   * Create a new nema
+   * @param {Object} nemaData - Nema creation data
+   * @param {string} nemaData.name - Nema name (1-50 chars)
+   * @param {string} nemaData.description - Nema description
+   * @returns {Promise<Object>} Created nema data
+   */
+  async createNema({ name, description }) {
+    return await apiClient.post('/user/nema', {
+      name,
+      description
+    }, {
+      credentials: 'include'
+    });
+  }
+
+  /**
+   * Update an existing nema
+   * @param {Object} nemaData - Nema update data
+   * @param {number} nemaData.id - Nema ID
+   * @param {string} nemaData.name - Nema name (1-50 chars)
+   * @param {string} nemaData.description - Nema description
+   * @param {boolean} nemaData.archived - Whether nema is archived
+   * @returns {Promise<void>}
+   */
+  async updateNema({ id, name, description, archived }) {
+    return await apiClient.put('/user/nema', {
+      id,
+      name,
+      description,
+      archived
+    }, {
+      credentials: 'include'
+    });
+  }
+
+  /**
+   * Delete a nema
+   * @param {number} nemaId - Nema ID to delete
+   * @returns {Promise<void>}
+   */
+  async deleteNema(nemaId) {
+    return await apiClient.delete('/user/nema', { id: nemaId }, {
+      credentials: 'include'
+    });
+  }
+
+  /**
+   * Send message to a nema
+   * @param {Object} messageData - Message data
+   * @param {number} messageData.nema_id - Target nema ID
+   * @param {string} messageData.content - Message content
+   * @returns {Promise<Object>} Response with nema message and neural changes
+   */
+  async sendMessage({ nema_id, content }) {
+    return await apiClient.post('/nema/interaction', {
+      nema_id,
+      content
+    }, {
+      credentials: 'include'
+    });
+  }
+
+  /**
+   * Get interaction history for a nema
+   * @param {number} nemaId - Nema ID
+   * @param {Object} options - Query options
+   * @param {number} options.cursor - Message ID to start pagination from
+   * @param {number} options.limit - Number of messages to return (default: 50, max: 100)
+   * @param {string} options.order - Sort order: 'asc' or 'desc' (default: desc)
+   * @returns {Promise<Object>} Interaction history with messages array
+   */
+  async getInteractionHistory(nemaId, options = {}) {
+    const { cursor, limit = 50, order = 'desc' } = options;
+    const params = new URLSearchParams();
+    
+    if (cursor) params.append('cursor', cursor);
+    params.append('limit', limit);
+    params.append('order', order);
+
+    const queryString = params.toString();
+    const endpoint = `/nema/interaction/history/${nemaId}${queryString ? `?${queryString}` : ''}`;
+
+    return await apiClient.get(endpoint, {
+      credentials: 'include'
+    });
+  }
+
+  /**
+   * Get neural state evolution history for a nema
+   * @param {number} nemaId - Nema ID
+   * @param {Object} options - Query options
+   * @param {number} options.cursor - State ID to start pagination from
+   * @param {number} options.limit - Number of states to return (default: 10, max: 100)
+   * @param {string} options.order - Sort order: 'asc' or 'desc' (default: desc)
+   * @returns {Promise<Object>} State history with states array
+   */
+  async getStateHistory(nemaId, options = {}) {
+    const { cursor, limit = 10, order = 'desc' } = options;
+    const params = new URLSearchParams();
+    
+    if (cursor) params.append('cursor', cursor);
+    params.append('limit', limit);
+    params.append('order', order);
+
+    const queryString = params.toString();
+    const endpoint = `/nema/state/history/${nemaId}${queryString ? `?${queryString}` : ''}`;
+
+    return await apiClient.get(endpoint, {
+      credentials: 'include'
+    });
+  }
   /**
    * Get current neural state from backend
    * GET /nema/state/history/{nemaID}

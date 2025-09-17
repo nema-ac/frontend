@@ -3,7 +3,6 @@
  */
 
 import apiClient from './api.js';
-import generateWormAvatar from '../utils/wormAvatarGenerator.js';
 
 // Cache to prevent duplicate profile requests
 const profileCache = {
@@ -20,16 +19,16 @@ export const profileService = {
    */
   async getProfile() {
     // Check cache first
-    if (profileCache.data && profileCache.timestamp && 
+    if (profileCache.data && profileCache.timestamp &&
         Date.now() - profileCache.timestamp < CACHE_DURATION) {
       return profileCache.data;
     }
-    
+
     // Check if there's already a pending request
     if (profileCache.pending) {
       return await profileCache.pending;
     }
-    
+
     // Create a new request promise
     const requestPromise = (async () => {
       try {
@@ -37,21 +36,21 @@ export const profileService = {
           // Include credentials for auth cookie
           credentials: 'include'
         });
-        
+
         // Cache the result
         profileCache.data = result;
         profileCache.timestamp = Date.now();
-        
+
         return result;
       } finally {
         // Remove from pending requests
         profileCache.pending = null;
       }
     })();
-    
+
     // Store the pending request
     profileCache.pending = requestPromise;
-    
+
     return await requestPromise;
   },
 
@@ -75,7 +74,7 @@ export const profileService = {
    */
   async updateProfile({ username, twitter_handle, telegram_handle, avatar_base64 }) {
     const body = {};
-    
+
     if (username !== undefined) body.username = username;
     if (twitter_handle !== undefined) body.twitter_handle = twitter_handle;
     if (telegram_handle !== undefined) body.telegram_handle = telegram_handle;
@@ -84,48 +83,20 @@ export const profileService = {
     const result = await apiClient.put('/user/profile', body, {
       credentials: 'include'
     });
-    
+
     // Clear cache after successful update
     this.clearCache();
-    
+
     return result;
   },
 
-  /**
-   * Set user avatar (can only be set once)
-   * @param {string} avatarEncoded - Base64 encoded avatar data URL
-   * @returns {Promise<void>}
-   */
-  async setAvatar(avatarEncoded) {
-    const result = await apiClient.put('/user/profile/avatar', {
-      avatar_encoded: avatarEncoded
-    }, {
-      credentials: 'include'
-    });
-    
-    // Clear cache after successful update
-    this.clearCache();
-    
-    return result;
-  },
-
-  /**
-   * Generate and set worm avatar for user (only if not already set)
-   * @param {string} walletAddress - User's wallet address
-   * @returns {Promise<string>} Generated avatar base64 string
-   */
-  async generateAndSetAvatar(walletAddress) {
-    const avatarBase64 = generateWormAvatar(walletAddress);
-    await this.setAvatar(avatarBase64);
-    return avatarBase64;
-  },
 
   /**
    * Delete user profile
    * @returns {Promise<void>}
    */
   async deleteProfile() {
-    return await apiClient.delete('/user/profile', null, {
+    return await apiClient.delete('/user/profile', {
       credentials: 'include'
     });
   },
@@ -154,10 +125,10 @@ export const profileService = {
       }, {
         credentials: 'include'
       });
-      
+
       // Clear cache after successful creation to refresh nemas list
       this.clearCache();
-      
+
       return result;
     } catch (error) {
       throw new Error(`Failed to create nema: ${error.message}`);
@@ -183,7 +154,7 @@ export const profileService = {
       await apiClient.put('/user/nema', body, {
         credentials: 'include'
       });
-      
+
       // Clear cache after successful update
       this.clearCache();
     } catch (error) {
@@ -201,7 +172,7 @@ export const profileService = {
       await apiClient.delete('/user/nema', { id: nemaId }, {
         credentials: 'include'
       });
-      
+
       // Clear cache after successful deletion
       this.clearCache();
     } catch (error) {

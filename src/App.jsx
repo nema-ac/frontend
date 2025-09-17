@@ -4,11 +4,13 @@ import { NemaProvider } from './contexts/NemaContext';
 import Navigation from './components/Navigation';
 import AnimatedBackground from './components/AnimatedBackground';
 import Footer from './components/Footer';
+import ProtectedRoute from './components/ProtectedRoute';
 import About from './pages/About';
 import Docs from './pages/Docs';
 import Airdrop from './pages/Airdrop';
 import Worminal from './pages/Worminal';
 import Profile from './pages/Profile';
+import OnboardingScreen from './pages/OnboardingScreen';
 import Roadmap from './pages/Roadmap';
 
 function App() {
@@ -25,7 +27,12 @@ function App() {
               <Route path="/roadmap" element={<Roadmap />} />
               <Route path="/docs" element={<Docs />} />
               <Route path="/airdrop" element={<Airdrop />} />
-              <Route path="/profile" element={<Profile />} />
+              <Route path="/onboarding" element={<OnboardingScreen />} />
+              <Route path="/profile" element={
+                <ProtectedRoute requireAuth={true} redirectNewUsers={true}>
+                  <Profile />
+                </ProtectedRoute>
+              } />
             </Routes>
             <Footer />
           </div>
