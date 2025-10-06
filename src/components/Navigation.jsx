@@ -9,33 +9,27 @@ const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b border-cyan-400">
+    <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b border-nema-secondary">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16 md:justify-between">
+        <div className="flex justify-between items-center h-20 lg:justify-between">
           {/* Mobile: Logo */}
-          <div className="md:hidden">
-            <Link to="/" className="flex items-center">
-              <img
-                src="/mobile-nema-logo.png"
-                alt="NEMA"
-                className="w-10 h-10 object-contain rounded-full"
-              />
+          <div className="lg:hidden">
+            <Link to="/" className="flex items-center font-intranet text-nema-cyan">
+              <img src="/nema-worm-header.svg" alt="NEMA" className="w-8 h-6 mr-2" />
+              <span className="text-lg font-bold">NEMΔ LAB</span>
             </Link>
           </div>
 
           {/* Mobile: Buy Button (centered) */}
-          <div className="md:hidden">
+          <div className="lg:hidden">
             <BuyTokenButton />
           </div>
 
           {/* Mobile: Wallet + Menu */}
-          <div className="md:hidden flex items-center space-x-2">
-            <div className="relative">
-              <WalletButton />
-            </div>
+          <div className="lg:hidden flex items-center space-x-2">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-300 hover:text-cyan-400 focus:outline-none"
+              className="text-nema-secondary hover:text-nema-cyan focus:outline-none"
             >
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 {isMenuOpen ? (
@@ -48,124 +42,115 @@ const Navigation = () => {
           </div>
 
           {/* Desktop: Logo */}
-          <div className="hidden md:block">
-            <Link to="/" className="flex items-center">
-              <Logo size={36} />
+          <div className="hidden lg:block">
+            <Link to="/" className="flex items-center font-intranet text-nema-cyan">
+              <img src="/nema-worm-header.svg" alt="NEMA" className="w-10 h-7 mr-3" />
+              <span className="text-xl font-bold">NEMΔ LAB</span>
             </Link>
           </div>
 
           {/* Navigation Links */}
-          <div className="hidden md:flex items-center space-x-8">
-            <div className="relative">
-              <Link
-                to="/"
-                className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${
-                  location.pathname === '/'
-                    ? 'text-cyan-400 '
-                    : 'text-gray-300'
-                }`}
-              >
-                WORMINAL
-              </Link>
-              <span className="absolute -top-1 -right-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-1 py-0.5 rounded-full font-bold" style={{ transform: 'scale(0.7)' }}>
-                SOON
-              </span>
-            </div>
+          <div className="hidden lg:flex items-center space-x-8 font-anonymous">
             <Link
-              to="/about"
-              className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${
-                location.pathname === '/about'
-                  ? 'text-cyan-400 '
-                  : 'text-gray-300'
+              to="/"
+              className={`text-xl font-medium transition-colors duration-200 hover:text-nema-cyan ${
+                location.pathname === '/'
+                  ? 'text-nema-cyan'
+                  : 'text-nema-secondary'
               }`}
             >
-              ABOUT
+              Worminal
+            </Link>
+            <Link
+              to="/about"
+              className={`text-xl font-medium transition-colors duration-200 hover:text-nema-cyan ${
+                location.pathname === '/about'
+                  ? 'text-nema-cyan'
+                  : 'text-nema-secondary'
+              }`}
+            >
+              About
             </Link>
             <Link
               to="/roadmap"
-              className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${
+              className={`text-xl font-medium transition-colors duration-200 hover:text-nema-cyan ${
                 location.pathname === '/roadmap'
-                  ? 'text-cyan-400 '
-                  : 'text-gray-300'
+                  ? 'text-nema-cyan'
+                  : 'text-nema-secondary'
               }`}
             >
-              ROADMAP
+              Roadmap
             </Link>
             <Link
               to="/airdrop"
-              className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${
+              className={`text-xl font-medium transition-colors duration-200 hover:text-nema-cyan ${
                 location.pathname === '/airdrop'
-                  ? 'text-cyan-400'
-                  : 'text-gray-300'
+                  ? 'text-nema-cyan'
+                  : 'text-nema-secondary'
               }`}
             >
-              TOKEN
+              Token
             </Link>
           </div>
 
           {/* Desktop Navigation and Wallet */}
-          <div className="hidden md:flex items-center space-x-4">
-            {/* Buy Token Button */}
-            <BuyTokenButton />
-            
+          <div className="hidden lg:flex items-center space-x-4">
             {/* Wallet Button */}
             <div className="relative">
               <WalletButton />
             </div>
+
+            {/* Buy Token Button */}
+            <BuyTokenButton />
           </div>
 
         </div>
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden bg-black/95 backdrop-blur-sm border-t border-cyan-400/30">
-            <div className="px-4 py-6 space-y-6">
-              <div className="relative block">
-                <Link
-                  to="/"
-                  onClick={() => setIsMenuOpen(false)}
-                  className={`block text-lg font-medium transition-colors duration-200 hover:text-cyan-400 ${
-                    location.pathname === '/'
-                      ? 'text-cyan-400'
-                      : 'text-gray-300'
-                  }`}
-                >
-                  WORMINAL
-                </Link>
-                <span className="absolute -top-1 left-24 md:-right-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-1 py-0.5 rounded-full font-bold" style={{transform: 'scale(0.7)'}}>
-                  SOON
-                </span>
-              </div>
+          <div className="lg:hidden bg-nema-black border-t border-nema-secondary">
+            <div className="px-4 py-6 space-y-6 font-anonymous">
+              <Link
+                to="/"
+                onClick={() => setIsMenuOpen(false)}
+                className={`block text-lg font-medium transition-colors duration-200 hover:text-nema-cyan ${
+                  location.pathname === '/'
+                    ? 'text-nema-cyan'
+                    : 'text-nema-secondary'
+                }`}
+              >
+                Worminal
+              </Link>
               <Link
                 to="/about"
                 onClick={() => setIsMenuOpen(false)}
-                className={`block text-lg font-medium transition-colors duration-200 hover:text-cyan-400 ${location.pathname === '/about'
-                  ? 'text-cyan-400'
-                  : 'text-gray-300'
+                className={`block text-lg font-medium transition-colors duration-200 hover:text-nema-cyan ${location.pathname === '/about'
+                  ? 'text-nema-cyan'
+                  : 'text-nema-secondary'
                   }`}
               >
-                ABOUT
+                About
               </Link>
               <Link
                 to="/roadmap"
                 onClick={() => setIsMenuOpen(false)}
-                className={`block text-lg font-medium transition-colors duration-200 hover:text-cyan-400 ${location.pathname === '/roadmap'
-                  ? 'text-cyan-400'
-                  : 'text-gray-300'
+                className={`block text-lg font-medium transition-colors duration-200 hover:text-nema-cyan ${location.pathname === '/roadmap'
+                  ? 'text-nema-cyan'
+                  : 'text-nema-secondary'
                   }`}
               >
-                ROADMAP
+                Roadmap
               </Link>
               <Link
                 to="/airdrop"
                 onClick={() => setIsMenuOpen(false)}
-                className={`block text-lg font-medium transition-colors duration-200 hover:text-cyan-400 ${
+                className={`block text-lg font-medium transition-colors duration-200 hover:text-nema-cyan ${
                   location.pathname === '/airdrop'
-                    ? 'text-cyan-400'
-                    : 'text-gray-300'
+                    ? 'text-nema-cyan'
+                    : 'text-nema-secondary'
                 }`}
               >
-                TOKEN
+                Token
               </Link>
             </div>
           </div>

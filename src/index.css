@@ -1,17 +1,52 @@
 @import "tailwindcss";
 
+@theme {
+  --color-nema-black: rgba(24, 24, 24, 1);
+  --color-nema-gray: rgba(222, 226, 230, 1);
+  --color-nema-gray-darker: rgba(138, 138, 138, 1);
+  --color-nema-white: rgba(255, 255, 255, 1);
+  --color-nema-white-caption: rgba(255, 255, 255, 0.5);
+  --color-nema-cyan: rgba(5, 255, 243, 1);
+  --color-nema-purple: rgba(150, 89, 212, 1);
+
+  /* Button color with shades */
+  --color-nema-button-50: #f8f8f8;
+  --color-nema-button-100: #f0f0f0;
+  --color-nema-button-200: #e4e4e4;
+  --color-nema-button-300: #d1d1d1;
+  --color-nema-button-400: #b4b4b4;
+  --color-nema-button-500: #2c2c2c;
+  --color-nema-button-600: #272727;
+  --color-nema-button-700: #1f1f1f;
+  --color-nema-button-800: #171717;
+  --color-nema-button-900: #0f0f0f;
+
+  --color-textbox-background: rgba(30, 30, 30, 1);
+  --color-textbox-border: rgba(68, 68, 68, 1);
+}
+
+/* Font Face Declarations */
+@font-face {
+  font-family: 'IntraNet';
+  src: url('/fonts/IntraNet/IntraNet.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IntraNet Outline';
+  src: url('/fonts/IntraNet/IntraNet_Outline.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
-  /* Cyberpunk Color Palette */
-  --color-black: #000000;
-  --color-cyan: #00FFFF;
-  --color-purple: #9659D4;
-  --color-light: #EDEDED;
-  
   font-family: 'Inter', 'Roboto', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color: var(--color-light);
-  background-color: var(--color-black);
+  color: var(--color-nema-white);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -26,9 +61,15 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: var(--color-black);
-  color: var(--color-light);
+  background: var(--color-nema-black);
+  color: var(--color-nema-white);
   overflow-x: hidden;
+  font-family: 'Anonymous Pro', monospace;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 20px;
+  line-height: 150%;
+  letter-spacing: 0%;
 }
 
 /* Glitch text effect */
@@ -46,14 +87,9 @@ body {
   51%, 100% { opacity: 0; }
 }
 
-/* Neon glow effect */
-.neon-glow {
-  text-shadow: 0 0 5px var(--color-cyan), 0 0 10px var(--color-cyan), 0 0 15px var(--color-cyan);
-}
-
 .neon-border {
-  border: 1px solid var(--color-cyan);
-  box-shadow: 0 0 10px var(--color-cyan), inset 0 0 10px rgba(0, 255, 255, 0.1);
+  border: 1px solid var(--color-nema-cyan);
+  box-shadow: 0 0 10px var(--color-nema-cyan), inset 0 0 10px rgba(0, 255, 255, 0.1);
 }
 
 /* Scrollbar styling */
@@ -62,14 +98,42 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-black);
+  background: var(--color-nema-black);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-cyan);
+  background: var(--color-nema-cyan);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-purple);
+  background: var(--color-nema-purple);
+}
+
+/* Header utility class and size variants */
+.nema-header, .nema-display {
+  font-family: 'IntraNet', monospace;
+  font-weight: 500;
+  font-style: normal;
+  line-height: 100%;
+  letter-spacing: 0%;
+}
+
+@utility nema-display-1 { font-size: 48px; }
+@utility nema-display-2 { font-size: 32px; }
+@utility nema-header-2 { font-size: 16px; }
+@utility nema-header-3 { font-size: 12px; }
+@utility nema-caption-2 { font-size: 12px; }
+@utility nema-caption-1 { font-size: 10px; }
+
+/* Nema card styling with sharp top-left corner and 3D effect */
+.nema-card {
+  position: relative;
+  border: 1px solid var(--color-nema-gray);
+  border-radius: 0 12px 12px 12px;
+  backdrop-filter: blur(4px);
+  box-shadow:
+    4px 4px 0 0 rgba(217, 217, 217, 1),    /* Right border */
+    4px 4px 0 0 rgba(217, 217, 217, 1),    /* Bottom border */
+    4px 4px 0 0 rgba(217, 217, 217, 1);  /* Corner fill */
 }

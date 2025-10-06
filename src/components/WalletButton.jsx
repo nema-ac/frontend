@@ -163,20 +163,20 @@ const WalletButton = () => {
         return (
             <Link
                 to="/profile"
-                className="flex items-center space-x-3 transition-colors duration-200 group"
+                className="flex items-center space-x-3 pr-6 transition-colors duration-200 group"
             >
                 {/* Worm Avatar */}
                 {profile?.avatar_base64 && (
-                    <img 
-                        src={profile.avatar_base64} 
+                    <img
+                        src={profile.avatar_base64}
                         alt="Worm Avatar"
-                        className="w-8 h-8 rounded-full border-2 border-gray-600 group-hover:border-cyan-400 transition-colors duration-200"
+                        className="w-12 h-12 rounded-full border-2 border-white group-hover:border-cyan-400 transition-colors duration-200"
                         style={{ imageRendering: 'pixelated' }}
                     />
                 )}
-                
+
                 {/* User Info */}
-                <div className="text-right">
+                <div className="text-left">
                     <div className="text-sm font-medium text-white group-hover:text-cyan-400">
                         {profile?.username || 'Anonymous'}
                     </div>
