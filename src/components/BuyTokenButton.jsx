@@ -35,11 +35,18 @@ const BuyTokenButton = () => {
     <button
       onClick={launchWidget}
       disabled={!isLoaded}
-      className={`nema-button px-8 py-2 ${
+      className={`nema-button px-8 py-2 flex items-center gap-2 ${
         !isLoaded && 'bg-gray-700 text-gray-400'
       }`}
     >
-      {isLoaded ? 'Buy $NEMA' : 'Loading...'}
+      <span>{isLoaded ? 'Buy $NEMA' : 'Loading...'}</span>
+      {isLoaded && (
+        <img
+          src="/jupiter-logo.webp"
+          alt="Jupiter"
+          className="w-4 h-4"
+        />
+      )}
     </button>
   );
 };
