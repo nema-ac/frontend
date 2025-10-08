@@ -27,8 +27,8 @@ const Worminal = () => {
           </div>
 
           {/* Column 2: Description */}
-          <div className="max-md:mb-4 md:border border-nema-gray p-8 max-md:p-2">
-            <p className="text-nema-white font-anonymous md:text-base leading-relaxed max-md:nema-caption-2">
+          <div className="max-md:hidden md:border border-nema-gray p-8">
+            <p className="text-nema-white font-anonymous text-base leading-relaxed">
               Use this interface to chat with NEMA's neural substrate.<br />
               A 302-neuron C. elegans connectome fused with advanced language processing.<br/>
               Every interaction shapes the neural state and contributes to the organism's continuous evolution.

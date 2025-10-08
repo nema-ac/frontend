@@ -101,14 +101,17 @@ const Roadmap = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-black text-white pt-28">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
+    <div className="min-h-screen bg-nema-black text-nema-white pt-28 relative">
+      {/* Background texture */}
+      <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "url('/bg-texture.png')", backgroundSize: '100% 100%', backgroundAttachment: 'fixed', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', pointerEvents: 'none' }}></div>
+
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl relative z-10">
         {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl sm:text-6xl font-bold mb-6">
-            <span className="text-cyan-400">ROADMAP</span>
+          <h1 className="nema-display nema-display-1 mb-6 text-nema-cyan font-intranet">
+            ROADMAP
           </h1>
-          <p className="text-xl text-gray-400 max-w-4xl mx-auto">
+          <p className="text-xl text-nema-gray max-w-4xl mx-auto font-anonymous">
             This roadmap outlines our goals and where we want to take the NEMA project.
           </p>
         </div>
@@ -116,7 +119,7 @@ const Roadmap = () => {
         {/* Roadmap Timeline */}
         <div className="relative">
           {/* Timeline Line */}
-          <div className="absolute left-4 md:left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-cyan-400 via-purple-500 to-pink-500 z-0"></div>
+          <div className="absolute left-4 md:left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-nema-cyan via-nema-purple to-pink-500 z-0"></div>
 
           {/* Phase Items */}
           <div className="space-y-16">
@@ -126,17 +129,17 @@ const Roadmap = () => {
                 <div className={`absolute left-4 md:left-8 transform -translate-x-1/2 w-4 h-4 rounded-full border-2 z-10 ${phase.status === 'completed'
                   ? 'border-green-400 bg-green-400'
                   : phase.status === 'in-progress'
-                    ? 'border-cyan-400 bg-black'
+                    ? 'border-nema-cyan bg-nema-black'
                     : phase.status === 'upcoming'
-                      ? 'border-purple-500 bg-black'
-                      : 'border-gray-600 bg-black'
+                      ? 'border-nema-purple bg-nema-black'
+                      : 'border-nema-gray-darker bg-nema-black'
                   }`}>
                   {phase.status === 'in-progress' && (
-                    <div className="absolute inset-0 rounded-full bg-cyan-400 animate-pulse"></div>
+                    <div className="absolute inset-0 rounded-full bg-nema-cyan animate-pulse"></div>
                   )}
                   {phase.status === 'completed' && (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <svg className="w-2.5 h-2.5 text-black" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-2.5 h-2.5 text-nema-black" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     </div>
@@ -145,19 +148,19 @@ const Roadmap = () => {
 
                 {/* Content */}
                 <div className="flex-1 ml-8 md:ml-20">
-                  <div className="bg-gradient-to-br from-gray-900/80 to-gray-800/60 backdrop-blur-sm border border-gray-700/50 rounded-xl p-8 hover:border-cyan-400/30 transition-all duration-300">
+                  <div className="nema-card bg-nema-black/40 p-8 hover:border-nema-cyan/50 transition-all duration-300">
                     {/* Phase Badge */}
-                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium mb-4 ${phase.status === 'completed'
+                    <div className={`inline-flex items-center px-3 py-1 text-xs font-medium mb-4 font-anonymous ${phase.status === 'completed'
                       ? 'bg-green-400/20 text-green-400 border border-green-400/30'
                       : phase.status === 'in-progress'
-                        ? 'bg-cyan-400/20 text-cyan-400 border border-cyan-400/30'
+                        ? 'bg-nema-cyan/20 text-nema-cyan border border-nema-cyan/30'
                         : phase.status === 'upcoming'
-                          ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                          : 'bg-gray-600/20 text-gray-400 border border-gray-600/30'
+                          ? 'bg-nema-purple/20 text-nema-purple border border-nema-purple/30'
+                          : 'bg-nema-gray-darker/20 text-nema-gray-darker border border-nema-gray-darker/30'
                       }`}>
                       {phase.subtitle}
                       {phase.status === 'in-progress' && (
-                        <span className="ml-2 w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></span>
+                        <span className="ml-2 w-2 h-2 bg-nema-cyan rounded-full animate-pulse"></span>
                       )}
                       {phase.status === 'completed' && (
                         <span className="ml-2 w-2 h-2">
@@ -169,12 +172,12 @@ const Roadmap = () => {
                     </div>
 
                     {/* Title */}
-                    <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
+                    <h3 className="nema-display nema-display-2 text-nema-white mb-4 font-intranet">
                       {phase.title}
                     </h3>
 
                     {/* Description */}
-                    <p className="text-gray-400 mb-6 text-lg">
+                    <p className="text-nema-gray mb-6 text-lg font-anonymous">
                       {phase.description}
                     </p>
 
@@ -185,21 +188,21 @@ const Roadmap = () => {
                           <div className="mt-2 flex-shrink-0">
                             {detail.status === 'completed' ? (
                               <div className="w-4 h-4 rounded-full bg-green-400 flex items-center justify-center">
-                                <svg className="w-2.5 h-2.5 text-black" fill="currentColor" viewBox="0 0 20 20">
+                                <svg className="w-2.5 h-2.5 text-nema-black" fill="currentColor" viewBox="0 0 20 20">
                                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                 </svg>
                               </div>
                             ) : detail.status === 'in-progress' ? (
-                              <div className="w-4 h-4 rounded-full bg-cyan-400 flex items-center justify-center animate-pulse">
-                                <div className="w-2 h-2 rounded-full bg-black"></div>
+                              <div className="w-4 h-4 rounded-full bg-nema-cyan flex items-center justify-center animate-pulse">
+                                <div className="w-2 h-2 rounded-full bg-nema-black"></div>
                               </div>
                             ) : (
-                              <div className="w-4 h-4 rounded-full border-2 border-gray-500 bg-transparent"></div>
+                              <div className="w-4 h-4 rounded-full border-2 border-nema-gray-darker bg-transparent"></div>
                             )}
                           </div>
-                          <p className={`text-sm leading-relaxed ${detail.status === 'completed' ? 'text-gray-300' :
-                            detail.status === 'in-progress' ? 'text-white' :
-                              'text-gray-400'
+                          <p className={`text-sm leading-relaxed font-anonymous ${detail.status === 'completed' ? 'text-nema-gray' :
+                            detail.status === 'in-progress' ? 'text-nema-white' :
+                              'text-nema-gray-darker'
                             }`}>
                             {detail.text}
                           </p>
@@ -208,14 +211,14 @@ const Roadmap = () => {
                     </div>
 
                     {/* Collapsible Section Toggle */}
-                    <div className="mt-6 border-t border-gray-700/50 pt-6">
+                    <div className="mt-6 border-t border-nema-gray/20 pt-6">
                       <button
                         onClick={() => togglePhase(index)}
-                        className="flex items-center justify-between w-full text-left hover:text-cyan-400 transition-colors duration-200 cursor-pointer"
+                        className="flex items-center justify-between w-full text-left hover:text-nema-cyan transition-colors duration-200 cursor-pointer"
                       >
-                        <span className="text-gray-300 font-medium">More Details</span>
+                        <span className="text-nema-gray font-medium font-anonymous">More Details</span>
                         <svg
-                          className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${expandedPhases[index] ? 'rotate-180' : ''
+                          className={`w-5 h-5 text-nema-gray-darker transition-transform duration-200 ${expandedPhases[index] ? 'rotate-180' : ''
                             }`}
                           fill="none"
                           stroke="currentColor"
@@ -228,25 +231,25 @@ const Roadmap = () => {
                       {/* Collapsible Content */}
                       {expandedPhases[index] && (
                         <div className="mt-4 animate-in slide-in-from-top-2 duration-300">
-                          <div className="bg-gray-800/30 rounded-lg p-6 border border-gray-700/30">
-                            <h4 className="text-cyan-400 font-semibold mb-3">Technical Implementation</h4>
-                            <p className="text-gray-300 text-sm leading-relaxed mb-6">
+                          <div className="bg-nema-black/30 p-6 border border-nema-gray/20">
+                            <h4 className="text-nema-cyan font-semibold mb-3 font-anonymous">Technical Implementation</h4>
+                            <p className="text-nema-gray text-sm leading-relaxed mb-6 font-anonymous">
                               {phase.technicalImplementation}
                             </p>
 
-                            <h4 className="text-cyan-400 font-semibold mb-3">Key Milestones</h4>
-                            <ul className="space-y-3 text-sm text-gray-300 mb-6">
+                            <h4 className="text-nema-cyan font-semibold mb-3 font-anonymous">Key Milestones</h4>
+                            <ul className="space-y-3 text-sm text-nema-gray mb-6 font-anonymous">
                               {phase.keyMilestones.map((milestone, milestoneIndex) => (
                                 <li key={milestoneIndex} className="flex items-start gap-3">
-                                  <span className="text-cyan-400 mt-1 flex-shrink-0">•</span>
+                                  <span className="text-nema-cyan mt-1 flex-shrink-0">•</span>
                                   <span className="leading-relaxed">{milestone}</span>
                                 </li>
                               ))}
                             </ul>
 
-                            <div className="pt-4 border-t border-gray-700/50">
-                              <h4 className="text-cyan-400 font-semibold mb-2 text-sm">Timeline</h4>
-                              <p className="text-xs text-gray-400 leading-relaxed">
+                            <div className="pt-4 border-t border-nema-gray/20">
+                              <h4 className="text-nema-cyan font-semibold mb-2 text-sm font-anonymous">Timeline</h4>
+                              <p className="text-xs text-nema-gray-darker leading-relaxed font-anonymous">
                                 {phase.timeline}
                               </p>
                             </div>
@@ -263,9 +266,9 @@ const Roadmap = () => {
 
         {/* Bottom Note */}
         <div className="mt-20 text-center">
-          <div className="bg-gradient-to-r from-cyan-400/10 to-purple-500/10 border border-cyan-400/20 rounded-xl p-6 max-w-3xl mx-auto">
-            <p className="text-gray-300 text-sm">
-              <span className="text-cyan-400 font-medium">Note:</span> We are currently in Phase 1.
+          <div className="nema-card bg-nema-black/40 p-6 max-w-3xl mx-auto">
+            <p className="text-nema-gray text-sm font-anonymous">
+              <span className="text-nema-cyan font-medium">Note:</span> We are currently in Phase 1.
               You will see tangible results such as User Management and LLM Interactions soon.
             </p>
           </div>

@@ -233,6 +233,16 @@ const InteractiveTerminal = ({ isFullscreen = false, onToggleFullscreen }) => {
     }
   }, [allMessages, isTyping]);
 
+  // Scroll to bottom on initial mount
+  useEffect(() => {
+    const container = messagesEndRef.current?.parentElement;
+    if (container) {
+      setTimeout(() => {
+        container.scrollTop = container.scrollHeight;
+      }, 100);
+    }
+  }, []);
+
   // Focus input when clicking within terminal area only
   useEffect(() => {
     const terminalElement = messagesEndRef.current?.closest('.neon-border');
@@ -507,7 +517,7 @@ Or simply type a message to chat with your selected NEMA!`,
         <div className={`border border-nema-gray bg-nema-black/30 font-anonymous text-sm flex flex-col transition-all duration-300 ${
           isFullscreen
             ? 'h-full w-full'
-            : `min-h-[600px] ${showNeuralState ? 'w-full lg:w-2/3' : 'w-full'}`
+            : `h-[900px] ${showNeuralState ? 'w-full lg:w-2/3' : 'w-full'}`
         }`}>
           {/* Terminal Header - Nema Selection Interface */}
           <div className="bg-nema-gray p-4 border-b border-nema-gray">

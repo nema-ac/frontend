@@ -93,7 +93,6 @@ const Profile = () => {
       setUpdateSuccess(true);
       // Refresh profile data
       await fetchProfile();
-      setIsEditing(false);
       setTimeout(() => setUpdateSuccess(false), 3000);
     } catch (err) {
       setError('Failed to update profile: ' + err.message);

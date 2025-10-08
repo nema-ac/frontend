@@ -42,15 +42,28 @@
   font-display: swap;
 }
 
-:root {
-  font-family: 'Inter', 'Roboto', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
-  line-height: 1.5;
+@font-face {
+  font-family: 'Monaspace Neon';
+  src: url('/fonts/Monaspace/MonaspaceNeon-Regular.woff2') format('woff2');
   font-weight: 400;
-  color: var(--color-nema-white);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Monaspace Neon';
+  src: url('/fonts/Monaspace/MonaspaceNeon-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Monaspace Neon';
+  src: url('/fonts/Monaspace/MonaspaceNeon-Italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
 }
 
 * {
@@ -64,7 +77,10 @@ body {
   background: var(--color-nema-black);
   color: var(--color-nema-white);
   overflow-x: hidden;
-  font-family: 'Anonymous Pro', monospace;
+  font-family: 'Monaspace Neon', 'Consolas', 'Monaco', 'Courier New', monospace;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   font-weight: 400;
   font-style: normal;
   font-size: 20px;

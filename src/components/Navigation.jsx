@@ -14,19 +14,19 @@ const Navigation = () => {
         <div className="flex justify-between items-center h-20 lg:justify-between">
           {/* Mobile: Logo */}
           <div className="lg:hidden">
-            <Link to="/" className="flex items-center font-intranet text-nema-cyan">
-              <img src="/nema-worm-header.svg" alt="NEMA" className="w-8 h-6 mr-2" />
-              <span className="text-lg font-bold">NEMΔ LAB</span>
+            <Link to="/" className="flex items-center">
+              <img
+                src="/mobile-nema-logo.png"
+                alt="NEMA"
+                className="object-contain"
+                style={{ height: 48, width: 48 }}
+              />
             </Link>
-          </div>
-
-          {/* Mobile: Buy Button (centered) */}
-          <div className="lg:hidden">
-            <BuyTokenButton />
           </div>
 
           {/* Mobile: Wallet + Menu */}
           <div className="lg:hidden flex items-center space-x-2">
+            <WalletButton />
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-nema-secondary hover:text-nema-cyan focus:outline-none"
@@ -43,9 +43,13 @@ const Navigation = () => {
 
           {/* Desktop: Logo */}
           <div className="hidden lg:block">
-            <Link to="/" className="flex items-center font-intranet text-nema-cyan">
-              <img src="/nema-worm-header.svg" alt="NEMA" className="w-10 h-7 mr-3" />
-              <span className="text-xl font-bold">NEMΔ LAB</span>
+            <Link to="/" className="flex items-center">
+              <img
+                src="/nema-lab-logo.png"
+                alt="NEMA LAB Logo"
+                className="object-contain"
+                style={{ height: 40, width: 'auto' }}
+              />
             </Link>
           </div>
 
@@ -152,6 +156,9 @@ const Navigation = () => {
               >
                 Token
               </Link>
+              <div className="pt-4 border-t border-nema-secondary">
+                <BuyTokenButton />
+              </div>
             </div>
           </div>
         )}
