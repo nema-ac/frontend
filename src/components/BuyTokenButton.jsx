@@ -35,10 +35,8 @@ const BuyTokenButton = () => {
     <button
       onClick={launchWidget}
       disabled={!isLoaded}
-      className={`px-8 py-2 rounded-lg font-anonymous text-base transition-colors ${
-        isLoaded
-          ? 'bg-nema-button-500 text-nema-white hover:bg-nema-button-600 cursor-pointer'
-          : 'bg-gray-700 text-gray-400 cursor-not-allowed'
+      className={`nema-button px-8 py-2 ${
+        !isLoaded && 'bg-gray-700 text-gray-400'
       }`}
     >
       {isLoaded ? 'Buy $NEMA' : 'Loading...'}

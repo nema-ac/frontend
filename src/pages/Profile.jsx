@@ -596,7 +596,7 @@ Building the future of digital biology with $NEMA 🧠`;
             <button
               onClick={handleSubmit}
               disabled={updateLoading}
-              className="bg-nema-cyan text-nema-black px-6 py-2 rounded font-anonymous font-medium hover:bg-nema-cyan/80 transition-colors disabled:opacity-50"
+              className="nema-button px-6 py-2"
             >
               {updateLoading ? 'Updating...' : 'Update Profile'}
             </button>

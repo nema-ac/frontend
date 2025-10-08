@@ -135,17 +135,20 @@ const OnboardingScreen = () => {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center pt-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-md">
-          <div className="bg-gray-900/50 backdrop-blur-sm border border-cyan-400/30 rounded-lg p-8 text-center">
+      <div className="min-h-screen flex items-center justify-center pt-16 relative">
+        {/* Background texture */}
+        <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "url('/bg-texture.png')", backgroundSize: '100% 100%', backgroundAttachment: 'fixed', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', pointerEvents: 'none' }}></div>
+
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-md relative z-10">
+          <div className="nema-card bg-nema-black/40 p-8 text-center">
             <div className="mb-6">
               <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-8 h-8 text-nema-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h1 className="text-2xl font-bold text-cyan-400 mb-2">Welcome to NEMA!</h1>
-              <p className="text-gray-300">Your account setup is complete. Redirecting to your profile...</p>
+              <h1 className="nema-display nema-display-2 text-nema-cyan mb-2 font-intranet">Welcome to NEMA!</h1>
+              <p className="text-nema-gray font-anonymous">Your account setup is complete. Redirecting to your profile...</p>
             </div>
           </div>
         </div>
@@ -154,9 +157,12 @@ const OnboardingScreen = () => {
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-16">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-2xl">
-        <div className="bg-gray-900/50 backdrop-blur-sm border border-cyan-400/30 rounded-lg p-8">{/* */}
+    <div className="min-h-screen pt-24 pb-16 relative">
+      {/* Background texture */}
+      <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "url('/bg-texture.png')", backgroundSize: '100% 100%', backgroundAttachment: 'fixed', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', pointerEvents: 'none' }}></div>
+
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-2xl relative z-10">
+        <div className="nema-card bg-nema-black/40 p-8">
 
           {/* Header */}
           <div className="text-center mb-8">
@@ -164,35 +170,35 @@ const OnboardingScreen = () => {
             {profile?.profile_pic && (
               <div className="mb-6">
                 <div className="relative inline-block">
-                  <div className="bg-gradient-to-r from-cyan-400 to-purple-500 p-2 rounded-full animate-pulse">
+                  <div className="bg-gradient-to-r from-nema-cyan to-nema-purple p-2 rounded-full animate-pulse">
                     <img
                       src={profile.profile_pic}
                       alt="Your Worm Avatar"
-                      className="w-24 h-24 rounded-full object-cover border-4 border-white"
+                      className="w-24 h-24 rounded-full object-cover border-4 border-nema-white"
                       style={{ imageRendering: 'pixelated' }}
                     />
                   </div>
                 </div>
               </div>
             )}
-            
+
             <div>
-              <h1 className="text-3xl font-bold text-cyan-400 mb-2">Welcome to NEMA!</h1>
-              <p className="text-gray-300">Let's set up your account and create your first Nema</p>
+              <h1 className="nema-display nema-display-2 text-nema-cyan mb-2 font-intranet">Welcome to NEMA!</h1>
+              <p className="text-nema-gray font-anonymous">Let's set up your account and create your first Nema</p>
             </div>
           </div>
             
           {/* Progress indicator */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center space-x-4 mb-6">
-              <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-bold ${
-                currentStep >= 1 ? 'bg-cyan-400 border-cyan-400 text-black' : 'border-gray-600 text-gray-400'
+              <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-bold font-anonymous ${
+                currentStep >= 1 ? 'bg-nema-cyan border-nema-cyan text-nema-black' : 'border-nema-gray-darker text-nema-gray-darker'
               }`}>
                 1
               </div>
-              <div className={`w-8 h-1 ${currentStep >= 2 ? 'bg-cyan-400' : 'bg-gray-600'}`}></div>
-              <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-bold ${
-                currentStep >= 2 ? 'bg-cyan-400 border-cyan-400 text-black' : 'border-gray-600 text-gray-400'
+              <div className={`w-8 h-1 ${currentStep >= 2 ? 'bg-nema-cyan' : 'bg-nema-gray-darker'}`}></div>
+              <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-bold font-anonymous ${
+                currentStep >= 2 ? 'bg-nema-cyan border-nema-cyan text-nema-black' : 'border-nema-gray-darker text-nema-gray-darker'
               }`}>
                 2
               </div>
@@ -201,7 +207,7 @@ const OnboardingScreen = () => {
 
           {/* Error Message */}
           {error && (
-            <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded-lg mb-6">
+            <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 mb-6 font-anonymous">
               {error}
             </div>
           )}
@@ -211,13 +217,13 @@ const OnboardingScreen = () => {
             {currentStep === 1 && (
               <div className="space-y-6">
                 <div className="text-center mb-6">
-                  <h2 className="text-xl font-bold text-cyan-400 mb-2">Step 1: Your Profile</h2>
-                  <p className="text-gray-300">Tell us a bit about yourself</p>
+                  <h2 className="nema-header-2 text-nema-cyan mb-2 font-intranet">Step 1: Your Profile</h2>
+                  <p className="text-nema-gray font-anonymous">Tell us a bit about yourself</p>
                 </div>
 
                 {/* Username */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-nema-gray mb-2 font-anonymous">
                     Username <span className="text-red-400">*</span>
                   </label>
                   <input
@@ -226,7 +232,7 @@ const OnboardingScreen = () => {
                     name="username"
                     value={profileData.username}
                     onChange={handleProfileInputChange}
-                    className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-3 text-white focus:outline-none focus:border-cyan-400 transition-colors"
+                    className="w-full bg-textbox-background border border-textbox-border px-3 py-3 text-nema-white focus:outline-none focus:border-nema-cyan transition-colors font-anonymous"
                     placeholder="Enter your username"
                     required
                   />
@@ -234,17 +240,17 @@ const OnboardingScreen = () => {
 
                 {/* Twitter Handle */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Twitter Handle <span className="text-gray-500 text-xs">(optional)</span>
+                  <label className="block text-sm font-medium text-nema-gray mb-2 font-anonymous">
+                    Twitter Handle <span className="text-nema-gray-darker text-xs">(optional)</span>
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-3 text-gray-400 z-10">@</span>
+                    <span className="absolute left-3 top-3 text-nema-gray-darker z-10 font-anonymous">@</span>
                     <input
                       type="text"
                       name="twitter_handle"
                       value={profileData.twitter_handle}
                       onChange={handleProfileInputChange}
-                      className="w-full bg-gray-800 border border-gray-600 rounded-lg pl-8 pr-3 py-3 text-white focus:outline-none focus:border-cyan-400 transition-colors"
+                      className="w-full bg-textbox-background border border-textbox-border pl-8 pr-3 py-3 text-nema-white focus:outline-none focus:border-nema-cyan transition-colors font-anonymous"
                       placeholder="twitter_handle"
                     />
                   </div>
@@ -252,17 +258,17 @@ const OnboardingScreen = () => {
 
                 {/* Telegram Handle */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Telegram Handle <span className="text-gray-500 text-xs">(optional)</span>
+                  <label className="block text-sm font-medium text-nema-gray mb-2 font-anonymous">
+                    Telegram Handle <span className="text-nema-gray-darker text-xs">(optional)</span>
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-3 text-gray-400 z-10">@</span>
+                    <span className="absolute left-3 top-3 text-nema-gray-darker z-10 font-anonymous">@</span>
                     <input
                       type="text"
                       name="telegram_handle"
                       value={profileData.telegram_handle}
                       onChange={handleProfileInputChange}
-                      className="w-full bg-gray-800 border border-gray-600 rounded-lg pl-8 pr-3 py-3 text-white focus:outline-none focus:border-cyan-400 transition-colors"
+                      className="w-full bg-textbox-background border border-textbox-border pl-8 pr-3 py-3 text-nema-white focus:outline-none focus:border-nema-cyan transition-colors font-anonymous"
                       placeholder="telegram_handle"
                     />
                   </div>
@@ -273,7 +279,7 @@ const OnboardingScreen = () => {
                   <button
                     type="button"
                     onClick={handleNextStep}
-                    className="bg-cyan-500 hover:bg-cyan-600 text-black font-medium px-8 py-3 rounded-lg transition-colors duration-200"
+                    className="nema-button px-8 py-3"
                   >
                     Next Step →
                   </button>
@@ -285,13 +291,13 @@ const OnboardingScreen = () => {
             {currentStep === 2 && (
               <div className="space-y-6">
                 <div className="text-center mb-6">
-                  <h2 className="text-xl font-bold text-cyan-400 mb-2">Step 2: Your First Nema</h2>
-                  <p className="text-gray-300">Create your digital C. elegans companion</p>
+                  <h2 className="nema-header-2 text-nema-cyan mb-2 font-intranet">Step 2: Your First Nema</h2>
+                  <p className="text-nema-gray font-anonymous">Create your digital C. elegans companion</p>
                 </div>
 
                 {/* Nema Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-nema-gray mb-2 font-anonymous">
                     Nema Name <span className="text-red-400">*</span>
                   </label>
                   <input
@@ -299,7 +305,7 @@ const OnboardingScreen = () => {
                     name="name"
                     value={nemaData.name}
                     onChange={handleNemaInputChange}
-                    className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-3 text-white focus:outline-none focus:border-cyan-400 transition-colors"
+                    className="w-full bg-textbox-background border border-textbox-border px-3 py-3 text-nema-white focus:outline-none focus:border-nema-cyan transition-colors font-anonymous"
                     placeholder="Give your Nema a name (e.g., Wormy, Elegans, Neo)"
                     required
                   />
@@ -307,15 +313,15 @@ const OnboardingScreen = () => {
 
                 {/* Nema Description */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Nema Description <span className="text-gray-500 text-xs">(optional)</span>
+                  <label className="block text-sm font-medium text-nema-gray mb-2 font-anonymous">
+                    Nema Description <span className="text-nema-gray-darker text-xs">(optional)</span>
                   </label>
                   <textarea
                     name="description"
                     value={nemaData.description}
                     onChange={handleNemaInputChange}
                     rows="4"
-                    className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-3 text-white focus:outline-none focus:border-cyan-400 transition-colors resize-vertical"
+                    className="w-full bg-textbox-background border border-textbox-border px-3 py-3 text-nema-white focus:outline-none focus:border-nema-cyan transition-colors resize-vertical font-anonymous"
                     placeholder="Describe your Nema's personality, goals, or characteristics (optional)..."
                   />
                 </div>
@@ -325,17 +331,17 @@ const OnboardingScreen = () => {
                   <button
                     type="button"
                     onClick={handlePrevStep}
-                    className="bg-gray-600 hover:bg-gray-700 text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200"
+                    className="nema-button px-6 py-3"
                   >
                     ← Back
                   </button>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex-1 bg-cyan-500 hover:bg-cyan-600 disabled:bg-gray-600 text-black font-medium px-8 py-3 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+                    className="nema-button flex-1 px-8 py-3 flex items-center justify-center gap-2"
                   >
                     {loading && (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-nema-white"></div>
                     )}
                     {loading ? 'Creating Your Account...' : 'Complete Setup'}
                   </button>
