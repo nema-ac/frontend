@@ -28,31 +28,31 @@ const TechSpecPanel = ({ title, subtitle, specs, icon, color = "cyan", delay = 0
 
   return (
     <div className={`transform transition-all duration-700 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-      <div className="group relative overflow-hidden bg-gradient-to-br from-black/80 via-gray-900/50 to-black/80 rounded-lg border-2 border-gray-700 hover:border-current transition-all duration-500">
+      <div className="group relative overflow-hidden nema-card hover:border-nema-cyan transition-all duration-500">
         {/* Header */}
-        <div className={`p-6 border-b border-gray-700 ${colorClasses[color]}`}>
+        <div className={`p-6 border-b border-nema-gray ${colorClasses[color]}`}>
           <div className="flex items-center gap-4">
             <div className="text-3xl">{icon}</div>
             <div>
-              <h3 className="text-2xl font-bold">{title}</h3>
-              <p className="text-sm opacity-80">{subtitle}</p>
+              <h3 className="nema-display nema-display-2 font-intranet">{title}</h3>
+              <p className="text-sm opacity-80 font-anonymous">{subtitle}</p>
             </div>
           </div>
         </div>
 
         {/* Specs Display */}
-        <div className="p-6">
+        <div className="p-6 bg-nema-black/40">
           <div className="space-y-4">
             {specs.map((spec, index) => (
-              <div 
+              <div
                 key={index}
-                className={`flex items-center justify-between p-3 rounded bg-black/40 border-l-4 transition-all duration-500 ${
-                  index === activeSpec 
-                    ? `border-current ${colorClasses[color]} bg-black/60` 
-                    : 'border-gray-600 text-gray-400'
+                className={`flex items-center justify-between p-3 border-l-4 transition-all duration-500 font-anonymous ${
+                  index === activeSpec
+                    ? `border-current ${colorClasses[color]} bg-nema-black/60`
+                    : 'border-nema-gray-darker text-nema-gray-darker bg-nema-black/20'
                 }`}
               >
-                <span className="font-mono text-sm">{spec.label}</span>
+                <span className="text-sm">{spec.label}</span>
                 <span className="font-bold">{spec.value}</span>
               </div>
             ))}
@@ -84,7 +84,7 @@ const EvolutionTimeline = () => {
       progress: 75
     },
     {
-      title: "Cognitive Verification", 
+      title: "Cognitive Verification",
       description: "Deploy on-chain verification of learning processes, transparent neurogenesis tracking, and verifiable cognitive development milestones.",
       status: "PLANNING",
       progress: 30
@@ -100,52 +100,52 @@ const EvolutionTimeline = () => {
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
-        <h3 className="text-2xl font-bold text-cyan-400 mb-2">Development Roadmap</h3>
-        <div className="w-16 h-0.5 bg-cyan-400 mx-auto"></div>
+        <h3 className="nema-display nema-display-2 text-nema-cyan mb-2 font-intranet">Development Roadmap</h3>
+        <div className="w-16 h-0.5 bg-nema-cyan mx-auto"></div>
       </div>
 
       {phases.map((phase, index) => (
-        <div 
+        <div
           key={index}
-          className={`relative p-6 rounded-lg border-2 transition-all duration-500 cursor-pointer ${
-            index === activePhase 
-              ? 'border-cyan-400 bg-gradient-to-r from-cyan-900/20 to-purple-900/20' 
-              : 'border-gray-600 bg-black/40 hover:border-gray-500'
+          className={`relative nema-card p-6 transition-all duration-500 cursor-pointer ${
+            index === activePhase
+              ? 'border-nema-cyan bg-nema-cyan/5'
+              : 'bg-nema-black/40 hover:border-nema-cyan/50'
           }`}
           onClick={() => setActivePhase(index)}
         >
           {/* Phase indicator */}
           <div className="flex items-start gap-4">
-            <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-sm ${
-              index === activePhase ? 'border-cyan-400 text-cyan-400' : 'border-gray-600 text-gray-400'
+            <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-sm font-anonymous ${
+              index === activePhase ? 'border-nema-cyan text-nema-cyan' : 'border-nema-gray-darker text-nema-gray-darker'
             }`}>
               {index + 1}
             </div>
-            
+
             <div className="flex-1">
               <div className="flex items-center justify-between mb-2">
-                <h4 className={`text-xl font-bold ${index === activePhase ? 'text-cyan-400' : 'text-gray-300'}`}>
+                <h4 className={`nema-header-2 font-intranet ${index === activePhase ? 'text-nema-cyan' : 'text-nema-gray'}`}>
                   Phase {index + 1}: {phase.title}
                 </h4>
-                <span className={`text-xs px-2 py-1 rounded font-mono ${
-                  phase.status === 'BUILDING' ? 'bg-green-900/50 text-green-400' :
-                  phase.status === 'PLANNING' ? 'bg-yellow-900/50 text-yellow-400' :
-                  'bg-purple-900/50 text-purple-400'
+                <span className={`text-xs px-2 py-1 font-anonymous ${
+                  phase.status === 'BUILDING' ? 'bg-green-900/50 text-green-400 border border-green-400/30' :
+                  phase.status === 'PLANNING' ? 'bg-yellow-900/50 text-yellow-400 border border-yellow-400/30' :
+                  'bg-purple-900/50 text-purple-400 border border-purple-400/30'
                 }`}>
                   {phase.status}
                 </span>
               </div>
-              
-              <p className="text-gray-300 text-sm mb-4">{phase.description}</p>
-              
+
+              <p className="text-nema-gray text-sm mb-4 font-anonymous">{phase.description}</p>
+
               {/* Progress bar */}
-              <div className="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-cyan-400 to-purple-400 transition-all duration-1000 ease-out"
+              <div className="w-full bg-nema-black/60 h-2 rounded-full overflow-hidden border border-nema-gray/20">
+                <div
+                  className="h-full bg-gradient-to-r from-nema-cyan to-nema-purple transition-all duration-1000 ease-out"
                   style={{ width: `${index === activePhase ? phase.progress : 0}%` }}
                 ></div>
               </div>
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <div className="flex justify-between text-xs text-nema-gray-darker mt-1 font-anonymous">
                 <span>Progress</span>
                 <span>{phase.progress}%</span>
               </div>
@@ -154,7 +154,7 @@ const EvolutionTimeline = () => {
 
           {/* Connection line */}
           {index < phases.length - 1 && (
-            <div className="absolute left-8 top-16 w-0.5 h-6 bg-gray-600"></div>
+            <div className="absolute left-8 top-16 w-0.5 h-6 bg-nema-gray-darker"></div>
           )}
         </div>
       ))}
@@ -191,18 +191,18 @@ const AboutSections = () => {
     <div className="space-y-16">
       {/* Vision Statement */}
       <div className="text-center max-w-4xl mx-auto">
-        <div className="p-8 bg-gradient-to-r from-purple-900/30 via-black/50 to-cyan-900/30 rounded-lg border border-cyan-400/50">
-          <h2 className="text-3xl font-bold text-cyan-400 mb-6">The Vision</h2>
-          <p className="text-lg text-gray-300 leading-relaxed mb-4">
-            Building on DeepWorm's pioneering work in digital biology, Nema introduces 
-            groundbreaking neuroplasticity and neurogenesis capabilities. Our implementation 
-            not only faithfully reproduces the C. elegans nervous system but enhances it 
+        <div className="nema-card p-8 bg-nema-black/40">
+          <h2 className="nema-display nema-display-2 text-nema-cyan mb-6 font-intranet">The Vision</h2>
+          <p className="text-lg text-nema-gray leading-relaxed mb-4 font-anonymous">
+            Building on DeepWorm's pioneering work in digital biology, Nema introduces
+            groundbreaking neuroplasticity and neurogenesis capabilities. Our implementation
+            not only faithfully reproduces the C. elegans nervous system but enhances it
             with the ability to learn and grow through advanced neural plasticity algorithms.
           </p>
-          <p className="text-lg text-gray-300 leading-relaxed">
-            Through NemaLink, our innovative neural bridge technology, we enable higher 
-            cognitive functions while preserving authentic worm-like behaviors. This creates 
-            a unique fusion of biological neural networks and artificial intelligence, 
+          <p className="text-lg text-nema-gray leading-relaxed font-anonymous">
+            Through NemaLink, our innovative neural bridge technology, we enable higher
+            cognitive functions while preserving authentic worm-like behaviors. This creates
+            a unique fusion of biological neural networks and artificial intelligence,
             establishing new possibilities for autonomous digital organisms.
           </p>
         </div>
@@ -213,109 +213,19 @@ const AboutSections = () => {
         <InteractiveNeuralNetwork />
       </div>
 
-      {/* Technical Specifications Grid */}
-      <div className="grid lg:grid-cols-3 gap-8">
-        <TechSpecPanel
-          title="Foundation"
-          subtitle="DeepWorm Heritage"
-          specs={foundationSpecs}
-          icon="🧬"
-          color="cyan"
-          delay={0}
-        />
-        <TechSpecPanel
-          title="Enhancements"
-          subtitle="NEMA Innovations"
-          specs={enhancementSpecs}
-          icon="⚡"
-          color="purple"
-          delay={200}
-        />
-        <TechSpecPanel
-          title="Architecture"
-          subtitle="System Design"
-          specs={architectureSpecs}
-          icon="🏗️"
-          color="green"
-          delay={400}
-        />
-      </div>
-
       {/* Evolution Timeline */}
       <div className="max-w-4xl mx-auto">
         <EvolutionTimeline />
       </div>
 
-      {/* Revolutionary Applications */}
-      <div className="grid md:grid-cols-2 gap-8">
-        <div className="p-8 bg-gradient-to-br from-cyan-900/20 to-black/60 rounded-lg border border-cyan-400/50">
-          <h3 className="text-2xl font-bold text-cyan-400 mb-4">Autonomous Digital Evolution</h3>
-          <div className="space-y-3 text-gray-300">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
-              <span>Self-improving systems that genuinely learn and evolve</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
-              <span>Adaptive smart contracts improving through usage patterns</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
-              <span>Evolutionary finance systems that optimize autonomously</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-8 bg-gradient-to-br from-purple-900/20 to-black/60 rounded-lg border border-purple-400/50">
-          <h3 className="text-2xl font-bold text-purple-400 mb-4">Biological AI Fusion</h3>
-          <div className="space-y-3 text-gray-300">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-              <span>AI systems grounded in biological neural principles</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-              <span>Organic learning patterns mirroring neural development</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-              <span>Emergent behaviors with beneficial unpredictability</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Research Focus */}
-      <div className="text-center p-8 bg-gradient-to-r from-black/80 via-gray-900/50 to-black/80 rounded-lg border border-gray-600">
-        <h3 className="text-2xl font-bold text-cyan-400 mb-6">Research & Development Focus</h3>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 text-gray-300">
-          <div className="p-4 bg-black/40 rounded border-l-4 border-cyan-400">
-            <div className="font-bold text-cyan-400 mb-2">Digital Biology</div>
-            <div className="text-sm">Computational neuroscience and neural simulation</div>
-          </div>
-          <div className="p-4 bg-black/40 rounded border-l-4 border-purple-400">
-            <div className="font-bold text-purple-400 mb-2">Blockchain Verification</div>
-            <div className="text-sm">On-chain biological process validation</div>
-          </div>
-          <div className="p-4 bg-black/40 rounded border-l-4 border-green-400">
-            <div className="font-bold text-green-400 mb-2">Neuroplasticity</div>
-            <div className="text-sm">Advanced learning algorithm implementation</div>
-          </div>
-          <div className="p-4 bg-black/40 rounded border-l-4 border-red-400">
-            <div className="font-bold text-red-400 mb-2">Autonomous Systems</div>
-            <div className="text-sm">Self-evolving digital organism development</div>
-          </div>
-        </div>
-      </div>
-
       {/* Future Vision */}
       <div className="text-center max-w-4xl mx-auto">
-        <div className="p-8 bg-gradient-to-r from-red-900/20 via-black/50 to-cyan-900/20 rounded-lg border border-gradient-to-r border-cyan-400/50">
-          <h3 className="text-3xl font-bold text-cyan-400 mb-6">The Future of Digital Life</h3>
-          <p className="text-lg text-gray-300 leading-relaxed">
-            Nema doesn't just create digital organisms, it creates digital organisms capable 
-            of genuine growth, learning, and evolution. By combining the biological accuracy 
-            of DeepWorm with revolutionary neuroplasticity and neurogenesis capabilities, 
+        <div className="nema-card p-8 bg-nema-black/40">
+          <h3 className="nema-display nema-display-2 text-nema-cyan mb-6 font-intranet">The Future of Digital Life</h3>
+          <p className="text-lg text-nema-gray leading-relaxed font-anonymous">
+            Nema doesn't just create digital organisms, it creates digital organisms capable
+            of genuine growth, learning, and evolution. By combining the biological accuracy
+            of DeepWorm with revolutionary neuroplasticity and neurogenesis capabilities,
             we're opening entirely new frontiers in autonomous digital life.
           </p>
         </div>

@@ -2,7 +2,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { NemaProvider } from './contexts/NemaContext';
 import Navigation from './components/Navigation';
-import AnimatedBackground from './components/AnimatedBackground';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
 import About from './pages/About';
@@ -18,8 +17,9 @@ function App() {
     <Router>
       <AuthProvider>
         <NemaProvider>
-          <div className="min-h-screen bg-black text-white relative">
-            <AnimatedBackground />
+          <div className="min-h-screen bg-nema-black text-nema-white font-anonymous relative">
+            <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "url('/bg-texture.png')", backgroundSize: '100% 100%', backgroundAttachment: 'fixed', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', pointerEvents: 'none' }}></div>
+            <div className="relative z-10">
             <Navigation />
             <Routes>
               <Route path="/" element={<Worminal />} />
@@ -35,6 +35,7 @@ function App() {
               } />
             </Routes>
             <Footer />
+            </div>
           </div>
         </NemaProvider>
       </AuthProvider>
