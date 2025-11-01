@@ -96,9 +96,16 @@ const InteractiveTerminal = ({ isFullscreen = false, onToggleFullscreen }) => {
       const changes = calculateNeuralChanges(currentNeuralState, neuralState);
       setRecentNeuralChanges(changes);
 
-      // Update states
+      // Update states - preserve emotional state if new state doesn't have it
+      const updatedState = {
+        ...neuralState,
+        // Preserve emotional state from current state if new state doesn't include it
+        emotionalState: neuralState.emotionalState || neuralState.emotional_state || currentNeuralState?.emotionalState || currentNeuralState?.emotional_state || null,
+        emotional_state: neuralState.emotional_state || neuralState.emotionalState || currentNeuralState?.emotional_state || currentNeuralState?.emotionalState || null,
+      };
+
       setPreviousNeuralState(currentNeuralState);
-      setCurrentNeuralState(neuralState);
+      setCurrentNeuralState(updatedState);
     }
   });
 
