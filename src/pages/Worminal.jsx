@@ -15,7 +15,7 @@ const Worminal = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col pt-16 overflow-hidden">
+    <div className="h-screen flex flex-col pt-16 max-lg:overflow-y-auto lg:overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl flex-1 flex flex-col min-h-0 pb-4">
         {/* Header Section - 3 Columns on desktop, stacked on mobile */}
         <div className="mb-2 lg:grid lg:grid-cols-[auto_1fr_auto] lg:gap-2 flex-shrink-0">

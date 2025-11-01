@@ -544,11 +544,11 @@ Or simply type a message to chat with your selected NEMA!`,
 
   return (
     <div className={`${isFullscreen ? 'h-full flex flex-col' : 'flex-1 flex flex-col min-h-0'}`}>
-      <div className={`flex flex-col lg:flex-row gap-2 flex-1 min-h-0 ${isFullscreen ? '' : ''}`}>
+      <div className={`flex flex-col lg:flex-row gap-2 ${isFullscreen ? 'flex-1 min-h-0' : 'lg:flex-1 lg:min-h-0'}`}>
         {/* Terminal */}
         <div className={`border border-nema-gray bg-nema-black/30 font-anonymous text-sm flex flex-col transition-all duration-300 ${isFullscreen
           ? 'h-full w-full'
-          : `min-h-0 ${showNeuralState ? 'w-full lg:w-2/3 lg:flex-[2]' : 'w-full flex-1'}`
+          : `min-h-0 ${showNeuralState ? 'w-full lg:w-2/3 lg:flex-[2] max-lg:min-h-[calc(100vh-12rem)] lg:min-h-0' : 'w-full flex-1'}`
           }`}>
           {/* Terminal Header - Dynamic based on session state */}
           <div className="bg-nema-gray p-2 border-b border-nema-gray flex-shrink-0">
@@ -1004,7 +1004,7 @@ Or simply type a message to chat with your selected NEMA!`,
         {showNeuralState && (
           <div className={`border border-nema-gray bg-nema-black/30 font-anonymous text-sm flex flex-col ${isFullscreen
             ? 'w-full lg:w-1/3 h-full'
-            : 'w-full lg:w-1/3 lg:flex-[1] min-h-0'
+            : 'w-full lg:w-1/3 lg:flex-[1] lg:min-h-0'
             }`}>
             {/* Sidebar Header */}
             <div className="flex items-center justify-between p-2 border-b border-nema-gray flex-shrink-0">
