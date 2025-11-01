@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { AuthContext } from '../contexts/AuthContext';
 import profileService from '../services/profile.js';
+import nemaService from '../services/nema.js';
 import ProfileTabs from '../components/ProfileTabs.jsx';
 import NemaCreationFlow from '../components/NemaCreationFlow.jsx';
 import NemaCard from '../components/NemaCard.jsx';
+import EmotionalStateVisualization from '../components/EmotionalStateVisualization.jsx';
 
 const Profile = () => {
   const { isAuthenticated, logout, profile: contextProfile, fetchProfile: contextFetchProfile, refreshNemaBalance } = useContext(AuthContext);
@@ -22,6 +24,9 @@ const Profile = () => {
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const [balanceRefreshing, setBalanceRefreshing] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [emotionalState, setEmotionalState] = useState(null);
+  const [emotionalStateHistory, setEmotionalStateHistory] = useState([]);
+  const [loadingEmotionalState, setLoadingEmotionalState] = useState(false);
   const usernameInputRef = useRef(null);
 
   useEffect(() => {
@@ -42,8 +47,37 @@ const Profile = () => {
       // Note: New user onboarding is now handled by OnboardingScreen component
 
       // Note: Nemas data is now accessed directly from contextProfile.nemas
+      
+      // Fetch emotional state for the first nema
+      if (contextProfile.nemas && contextProfile.nemas.length > 0) {
+        fetchEmotionalState(contextProfile.nemas[0].id);
+      }
     }
   }, [contextProfile]);
+
+  const fetchEmotionalState = async (nemaId) => {
+    if (!nemaId) return;
+    
+    setLoadingEmotionalState(true);
+    try {
+      // Fetch current state
+      const currentState = await nemaService.getNeuralState(nemaId);
+      if (currentState.emotionalState) {
+        setEmotionalState(currentState.emotionalState);
+      }
+
+      // Fetch state history for timeline (last 50 states)
+      const history = await nemaService.getStateHistory(nemaId, { limit: 50, order: 'desc' });
+      if (history.states && history.states.length > 0) {
+        setEmotionalStateHistory(history.states);
+      }
+    } catch (err) {
+      console.error('Failed to fetch emotional state:', err);
+      // Don't show error to user, just don't display visualization
+    } finally {
+      setLoadingEmotionalState(false);
+    }
+  };
 
   const fetchProfile = async () => {
     try {
@@ -449,33 +483,32 @@ Building the future of digital biology with $NEMA 🧠`;
             </div>
           </div>
 
-          {/* Emotional Timeline */}
-          <div className="lg:col-span-2 nema-card p-6">
-            <h2 className="text-xl font-intranet text-nema-cyan mb-4">EMOTIONAL TIMELINE</h2>
-            <div className="h-64 bg-nema-black/50 border border-nema-cyan/20 rounded-lg p-4 relative">
-              {/* Placeholder chart - Simple grid with line */}
-              <div className="absolute inset-4 grid grid-cols-10 grid-rows-6 gap-px">
-                {/* Grid lines */}
-                {Array.from({ length: 60 }, (_, i) => (
-                  <div key={i} className="border-r border-b border-nema-cyan/10"></div>
-                ))}
-                {/* Sample data line */}
-                <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  <polyline
-                    fill="none"
-                    stroke="rgb(34, 211, 238)"
-                    strokeWidth="0.5"
-                    points="0,80 20,60 40,70 60,40 80,50 100,30"
-                  />
-                </svg>
+          {/* Emotional State Visualization */}
+          <div className="lg:col-span-2">
+            {loadingEmotionalState ? (
+              <div className="nema-card p-6">
+                <div className="flex items-center justify-center h-64">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-nema-cyan"></div>
+                </div>
               </div>
-              {/* Control knobs */}
-              <div className="absolute top-4 right-4 space-y-2">
-                {Array.from({ length: 4 }, (_, i) => (
-                  <div key={i} className="w-8 h-8 rounded-full border-2 border-nema-cyan/30 bg-nema-black/50"></div>
-                ))}
+            ) : emotionalState ? (
+              <EmotionalStateVisualization
+                emotionalState={emotionalState}
+                variant="full"
+                showHistory={true}
+                historyData={emotionalStateHistory}
+                className="w-full"
+              />
+            ) : (
+              <div className="nema-card p-6">
+                <h2 className="text-xl font-intranet text-nema-cyan mb-4">EMOTIONAL STATE</h2>
+                <div className="h-64 bg-nema-black/50 border border-nema-cyan/20 rounded-lg flex items-center justify-center">
+                  <span className="text-nema-secondary text-sm font-anonymous">
+                    No emotional state data available yet. Start chatting with your Nema to see emotional states evolve.
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 

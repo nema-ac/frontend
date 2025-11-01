@@ -5,6 +5,7 @@
 
 import { useState } from 'react';
 import NeuronList from './NeuronList.jsx';
+import EmotionalStateVisualization from './EmotionalStateVisualization.jsx';
 
 const NeuralStatePanel = ({
   neuralState = null,
@@ -66,15 +67,11 @@ const NeuralStatePanel = ({
       {/* Emotional State */}
       {emotionalState && (
         <div className="border-t border-nema-gray pt-4">
-          <div className="text-nema-cyan text-xs mb-2">Emotional State:</div>
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            {Object.entries(emotionalState).map(([emotion, value]) => (
-              <div key={emotion} className="flex justify-between items-center bg-nema-black/50 p-2 rounded">
-                <span className="text-nema-white capitalize">{emotion}</span>
-                <span className="text-nema-cyan font-mono">{value}</span>
-              </div>
-            ))}
-          </div>
+          <EmotionalStateVisualization
+            emotionalState={emotionalState}
+            variant="compact"
+            className="mb-0"
+          />
         </div>
       )}
 
