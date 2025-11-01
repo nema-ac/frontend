@@ -839,7 +839,7 @@ Or simply type a message to chat with your selected NEMA!`,
                             sender={isUserMessage ? publicWorminalData.user?.username : publicWorminalData.nema?.name}
                             neuralChanges={neuralChanges}
                             avatarUrl={avatarUrl}
-                            alignRight={!isUserMessage}
+                            alignRight={isUserMessage}
                           />
                         );
                       })}
@@ -889,7 +889,8 @@ Or simply type a message to chat with your selected NEMA!`,
                           sender={message.type === 'user' ? (profile?.username || 'user') : 'system'}
                           neuralChanges={[]}
                           avatarUrl={null}
-                          alignRight={false}
+                          alignRight={message.type === 'user'}
+                          alignCenter={message.type === 'system'}
                         />
                       );
                     }
@@ -911,7 +912,7 @@ Or simply type a message to chat with your selected NEMA!`,
                           sender={selectedNema?.name || 'nema'}
                           neuralChanges={neuralChanges}
                           avatarUrl={profile.avatar_base64 || null}
-                          alignRight={true}
+                          alignRight={false}
                         />
                       );
                     }
