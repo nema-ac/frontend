@@ -15,6 +15,7 @@ import MessageBubble from './MessageBubble.jsx';
 import NeuralStatePanel from './NeuralStatePanel.jsx';
 import ViewSelector from './ViewSelector.jsx';
 import { calculateNeuralChanges, getMessageNeuralChanges } from '../utils/neuralStateUtils.js';
+import { getAvatarUrl, getProfileAvatarUrl, getDefaultAvatarUrl } from '../utils/avatarUtils.js';
 
 const InteractiveTerminal = ({ isFullscreen = false, onToggleFullscreen }) => {
   const [input, setInput] = useState('');
@@ -214,22 +215,22 @@ const InteractiveTerminal = ({ isFullscreen = false, onToggleFullscreen }) => {
   const scrollToBottom = useCallback(() => {
     // Try the ref first (most reliable)
     let container = scrollContainerRef.current;
-    
+
     // Fallback: try to find via messagesEndRef
     if (!container) {
       container = messagesEndRef.current?.parentElement;
     }
-    
+
     // Fallback: find by class
     if (!container) {
       container = messagesEndRef.current?.closest('.overflow-y-auto');
     }
-    
+
     // Last resort: query selector
     if (!container) {
       container = document.querySelector('.flex-1.p-4.overflow-y-auto.min-h-0');
     }
-    
+
     if (container) {
       // Use requestAnimationFrame for smoother scrolling
       requestAnimationFrame(() => {
@@ -259,7 +260,7 @@ const InteractiveTerminal = ({ isFullscreen = false, onToggleFullscreen }) => {
     const timer = setTimeout(() => {
       scrollToBottom();
     }, 300);
-    
+
     return () => clearTimeout(timer);
   }, [effectivePublicView, selectedNema, selectedViewNemaId, scrollToBottom]);
 
@@ -545,11 +546,10 @@ Or simply type a message to chat with your selected NEMA!`,
     <div className={`${isFullscreen ? 'h-full flex flex-col' : 'flex-1 flex flex-col min-h-0'}`}>
       <div className={`flex flex-col lg:flex-row gap-2 flex-1 min-h-0 ${isFullscreen ? '' : ''}`}>
         {/* Terminal */}
-        <div className={`border border-nema-gray bg-nema-black/30 font-anonymous text-sm flex flex-col transition-all duration-300 ${
-          isFullscreen
-            ? 'h-full w-full'
-            : `min-h-0 ${showNeuralState ? 'w-full lg:w-2/3 lg:flex-[2]' : 'w-full flex-1'}`
-        }`}>
+        <div className={`border border-nema-gray bg-nema-black/30 font-anonymous text-sm flex flex-col transition-all duration-300 ${isFullscreen
+          ? 'h-full w-full'
+          : `min-h-0 ${showNeuralState ? 'w-full lg:w-2/3 lg:flex-[2]' : 'w-full flex-1'}`
+          }`}>
           {/* Terminal Header - Dynamic based on session state */}
           <div className="bg-nema-gray p-2 border-b border-nema-gray flex-shrink-0">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
@@ -577,14 +577,12 @@ Or simply type a message to chat with your selected NEMA!`,
                 {/* Show public session info if spectating */}
                 {effectivePublicView && publicWorminalData && publicWorminalData.user?.username ? (
                   <div className="flex items-center gap-3">
-                    {publicWorminalData.user.profile_pic && (
-                      <img
-                        src={publicWorminalData.user.profile_pic}
-                        alt={`${publicWorminalData.user.username}'s avatar`}
-                        className="w-10 h-10 rounded-full border-2 border-nema-black"
-                        style={{ imageRendering: 'pixelated' }}
-                      />
-                    )}
+                    <img
+                      src={getAvatarUrl(publicWorminalData.user.profile_pic)}
+                      alt={`${publicWorminalData.user.username}'s avatar`}
+                      className="w-10 h-10 rounded-full border-2 border-nema-black"
+                      style={{ imageRendering: 'pixelated' }}
+                    />
                     <div>
                       <h3 className="nema-display nema-header-2 text-nema-black">
                         {publicWorminalData.user.username.toUpperCase()}'S SESSION
@@ -643,9 +641,8 @@ Or simply type a message to chat with your selected NEMA!`,
                                 selectNema(nema);
                                 setShowNemaDropdown(false);
                               }}
-                              className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-nema-gray/20 transition-colors first:rounded-t-lg last:rounded-b-lg ${
-                                selectedNema?.id === nema.id ? 'bg-nema-gray/10' : ''
-                              }`}
+                              className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-nema-gray/20 transition-colors first:rounded-t-lg last:rounded-b-lg ${selectedNema?.id === nema.id ? 'bg-nema-gray/10' : ''
+                                }`}
                             >
                               {nema.avatar_encoded && (
                                 <img
@@ -828,7 +825,10 @@ Or simply type a message to chat with your selected NEMA!`,
                         );
 
                         const isUserMessage = message.kind === 'user';
-                        const avatarUrl = message.kind === 'nema' ? publicWorminalData.user?.profile_pic : null;
+                        // Nema messages use API avatar, user messages always use default profile pic
+                        const avatarUrl = message.kind === 'nema'
+                          ? getProfileAvatarUrl(publicWorminalData.user ? { profile_pic: publicWorminalData.user.profile_pic, avatar_base64: publicWorminalData.user.profile_pic } : null)
+                          : (isUserMessage ? getDefaultAvatarUrl() : null);
 
                         return (
                           <MessageBubble
@@ -888,7 +888,7 @@ Or simply type a message to chat with your selected NEMA!`,
                           timestamp={message.timestamp}
                           sender={message.type === 'user' ? (profile?.username || 'user') : 'system'}
                           neuralChanges={[]}
-                          avatarUrl={null}
+                          avatarUrl={message.type === 'user' ? getDefaultAvatarUrl() : null}
                           alignRight={message.type === 'user'}
                           alignCenter={message.type === 'system'}
                         />
@@ -911,7 +911,7 @@ Or simply type a message to chat with your selected NEMA!`,
                           timestamp={message.timestamp}
                           sender={selectedNema?.name || 'nema'}
                           neuralChanges={neuralChanges}
-                          avatarUrl={profile.avatar_base64 || null}
+                          avatarUrl={getProfileAvatarUrl(profile)}
                           alignRight={false}
                         />
                       );
@@ -939,14 +939,12 @@ Or simply type a message to chat with your selected NEMA!`,
                         </div>
                       </div>
                       {/* Nema Avatar */}
-                      {profile.avatar_base64 && (
-                        <img
-                          src={profile.avatar_base64}
-                          alt={`${profile.username} Avatar`}
-                          className="w-12 h-12 rounded-full border-2 border-nema-white flex-shrink-0"
-                          style={{ imageRendering: 'pixelated' }}
-                        />
-                      )}
+                      <img
+                        src={getProfileAvatarUrl(profile)}
+                        alt={`${profile.username} Avatar`}
+                        className="w-12 h-12 rounded-full border-2 border-nema-white flex-shrink-0"
+                        style={{ imageRendering: 'pixelated' }}
+                      />
                     </div>
                   )}
                 </div>
@@ -1004,11 +1002,10 @@ Or simply type a message to chat with your selected NEMA!`,
 
         {/* Neural State Sidebar */}
         {showNeuralState && (
-          <div className={`border border-nema-gray bg-nema-black/30 font-anonymous text-sm flex flex-col ${
-            isFullscreen
-              ? 'w-full lg:w-1/3 h-full'
-              : 'w-full lg:w-1/3 lg:flex-[1] min-h-0'
-          }`}>
+          <div className={`border border-nema-gray bg-nema-black/30 font-anonymous text-sm flex flex-col ${isFullscreen
+            ? 'w-full lg:w-1/3 h-full'
+            : 'w-full lg:w-1/3 lg:flex-[1] min-h-0'
+            }`}>
             {/* Sidebar Header */}
             <div className="flex items-center justify-between p-2 border-b border-nema-gray flex-shrink-0">
               <div className="nema-display nema-header-2 text-nema-cyan">NEURAL STATE</div>

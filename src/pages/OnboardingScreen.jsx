@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import profileService from '../services/profile.js';
 import nemaService from '../services/nema.js';
+import { getProfileAvatarUrl } from '../utils/avatarUtils.js';
 
 const OnboardingScreen = () => {
   const { profile, fetchProfile } = useContext(AuthContext);
@@ -167,20 +168,18 @@ const OnboardingScreen = () => {
           {/* Header */}
           <div className="text-center mb-8">
             {/* Prominent Avatar Display */}
-            {profile?.profile_pic && (
-              <div className="mb-6">
-                <div className="relative inline-block">
-                  <div className="bg-gradient-to-r from-nema-cyan to-nema-purple p-2 rounded-full animate-pulse">
-                    <img
-                      src={profile.profile_pic}
-                      alt="Your Worm Avatar"
-                      className="w-24 h-24 rounded-full object-cover border-4 border-nema-white"
-                      style={{ imageRendering: 'pixelated' }}
-                    />
-                  </div>
+            <div className="mb-6">
+              <div className="relative inline-block">
+                <div className="bg-gradient-to-r from-nema-cyan to-nema-purple p-2 rounded-full animate-pulse">
+                  <img
+                    src={getProfileAvatarUrl(profile)}
+                    alt="Your Worm Avatar"
+                    className="w-24 h-24 rounded-full object-cover border-4 border-nema-white"
+                    style={{ imageRendering: 'pixelated' }}
+                  />
                 </div>
               </div>
-            )}
+            </div>
 
             <div>
               <h1 className="nema-display nema-display-2 text-nema-cyan mb-2 font-intranet">Welcome to NEMA!</h1>

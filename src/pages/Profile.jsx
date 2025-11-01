@@ -6,6 +6,7 @@ import profileService from '../services/profile.js';
 import ProfileTabs from '../components/ProfileTabs.jsx';
 import NemaCreationFlow from '../components/NemaCreationFlow.jsx';
 import NemaCard from '../components/NemaCard.jsx';
+import { getProfileAvatarUrl } from '../utils/avatarUtils.js';
 
 const Profile = () => {
   const { isAuthenticated, logout, profile: contextProfile, fetchProfile: contextFetchProfile, refreshNemaBalance } = useContext(AuthContext);
@@ -352,17 +353,17 @@ Building the future of digital biology with $NEMA 🧠`;
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Left: Main Nema */}
           <div className="flex items-center space-x-6">
-            {contextProfile?.profile_pic && (
-              <div className="flex-shrink-0 relative">
-                <div className="bg-white hover:bg-cyan-400 p-0.5 rounded-full transition-colors duration-200">
-                  <img
-                    src={contextProfile.profile_pic}
-                    alt="Nema Avatar"
-                    className="w-32 h-32 rounded-full object-cover cursor-pointer"
-                    style={{ imageRendering: 'pixelated' }}
-                    onClick={() => setShowAvatarModal(true)}
-                  />
-                </div>
+            <div className="flex-shrink-0 relative">
+              <div className="bg-white hover:bg-cyan-400 p-0.5 rounded-full transition-colors duration-200">
+                <img
+                  src={getProfileAvatarUrl(contextProfile)}
+                  alt="Nema Avatar"
+                  className="w-32 h-32 rounded-full object-cover cursor-pointer"
+                  style={{ imageRendering: 'pixelated' }}
+                  onClick={() => setShowAvatarModal(true)}
+                />
+              </div>
+              {contextProfile?.profile_pic && (
                 <button
                   onClick={handleDownloadAvatar}
                   className="absolute -bottom-2 left-2 w-8 h-8 border border-white/50 hover:border-cyan-300 rounded-full text-white hover:text-cyan-300 hover:bg-cyan-400/10 transition-all duration-200 flex items-center justify-center cursor-pointer"
@@ -372,8 +373,8 @@ Building the future of digital biology with $NEMA 🧠`;
                     <path d="M21 15V16.2C21 17.8802 21 18.7202 20.673 19.362C20.3854 19.9265 19.9265 20.3854 19.362 20.673C18.7202 21 17.8802 21 16.2 21H7.8C6.11984 21 5.27976 21 4.63803 20.673C4.07354 20.3854 3.6146 19.9265 3.32698 19.362C3 18.7202 3 17.8802 3 16.2V15M17 10L12 15M12 15L7 10M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </button>
-              </div>
-            )}
+              )}
+            </div>
             <div className="flex-1">
               <h1 className="nema-display nema-display-2 max-md:nema-header-2 text-nema-cyan mb-2">
                 {contextProfile?.nemas?.[0]?.name || 'MY MAIN NEMA'}
@@ -485,16 +486,14 @@ Building the future of digital biology with $NEMA 🧠`;
           <div className="flex items-center gap-4 mb-6">
             {/* Avatar - shows on mobile */}
             <div className="flex-shrink-0 md:hidden">
-              {contextProfile?.profile_pic && (
-                <div className="relative">
-                  <img
-                    src={contextProfile.profile_pic}
-                    alt="User Avatar"
-                    className="w-12 h-12 rounded-full object-cover border-2 border-nema-white"
-                    style={{ imageRendering: 'pixelated' }}
-                  />
-                </div>
-              )}
+              <div className="relative">
+                <img
+                  src={getProfileAvatarUrl(contextProfile)}
+                  alt="User Avatar"
+                  className="w-12 h-12 rounded-full object-cover border-2 border-nema-white"
+                  style={{ imageRendering: 'pixelated' }}
+                />
+              </div>
             </div>
             <h2 className="nema-display nema-display-2 max-md:nema-header-2 text-nema-cyan">MY ACCOUNT</h2>
           </div>
@@ -502,16 +501,14 @@ Building the future of digital biology with $NEMA 🧠`;
           <div className="flex flex-col md:flex-row md:items-start md:space-x-8">
             {/* Avatar - shows on desktop */}
             <div className="hidden md:block flex-shrink-0">
-              {contextProfile?.profile_pic && (
-                <div className="relative">
-                  <img
-                    src={contextProfile.profile_pic}
-                    alt="User Avatar"
-                    className="w-20 h-20 rounded-full object-cover border-2 border-nema-white"
-                    style={{ imageRendering: 'pixelated' }}
-                  />
-                </div>
-              )}
+              <div className="relative">
+                <img
+                  src={getProfileAvatarUrl(contextProfile)}
+                  alt="User Avatar"
+                  className="w-20 h-20 rounded-full object-cover border-2 border-nema-white"
+                  style={{ imageRendering: 'pixelated' }}
+                />
+              </div>
             </div>
 
             {/* Account Details */}
@@ -649,7 +646,7 @@ Building the future of digital biology with $NEMA 🧠`;
             {/* Avatar with border */}
             <div className="bg-cyan-400 p-2 rounded-full mx-auto w-fit mb-6">
               <img
-                src={contextProfile?.profile_pic}
+                src={getProfileAvatarUrl(contextProfile)}
                 alt="Your Worm Avatar"
                 className="w-64 h-64 rounded-full object-cover"
                 style={{ imageRendering: 'pixelated' }}

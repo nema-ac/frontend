@@ -4,6 +4,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { useAuth } from '../hooks/useAuth';
 import { authAPI } from '../utils/api';
+import { getProfileAvatarUrl } from '../utils/avatarUtils.js';
 import bs58 from 'bs58';
 
 // Format token amounts for display (e.g., 1.2M, 45.3K)
@@ -166,14 +167,12 @@ const WalletButton = () => {
                 className="flex items-center space-x-3 pr-6 transition-colors duration-200 group"
             >
                 {/* Worm Avatar */}
-                {profile?.avatar_base64 && (
-                    <img
-                        src={profile.avatar_base64}
-                        alt="Worm Avatar"
-                        className="w-12 h-12 rounded-full border-2 border-white group-hover:border-cyan-400 transition-colors duration-200"
-                        style={{ imageRendering: 'pixelated' }}
-                    />
-                )}
+                <img
+                    src={getProfileAvatarUrl(profile)}
+                    alt="Worm Avatar"
+                    className="w-12 h-12 rounded-full border-2 border-white group-hover:border-cyan-400 transition-colors duration-200"
+                    style={{ imageRendering: 'pixelated' }}
+                />
 
                 {/* User Info */}
                 <div className="text-left">
