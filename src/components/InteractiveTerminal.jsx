@@ -181,6 +181,15 @@ const InteractiveTerminal = ({ isFullscreen = false, onToggleFullscreen }) => {
     }
   }, [selectedNema]);
 
+  // Clear neural state when switching to public view without an active session
+  useEffect(() => {
+    if (effectivePublicView && !publicWorminalData?.user?.username) {
+      // Public view with no active session - clear personal neural state
+      setCurrentNeuralState(null);
+      setRecentNeuralChanges([]);
+    }
+  }, [effectivePublicView, publicWorminalData?.user?.username]);
+
   // Ensure neural state is loaded when switching to personal view
   useEffect(() => {
     if (!effectivePublicView && selectedViewNema && !currentNeuralState) {
@@ -721,7 +730,7 @@ Or simply type a message to chat with your selected NEMA!`,
             {/* No Active Session - Show waiting message (only in public view) */}
             {effectivePublicView && !hasAccess && !needsToClaim && (!currentSession || !currentSession.username || currentSession.username.trim() === '') && (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="text-nema-cyan text-lg mb-4">⏳ Worminal Standby</div>
+                <div className="text-nema-cyan text-lg mb-4">Worminal Standby</div>
                 <div className="text-gray-300 mb-6 max-w-md">
                   The Worminal is currently available. Waiting for the next user to claim access...
                 </div>
