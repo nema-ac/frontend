@@ -3,7 +3,7 @@
  * Classic terminal interface with Nema chat functionality
  */
 
-import { useState, useEffect, useRef, useContext } from 'react';
+import { useState, useEffect, useRef, useContext, useCallback } from 'react';
 import { useConversation } from '../hooks/useNema.js';
 import { useNema } from '../contexts/NemaContext.jsx';
 import { AuthContext } from '../contexts/AuthContext.jsx';
@@ -30,6 +30,7 @@ const InteractiveTerminal = ({ isFullscreen = false, onToggleFullscreen }) => {
 
   const inputRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const scrollContainerRef = useRef(null);
   const initializationRef = useRef(false);
 
   // Nema context for multi-nema support
@@ -209,23 +210,65 @@ const InteractiveTerminal = ({ isFullscreen = false, onToggleFullscreen }) => {
   // Use conversation directly from the hook
   const allMessages = conversation;
 
-  // Auto-scroll to bottom (container only, not page)
-  useEffect(() => {
-    const container = messagesEndRef.current?.parentElement;
-    if (container) {
-      container.scrollTop = container.scrollHeight;
+  // Helper function to scroll to bottom
+  const scrollToBottom = useCallback(() => {
+    // Try the ref first (most reliable)
+    let container = scrollContainerRef.current;
+    
+    // Fallback: try to find via messagesEndRef
+    if (!container) {
+      container = messagesEndRef.current?.parentElement;
     }
-  }, [allMessages, isTyping]);
-
-  // Scroll to bottom on initial mount
-  useEffect(() => {
-    const container = messagesEndRef.current?.parentElement;
+    
+    // Fallback: find by class
+    if (!container) {
+      container = messagesEndRef.current?.closest('.overflow-y-auto');
+    }
+    
+    // Last resort: query selector
+    if (!container) {
+      container = document.querySelector('.flex-1.p-4.overflow-y-auto.min-h-0');
+    }
+    
     if (container) {
-      setTimeout(() => {
+      // Use requestAnimationFrame for smoother scrolling
+      requestAnimationFrame(() => {
         container.scrollTop = container.scrollHeight;
-      }, 100);
+      });
     }
   }, []);
+
+  // Auto-scroll to bottom when messages change or typing state changes
+  useEffect(() => {
+    scrollToBottom();
+  }, [allMessages, isTyping, scrollToBottom]);
+
+  // Scroll to bottom when history finishes loading
+  useEffect(() => {
+    if (!isLoadingHistory && historyLoaded) {
+      // Wait a bit for DOM to update after history loads
+      setTimeout(() => {
+        scrollToBottom();
+      }, 200);
+    }
+  }, [isLoadingHistory, historyLoaded, scrollToBottom]);
+
+  // Scroll to bottom on initial mount and when switching views
+  useEffect(() => {
+    // Delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      scrollToBottom();
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [effectivePublicView, selectedNema, selectedViewNemaId, scrollToBottom]);
+
+  // Also scroll when public messages change
+  useEffect(() => {
+    if (effectivePublicView && publicWorminalData?.nema?.messages) {
+      scrollToBottom();
+    }
+  }, [effectivePublicView, publicWorminalData?.nema?.messages, scrollToBottom]);
 
   // Focus input when clicking within terminal area only
   useEffect(() => {
@@ -499,17 +542,17 @@ Or simply type a message to chat with your selected NEMA!`,
   };
 
   return (
-    <div className={`space-y-4 ${isFullscreen ? 'h-full flex flex-col' : ''}`}>
-      <div className={`flex flex-col lg:flex-row gap-2 ${isFullscreen ? 'flex-1 min-h-0' : ''}`}>
+    <div className={`${isFullscreen ? 'h-full flex flex-col' : 'flex-1 flex flex-col min-h-0'}`}>
+      <div className={`flex flex-col lg:flex-row gap-2 flex-1 min-h-0 ${isFullscreen ? '' : ''}`}>
         {/* Terminal */}
         <div className={`border border-nema-gray bg-nema-black/30 font-anonymous text-sm flex flex-col transition-all duration-300 ${
           isFullscreen
             ? 'h-full w-full'
-            : `h-[900px] ${showNeuralState ? 'w-full lg:w-2/3' : 'w-full'}`
+            : `min-h-0 ${showNeuralState ? 'w-full lg:w-2/3 lg:flex-[2]' : 'w-full flex-1'}`
         }`}>
           {/* Terminal Header - Dynamic based on session state */}
-          <div className="bg-nema-gray p-4 border-b border-nema-gray">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="bg-nema-gray p-2 border-b border-nema-gray flex-shrink-0">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
               {/* View Selector - Show when user can toggle between views */}
               {profile && availableNemas.length > 0 && (
                 <ViewSelector
@@ -675,7 +718,7 @@ Or simply type a message to chat with your selected NEMA!`,
           </div>
 
           {/* Terminal Content */}
-          <div className="flex-1 p-4 overflow-y-auto">
+          <div ref={scrollContainerRef} className="flex-1 p-4 overflow-y-auto min-h-0">
             {/* Claim Button - Only show when user needs to claim */}
             {needsToClaim && canClaim && (
               <div className="mb-4 p-4 border-2 border-nema-cyan bg-nema-cyan/10 rounded">
@@ -913,7 +956,7 @@ Or simply type a message to chat with your selected NEMA!`,
           </div>
 
           {/* Terminal Input - Conditionally available based on access */}
-          <div className="p-4 border-t border-nema-gray">
+          <div className="p-4 border-t border-nema-gray flex-shrink-0">
             {!hasAccess && currentSession ? (
               <div className="flex items-center space-x-2 opacity-50">
                 <span className="text-nema-gray-darker text-xs">
@@ -944,7 +987,7 @@ Or simply type a message to chat with your selected NEMA!`,
           </div>
 
           {/* Terminal Footer */}
-          <div className="px-4 py-2 border-t border-nema-gray text-xs text-nema-gray-darker">
+          <div className="px-4 py-2 border-t border-nema-gray text-xs text-nema-gray-darker flex-shrink-0">
             <div className="flex items-center justify-between">
               <div>
                 Press [up] or [down] for command history
@@ -963,10 +1006,10 @@ Or simply type a message to chat with your selected NEMA!`,
           <div className={`border border-nema-gray bg-nema-black/30 font-anonymous text-sm flex flex-col ${
             isFullscreen
               ? 'w-full lg:w-1/3 h-full'
-              : 'w-full lg:w-1/3 min-h-[600px]'
+              : 'w-full lg:w-1/3 lg:flex-[1] min-h-0'
           }`}>
             {/* Sidebar Header */}
-            <div className="flex items-center justify-between p-4 border-b border-nema-gray">
+            <div className="flex items-center justify-between p-2 border-b border-nema-gray flex-shrink-0">
               <div className="nema-display nema-header-2 text-nema-cyan">NEURAL STATE</div>
               <button
                 onClick={() => setShowNeuralState(false)}
@@ -977,7 +1020,7 @@ Or simply type a message to chat with your selected NEMA!`,
             </div>
 
             {/* Neural State Content */}
-            <div className="flex-1 p-4 overflow-y-auto">
+            <div className="flex-1 p-4 overflow-y-auto min-h-0">
               <NeuralStatePanel
                 neuralState={effectivePublicView && publicWorminalData?.nema?.states?.[0]
                   ? publicWorminalData.nema.states[0]

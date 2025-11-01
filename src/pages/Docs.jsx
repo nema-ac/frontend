@@ -1,6 +1,6 @@
 const Docs = () => {
   return (
-    <div className="min-h-screen bg-black text-white pt-28">
+    <div className="min-h-screen bg-black text-white pt-16">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
         <div className="text-center">
           <h1 className="text-4xl sm:text-6xl font-bold mb-8">

@@ -193,7 +193,7 @@ const WalletButton = () => {
             {!publicKey ? (
                 <button
                     onClick={() => setVisible(true)}
-                    className="px-3 py-1.5 text-sm bg-cyan-500 hover:bg-cyan-600 text-white rounded-md transition-all duration-200 font-medium cursor-pointer"
+                    className="px-4 py-2 text-sm bg-cyan-500 hover:bg-cyan-600 text-white rounded-md transition-all duration-200 font-medium cursor-pointer"
                 >
                     Connect Wallet
                 </button>
@@ -202,7 +202,7 @@ const WalletButton = () => {
                     <button
                         onClick={handleAuthenticate}
                         disabled={isAuthenticating}
-                        className="px-3 py-1.5 text-sm bg-cyan-500 hover:bg-cyan-600 text-white rounded-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 font-medium cursor-pointer"
+                        className="px-4 py-2 text-sm bg-cyan-500 hover:bg-cyan-600 text-white rounded-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 font-medium cursor-pointer"
                     >
                         {isAuthenticating ? (
                             <>

@@ -157,7 +157,7 @@ const OnboardingScreen = () => {
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-16 relative">
+    <div className="min-h-screen pt-16 pb-16 relative">
       {/* Background texture */}
       <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "url('/bg-texture.png')", backgroundSize: '100% 100%', backgroundAttachment: 'fixed', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', pointerEvents: 'none' }}></div>
 
