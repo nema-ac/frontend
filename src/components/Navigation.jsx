@@ -29,7 +29,7 @@ const Navigation = () => {
             <WalletButton />
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-nema-secondary hover:text-nema-cyan focus:outline-none"
+              className="text-nema-secondary hover:text-nema-cyan focus:outline-none cursor-pointer"
             >
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 {isMenuOpen ? (

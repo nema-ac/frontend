@@ -10,6 +10,11 @@ import { AuthContext } from '../contexts/AuthContext.jsx';
 import { ErrorDisplay } from './ErrorBoundary.jsx';
 import nemaService from '../services/nema.js';
 import CompactEmotionRadar from './CompactEmotionRadar.jsx';
+import { useWorminalAccess } from '../hooks/useWorminalAccess.js';
+import MessageBubble from './MessageBubble.jsx';
+import NeuralStatePanel from './NeuralStatePanel.jsx';
+import ViewSelector from './ViewSelector.jsx';
+import { calculateNeuralChanges, getMessageNeuralChanges } from '../utils/neuralStateUtils.js';
 
 const InteractiveTerminal = ({ isFullscreen = false, onToggleFullscreen }) => {
   const [input, setInput] = useState('');
@@ -17,15 +22,11 @@ const InteractiveTerminal = ({ isFullscreen = false, onToggleFullscreen }) => {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [showNeuralState, setShowNeuralState] = useState(true);
   const [currentNeuralState, setCurrentNeuralState] = useState(null);
-  const [previousNeuralState, setPreviousNeuralState] = useState(null);
+  const [, setPreviousNeuralState] = useState(null);
   const [recentNeuralChanges, setRecentNeuralChanges] = useState([]);
-  const [neuralSearchTerm, setNeuralSearchTerm] = useState('');
-  const [motorExpanded, setMotorExpanded] = useState(false);
-  const [sensoryExpanded, setSensoryExpanded] = useState(false);
-  const [emotionsExpanded, setEmotionsExpanded] = useState(true); // Expanded by default
-  const [showActiveOnly, setShowActiveOnly] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showNemaDropdown, setShowNemaDropdown] = useState(false);
+  const [selectedViewNemaId, setSelectedViewNemaId] = useState(null); // null = public view, nemaId = that nema's personal view
 
   const inputRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -43,92 +44,31 @@ const InteractiveTerminal = ({ isFullscreen = false, onToggleFullscreen }) => {
   // Auth context for user info
   const { profile } = useContext(AuthContext);
 
-  // Calculate differences between two neural states
-  const calculateNeuralChanges = (oldState, newState) => {
-    if (!oldState || !newState) return [];
+  // Worminal access control
+  const {
+    currentSession,
+    timeRemaining,
+    canClaim,
+    hasAccess,
+    needsToClaim,
+    claiming,
+    claimSession,
+    error: accessError,
+    publicWorminalData,
+    loadingPublicData,
+    shouldShowPublicView
+  } = useWorminalAccess();
 
-    const changes = [];
+  // Store neural states for active session (from publicWorminalData when user has access)
+  const [activeSessionStates, setActiveSessionStates] = useState(null);
 
-    // Check motor neuron changes
-    const allMotorNeurons = new Set([
-      ...Object.keys(oldState.motorNeurons || {}),
-      ...Object.keys(newState.motorNeurons || {})
-    ]);
-
-    for (const neuron of allMotorNeurons) {
-      const oldValue = oldState.motorNeurons?.[neuron] || 0;
-      const newValue = newState.motorNeurons?.[neuron] || 0;
-      if (oldValue !== newValue) {
-        changes.push({
-          neuron,
-          type: 'motor',
-          oldValue,
-          newValue,
-          delta: newValue - oldValue
-        });
-      }
+  // Update activeSessionStates when publicWorminalData changes
+  useEffect(() => {
+    // Use publicWorminalData regardless of hasAccess if it contains our data
+    if (publicWorminalData?.nema?.states) {
+      setActiveSessionStates(publicWorminalData.nema.states);
     }
-
-    // Check sensory neuron changes
-    const allSensoryNeurons = new Set([
-      ...Object.keys(oldState.sensoryNeurons || {}),
-      ...Object.keys(newState.sensoryNeurons || {})
-    ]);
-
-    for (const neuron of allSensoryNeurons) {
-      const oldValue = oldState.sensoryNeurons?.[neuron] || 0;
-      const newValue = newState.sensoryNeurons?.[neuron] || 0;
-      if (oldValue !== newValue) {
-        changes.push({
-          neuron,
-          type: 'sensory',
-          oldValue,
-          newValue,
-          delta: newValue - oldValue
-        });
-      }
-    }
-
-    return changes;
-  };
-
-  // Format neural changes for display
-  const formatNeuralChanges = (changes) => {
-    if (!changes || changes.length === 0) return 'No neural changes';
-
-    return changes
-      .slice(0, 5) // Limit to first 5 changes to avoid clutter
-      .map(change => {
-        const sign = change.delta > 0 ? '+' : '';
-        return `${change.neuron} ${sign}${change.delta}`;
-      })
-      .join(', ');
-  };
-
-  // Filter neurons based on search term and active-only toggle
-  const filterNeurons = (neurons) => {
-    if (!neurons) return {};
-
-    let filtered = { ...neurons };
-
-    // Filter by search term
-    if (neuralSearchTerm) {
-      filtered = Object.fromEntries(
-        Object.entries(filtered).filter(([name]) =>
-          name.toLowerCase().includes(neuralSearchTerm.toLowerCase())
-        )
-      );
-    }
-
-    // Filter by active-only
-    if (showActiveOnly) {
-      filtered = Object.fromEntries(
-        Object.entries(filtered).filter(([, value]) => value !== 0)
-      );
-    }
-
-    return filtered;
-  };
+  }, [hasAccess, publicWorminalData]);
 
   // Remove health checks to avoid CORS issues - we'll show connection status based on actual API calls
   const {
@@ -159,6 +99,32 @@ const InteractiveTerminal = ({ isFullscreen = false, onToggleFullscreen }) => {
       setCurrentNeuralState(neuralState);
     }
   });
+
+  // Auto-switch to personal view when user has active session
+  useEffect(() => {
+    if (hasAccess && selectedNema && selectedViewNemaId === null) {
+      // User has claimed session, automatically switch to their personal view
+      setSelectedViewNemaId(selectedNema.id);
+    }
+  }, [hasAccess, selectedNema, selectedViewNemaId]);
+
+  // Auto-switch back to public view when session ends
+  useEffect(() => {
+    if (!hasAccess && selectedViewNemaId !== null && !profile) {
+      // Session ended and user is not logged in, switch back to public
+      setSelectedViewNemaId(null);
+    }
+  }, [hasAccess, selectedViewNemaId, profile]);
+
+  // Determine which view to show
+  // If selectedViewNemaId is null = public view
+  // If selectedViewNemaId has a value = that nema's personal view
+  const effectivePublicView = selectedViewNemaId === null;
+
+  // Get the nema for the selected view (for showing name in UI)
+  const selectedViewNema = selectedViewNemaId
+    ? availableNemas.find(n => n.id === selectedViewNemaId)
+    : null;
 
   // Initialize terminal with welcome message (using ref to prevent duplicates)
   // Only show welcome messages if we're not loading history or if history loading fails
@@ -206,12 +172,30 @@ const InteractiveTerminal = ({ isFullscreen = false, onToggleFullscreen }) => {
     if (selectedNema) {
       // Clear previous neural state and fetch new one
       setCurrentNeuralState(null);
+      setRecentNeuralChanges([]);
       fetchCurrentNeuralState();
     } else {
       // Clear neural state when no nema selected
       setCurrentNeuralState(null);
+      setRecentNeuralChanges([]);
     }
   }, [selectedNema]);
+
+  // Clear neural state when switching to public view without an active session
+  useEffect(() => {
+    if (effectivePublicView && !publicWorminalData?.user?.username) {
+      // Public view with no active session - clear personal neural state
+      setCurrentNeuralState(null);
+      setRecentNeuralChanges([]);
+    }
+  }, [effectivePublicView, publicWorminalData?.user?.username]);
+
+  // Ensure neural state is loaded when switching to personal view
+  useEffect(() => {
+    if (!effectivePublicView && selectedViewNema && !currentNeuralState) {
+      fetchCurrentNeuralState();
+    }
+  }, [effectivePublicView, selectedViewNema, currentNeuralState]);
 
   // Update clock every second
   useEffect(() => {
@@ -418,6 +402,19 @@ Or simply type a message to chat with your selected NEMA!`,
     const trimmedInput = input.trim();
     if (!trimmedInput) return;
 
+    // Check if user has access before allowing message sending
+    if (!hasAccess && currentSession) {
+      addMessage({
+        type: 'system',
+        content: needsToClaim
+          ? '⚠️ Please claim your session before sending messages.'
+          : '⚠️ You do not have access to send messages at this time.',
+        timestamp: new Date()
+      });
+      setInput('');
+      return;
+    }
+
     // Add to command history
     setCommandHistory(prev => [...prev, trimmedInput]);
     setHistoryIndex(-1);
@@ -465,12 +462,8 @@ Or simply type a message to chat with your selected NEMA!`,
     }
   };
 
-  // Clear terminal
-  const handleClearTerminal = () => {
-    clearConversation();
-  };
 
-  // Fetch current neural state (only when no state exists)
+  // Fetch current neural state
   const fetchCurrentNeuralState = async () => {
     if (!selectedNema) {
       addMessage({
@@ -481,17 +474,12 @@ Or simply type a message to chat with your selected NEMA!`,
       return;
     }
 
-    if (currentNeuralState) {
-      // If we already have state, just show the sidebar
-      setShowNeuralState(true);
-      return;
-    }
-
     try {
       const neuralState = await nemaService.getNeuralState(selectedNema.id);
       setCurrentNeuralState(neuralState);
       setShowNeuralState(true);
     } catch (error) {
+      console.error('Error fetching neural state:', error);
       addMessage({
         type: 'system',
         content: `Error fetching neural state: ${error.message}`,
@@ -519,94 +507,217 @@ Or simply type a message to chat with your selected NEMA!`,
             ? 'h-full w-full'
             : `h-[900px] ${showNeuralState ? 'w-full lg:w-2/3' : 'w-full'}`
         }`}>
-          {/* Terminal Header - Nema Selection Interface */}
+          {/* Terminal Header - Dynamic based on session state */}
           <div className="bg-nema-gray p-4 border-b border-nema-gray">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex-1">
-                {nemasLoading ? (
-                  <div className="text-nema-black text-sm nema-header-2">Loading your nemas...</div>
-                ) : nemasError ? (
-                  <div className="text-red-600 text-sm nema-header-2">Error: {nemasError}</div>
-                ) : availableNemas.length === 0 ? (
-                  <div className="text-nema-black text-sm nema-header-2">
-                    No nemas found. Visit your <a href="/profile" className="text-nema-black underline font-bold">profile</a> to create your first nema!
-                  </div>
-                ) : (
-                  <div className="relative">
-                    {/* Nema Name with Dropdown Toggle */}
-                    <button
-                      onClick={() => setShowNemaDropdown(!showNemaDropdown)}
-                      className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
-                    >
-                      <h3 className="nema-display nema-header-2 text-nema-black">
-                        NEURAL INTERFACE - {selectedNema?.name.toUpperCase() || 'SELECT NEMA'}
-                      </h3>
-                      <svg
-                        className={`w-4 h-4 text-nema-black transition-transform cursor-pointer ${showNemaDropdown ? 'rotate-180' : ''}`}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
+              {/* View Selector - Show when user can toggle between views */}
+              {profile && availableNemas.length > 0 && (
+                <ViewSelector
+                  selectedNemaId={selectedViewNemaId}
+                  nemas={availableNemas}
+                  showPublicOption={!hasAccess}
+                  onViewChange={(nemaId) => {
+                    setSelectedViewNemaId(nemaId);
+                    // If switching to a personal view, ensure that nema is selected
+                    if (nemaId) {
+                      const nema = availableNemas.find(n => n.id === nemaId);
+                      if (nema && nema.id !== selectedNema?.id) {
+                        selectNema(nema);
+                      }
+                    }
+                  }}
+                  className="order-first sm:order-none"
+                />
+              )}
 
-                    {/* Dropdown Menu */}
-                    {showNemaDropdown && (
-                      <div className="absolute top-full left-0 mt-2 bg-nema-black border border-nema-gray rounded-lg shadow-lg z-50 min-w-64">
-                        {availableNemas.map(nema => (
-                          <button
-                            key={nema.id}
-                            onClick={() => {
-                              selectNema(nema);
-                              setShowNemaDropdown(false);
-                            }}
-                            className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-nema-gray/20 transition-colors first:rounded-t-lg last:rounded-b-lg ${
-                              selectedNema?.id === nema.id ? 'bg-nema-gray/10' : ''
-                            }`}
-                          >
-                            {nema.avatar_encoded && (
-                              <img
-                                src={nema.avatar_encoded}
-                                alt={`${nema.name} Avatar`}
-                                className="w-8 h-8 rounded-full border-2 border-nema-cyan"
-                                style={{ imageRendering: 'pixelated' }}
-                              />
-                            )}
-                            <div className="flex-1">
-                              <div className="text-nema-white font-bold text-sm">{nema.name}</div>
-                              {nema.description && (
-                                <div className="text-nema-gray-darker text-xs">{nema.description}</div>
-                              )}
-                            </div>
-                            {selectedNema?.id === nema.id && (
-                              <svg className="w-5 h-5 text-nema-cyan" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                              </svg>
-                            )}
-                          </button>
-                        ))}
-                      </div>
+              <div className="flex-1">
+                {/* Show public session info if spectating */}
+                {effectivePublicView && publicWorminalData && publicWorminalData.user?.username ? (
+                  <div className="flex items-center gap-3">
+                    {publicWorminalData.user.profile_pic && (
+                      <img
+                        src={publicWorminalData.user.profile_pic}
+                        alt={`${publicWorminalData.user.username}'s avatar`}
+                        className="w-10 h-10 rounded-full border-2 border-nema-black"
+                        style={{ imageRendering: 'pixelated' }}
+                      />
                     )}
+                    <div>
+                      <h3 className="nema-display nema-header-2 text-nema-black">
+                        {publicWorminalData.user.username.toUpperCase()}'S SESSION
+                      </h3>
+                      {publicWorminalData.nema?.name && (
+                        <div className="text-nema-black/70 text-xs pt-1">
+                          Chatting with {publicWorminalData.nema.name}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : !currentSession || !currentSession.username ? (
+                  /* No active session - show waiting message (only in public view) */
+                  effectivePublicView ? (
+                    <div className="text-nema-black text-sm nema-header-2">
+                      WORMINAL AVAILABLE - Waiting for next session...
+                    </div>
+                  ) : null
+                ) : hasAccess || (!effectivePublicView && profile) ? (
+                  /* User has access OR viewing personal history - show nema selection */
+                  nemasLoading ? (
+                    <div className="text-nema-black text-sm nema-header-2">Loading your nemas...</div>
+                  ) : nemasError ? (
+                    <div className="text-red-600 text-sm nema-header-2">Error: {nemasError}</div>
+                  ) : availableNemas.length === 0 ? (
+                    <div className="text-nema-black text-sm nema-header-2">
+                      No nemas found. Visit your <a href="/profile" className="text-nema-black underline font-bold">profile</a> to create your first nema!
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      {/* Nema Name with Dropdown Toggle */}
+                      <button
+                        onClick={() => setShowNemaDropdown(!showNemaDropdown)}
+                        className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+                      >
+                        <h3 className="nema-display nema-header-2 text-nema-black">
+                          NEURAL INTERFACE - {selectedNema?.name.toUpperCase() || 'SELECT NEMA'}
+                        </h3>
+                        <svg
+                          className={`w-4 h-4 text-nema-black transition-transform cursor-pointer ${showNemaDropdown ? 'rotate-180' : ''}`}
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+
+                      {/* Dropdown Menu */}
+                      {showNemaDropdown && (
+                        <div className="absolute top-full left-0 mt-2 bg-nema-black border border-nema-gray rounded-lg shadow-lg z-50 min-w-64">
+                          {availableNemas.map(nema => (
+                            <button
+                              key={nema.id}
+                              onClick={() => {
+                                selectNema(nema);
+                                setShowNemaDropdown(false);
+                              }}
+                              className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-nema-gray/20 transition-colors first:rounded-t-lg last:rounded-b-lg ${
+                                selectedNema?.id === nema.id ? 'bg-nema-gray/10' : ''
+                              }`}
+                            >
+                              {nema.avatar_encoded && (
+                                <img
+                                  src={nema.avatar_encoded}
+                                  alt={`${nema.name} Avatar`}
+                                  className="w-8 h-8 rounded-full border-2 border-nema-cyan"
+                                  style={{ imageRendering: 'pixelated' }}
+                                />
+                              )}
+                              <div className="flex-1">
+                                <div className="text-nema-white font-bold text-sm">{nema.name}</div>
+                                {nema.description && (
+                                  <div className="text-nema-gray-darker text-xs">{nema.description}</div>
+                                )}
+                              </div>
+                              {selectedNema?.id === nema.id && (
+                                <svg className="w-5 h-5 text-nema-cyan" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                ) : (
+                  /* User doesn't have access but session exists - show session holder info */
+                  <div className="text-nema-black text-sm nema-header-2">
+                    WORMINAL IN USE - {currentSession.username.toUpperCase()}
                   </div>
                 )}
               </div>
-              {/* Ready status on the right */}
+              {/* Ready status and session info on the right */}
               <div className="flex items-center gap-4">
-                {!selectedNema && availableNemas.length > 0 && (
+                {(hasAccess || (!effectivePublicView && profile)) && !selectedNema && availableNemas.length > 0 && (
                   <div className="text-xs text-red-600 bg-red-100 border border-red-300 rounded px-3 py-2">
                     ⚠️ Select a nema to start chatting
                   </div>
                 )}
-                <div className="text-nema-black font-anonymous nema-caption-2">
-                  <span className="text-nema-black/70">Ready</span> {formatTimestamp(currentTime)}
-                </div>
+                {/* Show session info when spectating */}
+                {effectivePublicView && publicWorminalData && (
+                  <div className="text-xs text-nema-black/70 font-anonymous">
+                    Time Remaining: {Math.floor(publicWorminalData.time_remaining || 0)}s •
+                    Prompts: {currentSession.prompts_used || 0}/{currentSession.prompts_limit || 10}
+                  </div>
+                )}
+                {/* Show time remaining when user has active access */}
+                {hasAccess && currentSession && currentSession.username && (
+                  <>
+                    <div className="text-xs text-nema-black/70 font-anonymous">
+                      Session: {Math.floor(timeRemaining / 1000)}s •
+                      Prompts: {currentSession.prompts_used || 0}/{currentSession.prompts_limit || 10}
+                    </div>
+                    <div className="text-nema-black font-anonymous nema-caption-2">
+                      <span className="text-nema-black/70">
+                        {effectivePublicView || (!currentSession || !currentSession.username) ? 'Spectating' : 'Ready'}
+                      </span> {formatTimestamp(currentTime)}
+                    </div>
+                  </>
+                )}
+                {/* Show ready status when viewing personal history */}
+                {!effectivePublicView && profile && !hasAccess && selectedViewNema && (
+                  <div className="text-nema-black font-anonymous nema-caption-2">
+                    <span className="text-nema-black/70">{selectedViewNema.name} View</span> {formatTimestamp(currentTime)}
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
           {/* Terminal Content */}
           <div className="flex-1 p-4 overflow-y-auto">
+            {/* Claim Button - Only show when user needs to claim */}
+            {needsToClaim && canClaim && (
+              <div className="mb-4 p-4 border-2 border-nema-cyan bg-nema-cyan/10 rounded">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="text-nema-cyan font-bold mb-1 nema-header-3">
+                      Your Session is Ready!
+                    </div>
+                    <div className="text-nema-white text-sm">
+                      Claim you Worminal session and starting chatting with you Nema before time expires.
+                    </div>
+                    <div className="text-nema-gray-darker text-xs mt-1">
+                      Time remaining to claim: {Math.floor(timeRemaining / 1000)}s
+                    </div>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      const result = await claimSession();
+                      if (result.success) {
+                        addMessage({
+                          type: 'system',
+                          content: '✅ Session claimed successfully! You now have full access to the Worminal.',
+                          timestamp: new Date()
+                        });
+                      }
+                    }}
+                    disabled={claiming}
+                    className="px-6 py-3 bg-nema-cyan text-nema-black font-bold rounded hover:bg-nema-cyan/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  >
+                    {claiming ? 'Claiming...' : 'Claim Access'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Access Error Display */}
+            {accessError && (
+              <div className="mb-4 p-3 border border-red-500 bg-red-500/10 rounded text-red-400 text-sm">
+                Access Error: {accessError}
+              </div>
+            )}
+
             {/* Error Display */}
             {error && (
               <ErrorDisplay
@@ -616,8 +727,21 @@ Or simply type a message to chat with your selected NEMA!`,
               />
             )}
 
-            {/* No Nema Selected Message */}
-            {!selectedNema && availableNemas.length > 0 && (
+            {/* No Active Session - Show waiting message (only in public view) */}
+            {effectivePublicView && !hasAccess && !needsToClaim && (!currentSession || !currentSession.username || currentSession.username.trim() === '') && (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="text-nema-cyan text-lg mb-4">Worminal Standby</div>
+                <div className="text-gray-300 mb-6 max-w-md">
+                  The Worminal is currently available. Waiting for the next user to claim access...
+                </div>
+                <div className="text-sm text-gray-400">
+                  Check back soon to see live interactions!
+                </div>
+              </div>
+            )}
+
+            {/* No Nema Selected Message - Show if user has access or is viewing personal history */}
+            {!effectivePublicView && (hasAccess || profile) && !selectedNema && availableNemas.length > 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <div className="text-cyan-400 text-lg mb-4">⚠️ No Nema Selected</div>
                 <div className="text-gray-300 mb-6 max-w-md">
@@ -632,7 +756,7 @@ Or simply type a message to chat with your selected NEMA!`,
               </div>
             )}
 
-            {!selectedNema && availableNemas.length === 0 && !nemasLoading && (
+            {!effectivePublicView && (hasAccess || profile) && !selectedNema && availableNemas.length === 0 && !nemasLoading && (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <div className="text-yellow-400 text-lg mb-4">🪱 Welcome to NEMA</div>
                 <div className="text-gray-300 mb-6 max-w-md">
@@ -644,8 +768,51 @@ Or simply type a message to chat with your selected NEMA!`,
               </div>
             )}
 
-            {/* Loading History Indicator */}
-            {isLoadingHistory && (
+            {/* Public View - Show when user is spectating */}
+            {effectivePublicView && publicWorminalData && publicWorminalData.status !== 'none' && publicWorminalData.user?.username && (
+              <div className="space-y-4">
+                {/* Public Messages */}
+                {publicWorminalData.nema?.messages && publicWorminalData.nema.messages.length > 0 && (
+                  <div className="space-y-4">
+                    {publicWorminalData.nema.messages
+                      .sort((a, b) => a.sequence_order - b.sequence_order)
+                      .map((message) => {
+                        const sortedMessages = publicWorminalData.nema.messages.sort((a, b) => a.sequence_order - b.sequence_order);
+                        const neuralChanges = getMessageNeuralChanges(
+                          message,
+                          sortedMessages,
+                          publicWorminalData.nema?.states || []
+                        );
+
+                        const isUserMessage = message.kind === 'user';
+                        const avatarUrl = message.kind === 'nema' ? publicWorminalData.user?.profile_pic : null;
+
+                        return (
+                          <MessageBubble
+                            key={message.id}
+                            type={message.kind}
+                            content={message.content}
+                            timestamp={message.created_at}
+                            sender={isUserMessage ? publicWorminalData.user?.username : publicWorminalData.nema?.name}
+                            neuralChanges={neuralChanges}
+                            avatarUrl={avatarUrl}
+                            alignRight={!isUserMessage}
+                          />
+                        );
+                      })}
+                  </div>
+                )}
+
+                {loadingPublicData && (
+                  <div className="text-nema-gray-darker text-center py-4 text-sm">
+                    Loading public session data...
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Loading History Indicator - Only show if user has access */}
+            {hasAccess && isLoadingHistory && (
               <div className="flex flex-col lg:flex-row lg:items-start lg:space-x-2">
                 <span className="text-yellow-400 text-xs min-w-fit">
                   [{formatTimestamp(new Date())}] system@worminal:~#
@@ -661,67 +828,53 @@ Or simply type a message to chat with your selected NEMA!`,
               </div>
             )}
 
-            {/* Messages - Only show when nema is selected */}
-            {selectedNema && (
+            {/* Messages - Show when user has worminal access OR when viewing personal history */}
+            {!effectivePublicView && (hasAccess || profile) && selectedNema && (
               <>
                 <div className="space-y-4">
-                  {allMessages.map((message, index) => (
-                    <div key={message.id || index} className="flex flex-col">
-                      {/* User or System messages - align left */}
-                      {(message.type === 'user' || message.type === 'system') && (
-                        <div className="max-w-[80%]">
-                          <div className="nema-card p-4 bg-nema-black/50">
-                            <div className="text-nema-white whitespace-pre-wrap break-words">
-                              {message.content}
-                            </div>
-                          </div>
-                          <div className="text-nema-white-caption nema-caption-2 mt-2 text-left">
-                            [{formatTimestamp(message.timestamp)}] {message.type === 'user' ? (profile?.username || 'user') : 'system'}@worminal
-                          </div>
-                        </div>
-                      )}
+                  {allMessages.map((message, index) => {
+                    const isUserOrSystem = message.type === 'user' || message.type === 'system';
+                    const isNemaMessage = message.type === 'assistant' || message.type === 'nema';
 
-                      {/* Assistant/Nema messages - align right */}
-                      {(message.type === 'assistant' || message.type === 'nema') && (
-                        <div className="max-w-[80%] ml-auto flex items-center gap-3">
-                          <div className="flex-1">
-                            <div className="nema-card p-4 bg-nema-black/50">
-                              <div className="text-nema-cyan whitespace-pre-wrap break-words">
-                                {message.content}
-                              </div>
+                    if (isUserOrSystem) {
+                      return (
+                        <MessageBubble
+                          key={message.id || index}
+                          type={message.type}
+                          content={message.content}
+                          timestamp={message.timestamp}
+                          sender={message.type === 'user' ? (profile?.username || 'user') : 'system'}
+                          neuralChanges={[]}
+                          avatarUrl={null}
+                          alignRight={false}
+                        />
+                      );
+                    }
 
-                              {/* Show neural changes for the most recent assistant message */}
-                              {index === allMessages.length - 1 &&
-                                recentNeuralChanges.length > 0 && (
-                                  <div className="mt-2 text-xs">
-                                    <span className="text-nema-gray-darker">Neural changes:</span>{' '}
-                                    <span className="text-nema-cyan">
-                                      {formatNeuralChanges(recentNeuralChanges)}
-                                      {recentNeuralChanges.length > 5 && (
-                                        <span className="text-nema-gray-darker"> (+{recentNeuralChanges.length - 5} more)</span>
-                                      )}
-                                    </span>
-                                  </div>
-                                )}
-                            </div>
-                            <div className="text-nema-white-caption nema-caption-2 mt-2 text-right">
-                              [{formatTimestamp(message.timestamp)}] {selectedNema?.name || 'nema'}@neural
-                            </div>
-                          </div>
+                    if (isNemaMessage) {
+                      // Calculate neural changes with fallback to recentNeuralChanges for the most recent message
+                      let neuralChanges = getMessageNeuralChanges(message, allMessages, activeSessionStates || []);
 
-                          {/* Nema Avatar - always show if available */}
-                          {profile.avatar_base64 && (
-                            <img
-                              src={profile.avatar_base64}
-                              alt={`${profile.username} Avatar`}
-                              className="w-12 h-12 rounded-full border-2 border-nema-white flex-shrink-0"
-                              style={{ imageRendering: 'pixelated' }}
-                            />
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                      if (neuralChanges.length === 0 && index === allMessages.length - 1 && recentNeuralChanges.length > 0) {
+                        neuralChanges = recentNeuralChanges;
+                      }
+
+                      return (
+                        <MessageBubble
+                          key={message.id || index}
+                          type="nema"
+                          content={message.content}
+                          timestamp={message.timestamp}
+                          sender={selectedNema?.name || 'nema'}
+                          neuralChanges={neuralChanges}
+                          avatarUrl={profile.avatar_base64 || null}
+                          alignRight={true}
+                        />
+                      );
+                    }
+
+                    return null;
+                  })}
 
                   {/* Typing Indicator */}
                   {isTyping && (
@@ -759,24 +912,35 @@ Or simply type a message to chat with your selected NEMA!`,
             )}  {/* End selectedNema condition for messages */}
           </div>
 
-          {/* Terminal Input - Always available for commands */}
+          {/* Terminal Input - Conditionally available based on access */}
           <div className="p-4 border-t border-nema-gray">
-            <div className="flex items-center space-x-2">
-              <span className="text-nema-gray-darker text-xs">
-                [{formatTimestamp(new Date())}] {profile?.username || 'user'}@worminal:~$
-              </span>
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="flex-1 bg-transparent text-nema-white outline-none caret-nema-cyan placeholder-nema-gray-darker font-anonymous"
-                placeholder={selectedNema ? "Type a message or command..." : "Type a command (help, nemas, select)..."}
-                disabled={loading}
-                autoFocus
-              />
-            </div>
+            {!hasAccess && currentSession ? (
+              <div className="flex items-center space-x-2 opacity-50">
+                <span className="text-nema-gray-darker text-xs">
+                  [{formatTimestamp(new Date())}] {profile?.username || 'user'}@worminal:~$
+                </span>
+                <div className="flex-1 text-nema-gray-darker text-xs italic">
+                  {needsToClaim ? 'Claim your session to start chatting...' : 'Waiting for access...'}
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <span className="text-nema-gray-darker text-xs">
+                  [{formatTimestamp(new Date())}] {profile?.username || 'user'}@worminal:~$
+                </span>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="flex-1 bg-transparent text-nema-white outline-none caret-nema-cyan placeholder-nema-gray-darker font-anonymous"
+                  placeholder={selectedNema ? "Type a message or command..." : "Type a command (help, nemas, select)..."}
+                  disabled={loading || !hasAccess}
+                  autoFocus
+                />
+              </div>
+            )}
           </div>
 
           {/* Terminal Footer */}
@@ -814,114 +978,14 @@ Or simply type a message to chat with your selected NEMA!`,
 
             {/* Neural State Content */}
             <div className="flex-1 p-4 overflow-y-auto">
-              {currentNeuralState ? (
-                <div className="space-y-4">
-                  <div className="text-nema-white text-xs space-y-1">
-                    <div><span className="text-nema-gray-darker">State count:</span> {currentNeuralState.stateCount}</div>
-                    <div><span className="text-nema-gray-darker">Updated:</span> {new Date(currentNeuralState.updatedAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}, {new Date(currentNeuralState.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</div>
-                    <div><span className="text-nema-gray-darker">Total neurons:</span> 302</div>
-                  </div>
-
-                  {/* Recent Neural Changes */}
-                  {recentNeuralChanges.length > 0 && (
-                    <div className="border-t border-nema-gray pt-4">
-                      <div className="text-nema-cyan text-xs mb-2">Recent Changes ({recentNeuralChanges.length}):</div>
-                      <div className="space-y-1 text-xs">
-                        {recentNeuralChanges.slice(0, 10).map((change, idx) => (
-                          <div key={idx} className="flex justify-between items-center">
-                            <span className="text-nema-white">
-                              {change.neuron}
-                            </span>
-                            <span className="text-nema-gray-darker text-xs">
-                              {change.oldValue} → {change.newValue}
-                            </span>
-                            <span className={`font-mono ${change.delta > 0 ? 'text-nema-cyan' : 'text-red-400'}`}>
-                              {change.delta > 0 ? '+' : ''}{change.delta}
-                            </span>
-                          </div>
-                        ))}
-                        {recentNeuralChanges.length > 10 && (
-                          <div className="text-nema-gray-darker text-center pt-2">
-                            +{recentNeuralChanges.length - 10} more changes
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Search and Filter Controls */}
-                  <div className="border-t border-nema-gray pt-4">
-                    <div className="space-y-2">
-                      <input
-                        type="text"
-                        placeholder="Search neurons..."
-                        value={neuralSearchTerm}
-                        onChange={(e) => setNeuralSearchTerm(e.target.value)}
-                        className="w-full bg-textbox-background text-nema-white text-xs px-3 py-2 rounded-lg border border-textbox-border focus:border-nema-cyan outline-none placeholder-nema-gray-darker"
-                      />
-                      <label className="flex items-center text-xs text-nema-white">
-                        <input
-                          type="checkbox"
-                          checked={showActiveOnly}
-                          onChange={(e) => setShowActiveOnly(e.target.checked)}
-                          className="mr-2 accent-nema-cyan"
-                        />
-                        Show active only (non-zero)
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Neurons */}
-                  <div className="border-t border-nema-gray pt-4">
-                    <button
-                      onClick={() => setMotorExpanded(!motorExpanded)}
-                      className="flex items-center justify-between w-full text-nema-white mb-2 hover:text-nema-cyan transition-colors"
-                    >
-                      <span className="text-xs">Neurons (302/302)</span>
-                      <span className="transform transition-transform duration-200" style={{ transform: motorExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-                        ▼
-                      </span>
-                    </button>
-                    {motorExpanded && (
-                      <div className="text-xs text-nema-white bg-nema-black/50 p-3 rounded max-h-40 overflow-y-auto space-y-1">
-                        {Object.entries(filterNeurons(currentNeuralState.motorNeurons)).map(([neuron, value]) => (
-                          <div key={neuron} className="flex justify-between">
-                            <span className="text-nema-gray-darker">{neuron}</span>
-                            <span className="text-nema-white">{value}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Muscle Cells */}
-                  <div className="border-t border-nema-gray pt-4">
-                    <button
-                      onClick={() => setSensoryExpanded(!sensoryExpanded)}
-                      className="flex items-center justify-between w-full text-nema-white mb-2 hover:text-nema-cyan transition-colors"
-                    >
-                      <span className="text-xs">Muscle Cells (90/90)</span>
-                      <span className="transform transition-transform duration-200" style={{ transform: sensoryExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-                        ▼
-                      </span>
-                    </button>
-                    {sensoryExpanded && (
-                      <div className="text-xs text-nema-white bg-nema-black/50 p-3 rounded max-h-40 overflow-y-auto space-y-1">
-                        {Object.entries(filterNeurons(currentNeuralState.sensoryNeurons)).slice(0, 90).map(([neuron, value]) => (
-                          <div key={neuron} className="flex justify-between">
-                            <span className="text-nema-gray-darker">{neuron}</span>
-                            <span className="text-nema-white">{value}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div className="text-nema-gray-darker text-center mt-8 text-xs">
-                  Loading neural state...
-                </div>
-              )}
+              <NeuralStatePanel
+                neuralState={effectivePublicView && publicWorminalData?.nema?.states?.[0]
+                  ? publicWorminalData.nema.states[0]
+                  : currentNeuralState}
+                recentChanges={recentNeuralChanges}
+                isPublicView={effectivePublicView}
+                nemaName={effectivePublicView ? publicWorminalData?.nema?.name : selectedNema?.name}
+              />
             </div>
           </div>
         )}

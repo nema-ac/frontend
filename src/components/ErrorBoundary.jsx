@@ -46,9 +46,8 @@ class ErrorBoundary extends Component {
       // Default error UI
       return (
         <div className="min-h-[400px] flex items-center justify-center p-8">
-          <div className="neon-border bg-black/50 rounded-lg p-8 max-w-md w-full text-center">
+          <div className="border border-nema-white bg-black/50 rounded-lg p-8 max-w-md w-full text-center">
             <div className="mb-6">
-              <div className="text-red-400 text-6xl mb-4">⚠️</div>
               <h2 className="text-2xl font-bold text-red-400 mb-4">
                 Neural Network Error
               </h2>
@@ -56,18 +55,18 @@ class ErrorBoundary extends Component {
                 {getUserFriendlyErrorMessage(this.state.error)}
               </p>
             </div>
-            
+
             <div className="space-y-3">
               <button
                 onClick={() => window.location.reload()}
-                className="w-full bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200"
+                className="w-full bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200 cursor-pointer"
               >
                 Restart Neural Network
               </button>
-              
+
               <button
                 onClick={() => this.setState({ hasError: false, error: null, errorInfo: null })}
-                className="w-full border border-gray-600 hover:border-gray-500 text-gray-300 hover:text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200"
+                className="w-full border border-gray-600 hover:border-gray-500 text-gray-300 hover:text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200 cursor-pointer"
               >
                 Try Again
               </button>

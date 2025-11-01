@@ -18,16 +18,16 @@ const Worminal = () => {
     <div className="min-h-screen pt-24 pb-16">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
         {/* Header Section - 3 Columns on desktop, stacked on mobile */}
-        <div className="mb-2 md:grid md:grid-cols-[auto_1fr_auto] md:gap-2">
+        <div className="mb-2 lg:grid lg:grid-cols-[auto_1fr_auto] lg:gap-2">
           {/* Column 1: WORMINAL */}
-          <div className="md:border border-nema-gray p-8 max-md:p-2 flex items-center justify-center">
-            <h1 className="nema-display nema-display-1 max-md:nema-display-2 text-nema-white">
+          <div className="lg:border border-nema-gray p-8 max-lg:p-2 flex items-center justify-center">
+            <h1 className="nema-display nema-display-1 max-lg:nema-display-2 text-nema-white">
               WORMINAL
             </h1>
           </div>
 
           {/* Column 2: Description */}
-          <div className="max-md:hidden md:border border-nema-gray p-8">
+          <div className="max-lg:hidden lg:border border-nema-gray p-8">
             <p className="text-nema-white font-anonymous text-base leading-relaxed">
               Use this interface to chat with NEMA's neural substrate.<br />
               A 302-neuron C. elegans connectome fused with advanced language processing.<br/>
@@ -36,7 +36,7 @@ const Worminal = () => {
           </div>
 
           {/* Column 3: NEMA (rotated 90 degrees left) - hidden on mobile */}
-          <div className="max-md:hidden border border-nema-gray p-8 flex items-center justify-center">
+          <div className="max-lg:hidden border border-nema-gray p-8 flex items-center justify-center">
             <h1 className="nema-display nema-display-2 text-nema-white" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
               NEMA
             </h1>

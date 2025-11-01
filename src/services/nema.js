@@ -188,13 +188,14 @@ class NemaService {
 
       const latestState = data.states[0];
       validateNeuralState(latestState);
-      
+
       return {
         stateCount: latestState.id,
         updatedAt: new Date(latestState.updated_at),
         motorNeurons: latestState.motor_neurons,
         sensoryNeurons: latestState.sensory_neurons,
         totalNeurons: Object.keys(latestState.motor_neurons).length + Object.keys(latestState.sensory_neurons).length,
+        emotionalState: latestState.emotional_state || null,
       };
     } catch (error) {
       if (error instanceof NetworkError || error instanceof ServerError) {
