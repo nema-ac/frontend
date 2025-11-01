@@ -922,7 +922,14 @@ Or simply type a message to chat with your selected NEMA!`,
 
                   {/* Typing Indicator */}
                   {isTyping && (
-                    <div className="max-w-[80%] ml-auto flex items-center gap-3">
+                    <div className="max-w-[80%] flex items-center gap-3">
+                      {/* Nema Avatar */}
+                      <img
+                        src={getProfileAvatarUrl(profile)}
+                        alt={`${selectedNema?.name || 'nema'} Avatar`}
+                        className="w-12 h-12 rounded-full border-2 border-nema-cyan flex-shrink-0"
+                        style={{ imageRendering: 'pixelated' }}
+                      />
                       <div className="flex-1">
                         <div className="nema-card p-4 bg-nema-black/50">
                           <div className="text-nema-cyan flex items-center space-x-2">
@@ -934,17 +941,10 @@ Or simply type a message to chat with your selected NEMA!`,
                             </div>
                           </div>
                         </div>
-                        <div className="text-nema-white-caption nema-caption-2 mt-2 text-right">
+                        <div className="text-nema-white-caption nema-caption-2 mt-2 text-left">
                           [{formatTimestamp(new Date())}] {selectedNema?.name || 'nema'}@neural
                         </div>
                       </div>
-                      {/* Nema Avatar */}
-                      <img
-                        src={getProfileAvatarUrl(profile)}
-                        alt={`${profile.username} Avatar`}
-                        className="w-12 h-12 rounded-full border-2 border-nema-white flex-shrink-0"
-                        style={{ imageRendering: 'pixelated' }}
-                      />
                     </div>
                   )}
                 </div>
