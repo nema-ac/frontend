@@ -75,7 +75,7 @@ const OnboardingScreen = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Final validation
     if (!profileData.username || profileData.username.trim() === '') {
       setError('Username is required');
@@ -101,7 +101,7 @@ const OnboardingScreen = () => {
 
       // Get user's existing Nemas to update the first one
       const userNemas = await profileService.getNemas();
-      
+
       if (userNemas && userNemas.length > 0) {
         // Update the first (auto-created) Nema
         await nemaService.updateNema({
@@ -118,7 +118,7 @@ const OnboardingScreen = () => {
       }
 
       setSuccess(true);
-      
+
       // Refresh profile to get updated data
       await fetchProfile();
 
@@ -158,7 +158,7 @@ const OnboardingScreen = () => {
   }
 
   return (
-    <div className="min-h-screen pt-16 pb-16 relative">
+    <div className="min-h-screen pt-20 pb-16 relative">
       {/* Background texture */}
       <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "url('/bg-texture.png')", backgroundSize: '100% 100%', backgroundAttachment: 'fixed', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', pointerEvents: 'none' }}></div>
 
@@ -186,7 +186,7 @@ const OnboardingScreen = () => {
               <p className="text-nema-gray font-anonymous">Let's set up your account and create your first Nema</p>
             </div>
           </div>
-            
+
           {/* Progress indicator */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center space-x-4 mb-6">
