@@ -11,21 +11,88 @@ const Navigation = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b border-nema-secondary">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20 lg:justify-between">
+        <div className="flex justify-between items-center h-16 gap-4">
           {/* Mobile: Logo */}
-          <div className="lg:hidden">
+          <div className="md:hidden">
             <Link to="/" className="flex items-center">
               <img
                 src="/mobile-nema-logo.png"
                 alt="NEMA"
                 className="object-contain"
-                style={{ height: 48, width: 48 }}
+                style={{ height: 36, width: 36 }}
               />
             </Link>
           </div>
 
+          {/* Desktop: Logo */}
+          <div className="hidden md:block flex-shrink-0">
+            <Link to="/" className="flex items-center">
+              <img
+                src="/nema-lab-logo.png"
+                alt="NEMA LAB Logo"
+                className="object-contain"
+                style={{ height: 32, width: 'auto' }}
+              />
+            </Link>
+          </div>
+
+          {/* Navigation Links - Show on md and up */}
+          <div className="hidden md:flex items-center gap-4 lg:gap-6 xl:gap-8 font-anonymous flex-1 justify-center min-w-0">
+            <Link
+              to="/"
+              className={`text-base lg:text-lg xl:text-xl font-medium transition-colors duration-200 hover:text-nema-cyan whitespace-nowrap ${
+                location.pathname === '/'
+                  ? 'text-nema-cyan'
+                  : 'text-nema-secondary'
+              }`}
+            >
+              Worminal
+            </Link>
+            <Link
+              to="/about"
+              className={`text-base lg:text-lg xl:text-xl font-medium transition-colors duration-200 hover:text-nema-cyan whitespace-nowrap ${
+                location.pathname === '/about'
+                  ? 'text-nema-cyan'
+                  : 'text-nema-secondary'
+              }`}
+            >
+              About
+            </Link>
+            <Link
+              to="/roadmap"
+              className={`text-base lg:text-lg xl:text-xl font-medium transition-colors duration-200 hover:text-nema-cyan whitespace-nowrap ${
+                location.pathname === '/roadmap'
+                  ? 'text-nema-cyan'
+                  : 'text-nema-secondary'
+              }`}
+            >
+              Roadmap
+            </Link>
+            <Link
+              to="/airdrop"
+              className={`text-base lg:text-lg xl:text-xl font-medium transition-colors duration-200 hover:text-nema-cyan whitespace-nowrap ${
+                location.pathname === '/airdrop'
+                  ? 'text-nema-cyan'
+                  : 'text-nema-secondary'
+              }`}
+            >
+              Token
+            </Link>
+          </div>
+
+          {/* Right side buttons - Show on md and up */}
+          <div className="hidden md:flex items-center gap-2 lg:gap-4 flex-shrink-0">
+            {/* Wallet Button */}
+            <div className="relative">
+              <WalletButton />
+            </div>
+
+            {/* Buy Token Button */}
+            <BuyTokenButton />
+          </div>
+
           {/* Mobile: Wallet + Menu */}
-          <div className="lg:hidden flex items-center space-x-2">
+          <div className="md:hidden flex items-center space-x-2 flex-shrink-0">
             <WalletButton />
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -40,79 +107,11 @@ const Navigation = () => {
               </svg>
             </button>
           </div>
-
-          {/* Desktop: Logo */}
-          <div className="hidden lg:block">
-            <Link to="/" className="flex items-center">
-              <img
-                src="/nema-lab-logo.png"
-                alt="NEMA LAB Logo"
-                className="object-contain"
-                style={{ height: 40, width: 'auto' }}
-              />
-            </Link>
-          </div>
-
-          {/* Navigation Links */}
-          <div className="hidden lg:flex items-center space-x-8 font-anonymous">
-            <Link
-              to="/"
-              className={`text-xl font-medium transition-colors duration-200 hover:text-nema-cyan ${
-                location.pathname === '/'
-                  ? 'text-nema-cyan'
-                  : 'text-nema-secondary'
-              }`}
-            >
-              Worminal
-            </Link>
-            <Link
-              to="/about"
-              className={`text-xl font-medium transition-colors duration-200 hover:text-nema-cyan ${
-                location.pathname === '/about'
-                  ? 'text-nema-cyan'
-                  : 'text-nema-secondary'
-              }`}
-            >
-              About
-            </Link>
-            <Link
-              to="/roadmap"
-              className={`text-xl font-medium transition-colors duration-200 hover:text-nema-cyan ${
-                location.pathname === '/roadmap'
-                  ? 'text-nema-cyan'
-                  : 'text-nema-secondary'
-              }`}
-            >
-              Roadmap
-            </Link>
-            <Link
-              to="/airdrop"
-              className={`text-xl font-medium transition-colors duration-200 hover:text-nema-cyan ${
-                location.pathname === '/airdrop'
-                  ? 'text-nema-cyan'
-                  : 'text-nema-secondary'
-              }`}
-            >
-              Token
-            </Link>
-          </div>
-
-          {/* Desktop Navigation and Wallet */}
-          <div className="hidden lg:flex items-center space-x-4">
-            {/* Wallet Button */}
-            <div className="relative">
-              <WalletButton />
-            </div>
-
-            {/* Buy Token Button */}
-            <BuyTokenButton />
-          </div>
-
         </div>
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="lg:hidden bg-nema-black border-t border-nema-secondary">
+          <div className="md:hidden bg-nema-black border-t border-nema-secondary">
             <div className="px-4 py-6 space-y-6 font-anonymous">
               <Link
                 to="/"

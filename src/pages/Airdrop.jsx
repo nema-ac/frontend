@@ -22,7 +22,7 @@ const Airdrop = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-nema-black text-nema-white pt-28 relative">
+    <div className="min-h-screen bg-nema-black text-nema-white pt-20 relative">
       {/* Background texture */}
       <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "url('/bg-texture.png')", backgroundSize: '100% 100%', backgroundAttachment: 'fixed', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', pointerEvents: 'none' }}></div>
 

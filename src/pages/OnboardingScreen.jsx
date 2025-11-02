@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import profileService from '../services/profile.js';
 import nemaService from '../services/nema.js';
+import { getProfileAvatarUrl } from '../utils/avatarUtils.js';
 
 const OnboardingScreen = () => {
   const { profile, fetchProfile } = useContext(AuthContext);
@@ -74,7 +75,7 @@ const OnboardingScreen = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Final validation
     if (!profileData.username || profileData.username.trim() === '') {
       setError('Username is required');
@@ -100,7 +101,7 @@ const OnboardingScreen = () => {
 
       // Get user's existing Nemas to update the first one
       const userNemas = await profileService.getNemas();
-      
+
       if (userNemas && userNemas.length > 0) {
         // Update the first (auto-created) Nema
         await nemaService.updateNema({
@@ -117,7 +118,7 @@ const OnboardingScreen = () => {
       }
 
       setSuccess(true);
-      
+
       // Refresh profile to get updated data
       await fetchProfile();
 
@@ -157,7 +158,7 @@ const OnboardingScreen = () => {
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-16 relative">
+    <div className="min-h-screen pt-20 pb-16 relative">
       {/* Background texture */}
       <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "url('/bg-texture.png')", backgroundSize: '100% 100%', backgroundAttachment: 'fixed', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', pointerEvents: 'none' }}></div>
 
@@ -167,27 +168,25 @@ const OnboardingScreen = () => {
           {/* Header */}
           <div className="text-center mb-8">
             {/* Prominent Avatar Display */}
-            {profile?.profile_pic && (
-              <div className="mb-6">
-                <div className="relative inline-block">
-                  <div className="bg-gradient-to-r from-nema-cyan to-nema-purple p-2 rounded-full animate-pulse">
-                    <img
-                      src={profile.profile_pic}
-                      alt="Your Worm Avatar"
-                      className="w-24 h-24 rounded-full object-cover border-4 border-nema-white"
-                      style={{ imageRendering: 'pixelated' }}
-                    />
-                  </div>
+            <div className="mb-6">
+              <div className="relative inline-block">
+                <div className="bg-gradient-to-r from-nema-cyan to-nema-purple p-2 rounded-full animate-pulse">
+                  <img
+                    src={getProfileAvatarUrl(profile)}
+                    alt="Your Worm Avatar"
+                    className="w-24 h-24 rounded-full object-cover border-4 border-nema-white"
+                    style={{ imageRendering: 'pixelated' }}
+                  />
                 </div>
               </div>
-            )}
+            </div>
 
             <div>
               <h1 className="nema-display nema-display-2 text-nema-cyan mb-2 font-intranet">Welcome to NEMA!</h1>
               <p className="text-nema-gray font-anonymous">Let's set up your account and create your first Nema</p>
             </div>
           </div>
-            
+
           {/* Progress indicator */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center space-x-4 mb-6">
