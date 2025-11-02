@@ -86,7 +86,7 @@ const UserChat = () => {
 
             {/* Input Area */}
             <div className="p-4 border-t border-nema-gray flex-shrink-0">
-                <form onSubmit={handleSend} className="flex items-center gap-2">
+                <form onSubmit={handleSend} className="flex items-center gap-2 w-full min-w-0">
                     <input
                         ref={inputRef}
                         type="text"
@@ -94,12 +94,12 @@ const UserChat = () => {
                         onChange={(e) => setInput(e.target.value)}
                         placeholder={isConnected ? "Type a message..." : "Connecting..."}
                         disabled={!isConnected}
-                        className="flex-1 bg-transparent text-nema-white outline-none caret-nema-cyan placeholder-nema-gray-darker font-anonymous text-sm"
+                        className="flex-1 min-w-0 bg-transparent text-nema-white outline-none caret-nema-cyan placeholder-nema-gray-darker font-anonymous text-sm"
                     />
                     <button
                         type="submit"
                         disabled={!isConnected || !input.trim()}
-                        className="px-4 py-2 bg-nema-cyan text-nema-black font-bold rounded hover:bg-nema-cyan/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                        className="flex-shrink-0 px-4 py-2 bg-nema-cyan text-nema-black font-bold rounded hover:bg-nema-cyan/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm whitespace-nowrap"
                     >
                         Send
                     </button>
