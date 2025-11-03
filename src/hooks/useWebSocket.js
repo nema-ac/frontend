@@ -15,6 +15,7 @@ export const useWebSocket = (url, options = {}) => {
   const reconnectAttemptsRef = useRef(0);
   const optionsRef = useRef(options);
   const isManualCloseRef = useRef(false);
+  const connectionIdRef = useRef(0); // Track connection instances to prevent stale handlers
   const seenMessagesRef = useRef(new Map()); // Track seen messages to prevent duplicates
   
   // Update options ref when options change (but don't trigger reconnection)
@@ -45,20 +46,33 @@ export const useWebSocket = (url, options = {}) => {
     const wsUrl = url.startsWith('ws') ? url : `${wsProtocol}://${wsHost}${url}`;
 
     try {
+      // Increment connection ID to track this connection instance
+      const currentConnectionId = ++connectionIdRef.current;
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
       isManualCloseRef.current = false;
 
       ws.onopen = () => {
+        // Only handle if this is still the current connection
+        if (connectionIdRef.current !== currentConnectionId) {
+          return;
+        }
+        
         setIsConnected(true);
         setError(null);
         reconnectAttemptsRef.current = 0;
+        
         if (optionsRef.current.onOpen) {
           optionsRef.current.onOpen();
         }
       };
 
       ws.onmessage = (event) => {
+        // Only handle if this is still the current connection
+        if (connectionIdRef.current !== currentConnectionId) {
+          return;
+        }
+        
         try {
           // Parse JSON message from backend
           // Backend sends: { user_id, username, text }
@@ -69,7 +83,7 @@ export const useWebSocket = (url, options = {}) => {
             console.error('Failed to parse WebSocket message as JSON:', err);
             return;
           }
-
+          
           // Extract message fields (backend uses snake_case: user_id, username, text)
           const messageText = data.text || '';
           const userID = data.user_id || data.userID || 'unknown';
@@ -122,6 +136,11 @@ export const useWebSocket = (url, options = {}) => {
       };
 
       ws.onerror = (err) => {
+        // Only handle if this is still the current connection
+        if (connectionIdRef.current !== currentConnectionId) {
+          return;
+        }
+        
         console.error('WebSocket error:', err);
         setError('WebSocket connection error');
         if (optionsRef.current.onError) {
@@ -130,14 +149,27 @@ export const useWebSocket = (url, options = {}) => {
       };
 
       ws.onclose = (event) => {
+        // Only handle if this is still the current connection
+        // This prevents stale connection handlers from interfering
+        if (connectionIdRef.current !== currentConnectionId) {
+          return;
+        }
+        
         setIsConnected(false);
-        wsRef.current = null;
+        
+        // Only clear wsRef if this is still the current connection
+        if (wsRef.current === ws) {
+          wsRef.current = null;
+        }
 
         // Only attempt to reconnect if it wasn't manually closed
         if (!isManualCloseRef.current && reconnectAttemptsRef.current < maxReconnectAttempts) {
           reconnectAttemptsRef.current += 1;
           reconnectTimeoutRef.current = setTimeout(() => {
-            connect();
+            // Double-check we still want to reconnect (component might have unmounted)
+            if (connectionIdRef.current === currentConnectionId) {
+              connect();
+            }
           }, reconnectDelay);
         } else if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
           setError('Failed to reconnect. Please refresh the page.');
@@ -193,8 +225,16 @@ export const useWebSocket = (url, options = {}) => {
       reconnectTimeoutRef.current = null;
     }
     
+    // Increment connection ID to invalidate any pending handlers
+    connectionIdRef.current += 1;
+    
     if (wsRef.current) {
-      wsRef.current.close();
+      // Close with a normal closure code (not abnormal)
+      try {
+        wsRef.current.close(1000, 'Component unmounting');
+      } catch (err) {
+        // Ignore errors during close
+      }
       wsRef.current = null;
     }
     
