@@ -63,10 +63,16 @@ const UserChat = () => {
     return (
         <div className="h-full flex flex-col border border-nema-gray bg-nema-black/30 font-anonymous text-sm">
             {/* Chat Header */}
-            <div className="bg-nema-gray p-2 border-b border-nema-gray flex-shrink-0">
-                <div className="flex items-center justify-between">
-                    <h3 className="nema-display nema-header-2 text-nema-black">USER CHAT</h3>
+            <div className="flex items-center justify-between p-2 border-b border-nema-gray flex-shrink-0">
+                <h3 className="nema-display nema-header-2 text-nema-cyan">USER CHAT</h3>
+                <div className="relative group">
                     <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+                    {/* Tooltip */}
+                    {isConnected && (
+                        <div className="absolute right-0 top-full mt-2 px-2 py-1 bg-nema-black border border-nema-gray text-nema-white text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                            You are live
+                        </div>
+                    )}
                 </div>
             </div>
 
