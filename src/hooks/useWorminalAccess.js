@@ -3,11 +3,11 @@
  * Handles session polling, claim eligibility, and access permissions
  */
 
-import { useState, useEffect, useContext, useCallback } from 'react';
+import { useState, useEffect, useContext, useCallback, useRef } from 'react';
 import accessService from '../services/access.js';
 import { AuthContext } from '../contexts/AuthContext.jsx';
 
-const POLL_INTERVAL = 5000; // Poll every 5 seconds
+const POLL_INTERVAL = 10000; // Poll every 10 seconds
 
 export const useWorminalAccess = () => {
   const { profile, isAuthenticated } = useContext(AuthContext);
@@ -20,6 +20,11 @@ export const useWorminalAccess = () => {
   const [claiming, setClaiming] = useState(false);
   const [publicWorminalData, setPublicWorminalData] = useState(null);
   const [loadingPublicData, setLoadingPublicData] = useState(false);
+  const [publicTimeRemaining, setPublicTimeRemaining] = useState(0);
+  const countdownIntervalRef = useRef(null);
+  const publicCountdownIntervalRef = useRef(null);
+  const previousTimeRemainingRef = useRef(null);
+  const previousPublicTimeRemainingRef = useRef(null);
 
   // Fetch current session state
   const fetchCurrentSession = useCallback(async () => {
@@ -118,9 +123,14 @@ export const useWorminalAccess = () => {
     try {
       const data = await accessService.getPublicWorminal();
       setPublicWorminalData(data);
+      // Initialize countdown timer from API response (assumes seconds)
+      if (data?.time_remaining) {
+        setPublicTimeRemaining(data.time_remaining * 1000); // Convert to milliseconds
+      }
     } catch (err) {
       console.error('Error fetching public Worminal data:', err);
       setPublicWorminalData(null);
+      setPublicTimeRemaining(0);
     } finally {
       setLoadingPublicData(false);
     }
@@ -142,7 +152,7 @@ export const useWorminalAccess = () => {
     );
   }, [currentSession, hasAccess, needsToClaim]);
 
-  // Poll current session every 5 seconds
+  // Poll current session every 10 seconds
   useEffect(() => {
     fetchCurrentSession();
 
@@ -150,6 +160,91 @@ export const useWorminalAccess = () => {
 
     return () => clearInterval(interval);
   }, [fetchCurrentSession]);
+
+  // Countdown timer - decrements timeRemaining every second
+  // Uses a single continuous interval that checks if countdown should run
+  useEffect(() => {
+    // Clear any existing interval
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+
+    // Set up countdown interval that runs continuously
+    countdownIntervalRef.current = setInterval(() => {
+      setTimeRemaining(prev => {
+        // Only decrement if there's time remaining
+        if (prev > 0) {
+          const newValue = prev - 1000;
+          return newValue > 0 ? newValue : 0;
+        }
+        return prev;
+      });
+    }, 1000);
+
+    return () => {
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+        countdownIntervalRef.current = null;
+      }
+    };
+  }, []); // Only run once on mount, interval runs continuously
+
+  // Public countdown timer - decrements publicTimeRemaining every second
+  useEffect(() => {
+    // Clear any existing interval
+    if (publicCountdownIntervalRef.current) {
+      clearInterval(publicCountdownIntervalRef.current);
+      publicCountdownIntervalRef.current = null;
+    }
+
+    // Set up countdown interval that runs continuously
+    publicCountdownIntervalRef.current = setInterval(() => {
+      setPublicTimeRemaining(prev => {
+        // Only decrement if there's time remaining
+        if (prev > 0) {
+          const newValue = prev - 1000;
+          return newValue > 0 ? newValue : 0;
+        }
+        return prev;
+      });
+    }, 1000);
+
+    return () => {
+      if (publicCountdownIntervalRef.current) {
+        clearInterval(publicCountdownIntervalRef.current);
+        publicCountdownIntervalRef.current = null;
+      }
+    };
+  }, []); // Only run once on mount, interval runs continuously
+
+  // Refresh session data when timer reaches 0 to avoid lag
+  useEffect(() => {
+    // Check if timer just reached 0 (was > 0, now is 0)
+    if (previousTimeRemainingRef.current !== null && 
+        previousTimeRemainingRef.current > 0 && 
+        timeRemaining === 0) {
+      // Timer reached 0, refresh session data to get accurate state
+      fetchCurrentSession();
+    }
+    // Update previous value
+    previousTimeRemainingRef.current = timeRemaining;
+  }, [timeRemaining, fetchCurrentSession]);
+
+  // Refresh public data when timer reaches 0 to avoid lag
+  useEffect(() => {
+    // Check if timer just reached 0 (was > 0, now is 0)
+    if (previousPublicTimeRemainingRef.current !== null && 
+        previousPublicTimeRemainingRef.current > 0 && 
+        publicTimeRemaining === 0) {
+      // Timer reached 0, refresh public data to get accurate state
+      if (shouldShowPublicView()) {
+        fetchPublicWorminalData();
+      }
+    }
+    // Update previous value
+    previousPublicTimeRemainingRef.current = publicTimeRemaining;
+  }, [publicTimeRemaining, fetchPublicWorminalData, shouldShowPublicView]);
 
   // Check claim eligibility when session changes
   useEffect(() => {
@@ -166,12 +261,13 @@ export const useWorminalAccess = () => {
     if (shouldShowPublicView()) {
       fetchPublicWorminalData();
 
-      // Poll public data every 5 seconds when in public view mode
+      // Poll public data every 10 seconds when in public view mode
       const interval = setInterval(fetchPublicWorminalData, POLL_INTERVAL);
       return () => clearInterval(interval);
     } else {
       // Clear public data when not in public view
       setPublicWorminalData(null);
+      setPublicTimeRemaining(0);
     }
   }, [shouldShowPublicView, fetchPublicWorminalData]);
 
@@ -188,6 +284,7 @@ export const useWorminalAccess = () => {
     claimSession,
     refreshSession: fetchCurrentSession,
     publicWorminalData,
+    publicTimeRemaining,
     loadingPublicData,
     shouldShowPublicView: shouldShowPublicView()
   };
