@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useContext } from 'react';
 import { useWebSocket } from '../hooks/useWebSocket.js';
+import { AuthContext } from '../contexts/AuthContext.jsx';
 
 /**
  * Simple chat component for users to discuss the worminal chat
@@ -9,6 +10,7 @@ const UserChat = () => {
     const [input, setInput] = useState('');
     const messagesEndRef = useRef(null);
     const inputRef = useRef(null);
+    const { profile, user } = useContext(AuthContext);
 
     const { messages, isConnected, error, sendMessage } = useWebSocket('/socket', {
         onMessage: () => {
@@ -32,7 +34,11 @@ const UserChat = () => {
         const trimmedInput = input.trim();
         if (!trimmedInput || !isConnected) return;
 
-        sendMessage(trimmedInput);
+        // Get username and userID for optimistic message
+        const username = profile?.username || user?.wallet_address?.slice(0, 8) || 'You';
+        const userID = user?.wallet_address || profile?.wallet_address || 'local';
+
+        sendMessage(trimmedInput, username, userID);
         setInput('');
         inputRef.current?.focus();
     };
@@ -74,8 +80,10 @@ const UserChat = () => {
                                 <div className="text-nema-white text-sm break-words">
                                     {message.text}
                                 </div>
-                                <div className="text-nema-gray-darker text-xs mt-1">
-                                    {formatTimestamp(message.timestamp)}
+                                <div className="text-nema-gray-darker text-xs mt-1 flex items-center gap-2">
+                                    <span>{message.username || 'Unknown'}</span>
+                                    <span>•</span>
+                                    <span>{formatTimestamp(message.timestamp)}</span>
                                 </div>
                             </div>
                         ))}

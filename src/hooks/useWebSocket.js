@@ -60,19 +60,33 @@ export const useWebSocket = (url, options = {}) => {
 
       ws.onmessage = (event) => {
         try {
-          // Try to parse as JSON, fallback to plain text
+          // Parse JSON message from backend
+          // Backend sends: { user_id, username, text }
           let data;
           try {
             data = JSON.parse(event.data);
-          } catch {
-            data = { text: event.data };
+          } catch (err) {
+            console.error('Failed to parse WebSocket message as JSON:', err);
+            return;
           }
 
-          const messageText = data.text || data.message || event.data;
+          // Extract message fields (backend uses snake_case: user_id, username, text)
+          const messageText = data.text || '';
+          const userID = data.user_id || data.userID || 'unknown';
+          const username = data.username || 'Unknown';
+          
+          if (!messageText) {
+            console.warn('Received message with no text:', data);
+            return;
+          }
+          
+          // Create a unique key for deduplication: user_id + text + timestamp (rounded to seconds)
+          const now = Date.now();
+          const nowSeconds = Math.floor(now / 1000);
+          const dedupeKey = `${userID}-${messageText}-${nowSeconds}`;
           
           // Check if we've already seen this exact message recently (within 2 seconds)
-          const now = Date.now();
-          const lastSeen = seenMessagesRef.current.get(messageText);
+          const lastSeen = seenMessagesRef.current.get(dedupeKey);
           
           if (lastSeen && (now - lastSeen < 2000)) {
             // Already seen this message within the last 2 seconds, skip it
@@ -80,20 +94,21 @@ export const useWebSocket = (url, options = {}) => {
           }
           
           // Add to seen messages with current timestamp
-          seenMessagesRef.current.set(messageText, now);
+          seenMessagesRef.current.set(dedupeKey, now);
           
           // Clean up old entries (older than 5 seconds)
-          seenMessagesRef.current.forEach((time, text) => {
+          seenMessagesRef.current.forEach((time, key) => {
             if (now - time > 5000) {
-              seenMessagesRef.current.delete(text);
+              seenMessagesRef.current.delete(key);
             }
           });
 
           const message = {
-            id: `${Date.now()}-${Math.random()}-${messageText.substring(0, 20)}`, // More unique ID using message content
+            id: `${now}-${Math.random()}-${userID}`,
             text: messageText,
-            timestamp: new Date(),
-            userID: data.userID || 'unknown',
+            username: username,
+            userID: userID,
+            timestamp: new Date(now),
           };
 
           setMessages(prev => [...prev, message]);
@@ -139,15 +154,35 @@ export const useWebSocket = (url, options = {}) => {
     }
   }, [url, maxReconnectAttempts, reconnectDelay]);
 
-  const sendMessage = useCallback((message) => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      // Send as plain text for now (backend expects raw bytes)
-      wsRef.current.send(message);
-      return true;
-    } else {
+  const sendMessage = useCallback((messageText, username = 'You', userID = 'local') => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
       console.warn('WebSocket is not connected');
       return false;
     }
+
+    const trimmedText = messageText.trim();
+    if (!trimmedText) {
+      return false;
+    }
+
+    // Add message optimistically (sender sees their own message immediately)
+    const now = Date.now();
+    const optimisticMessage = {
+      id: `optimistic-${now}-${Math.random()}`,
+      text: trimmedText,
+      username: username,
+      userID: userID,
+      timestamp: new Date(now),
+      isOptimistic: true, // Flag to identify optimistic messages
+    };
+
+    // Add to messages immediately
+    setMessages(prev => [...prev, optimisticMessage]);
+
+    // Send as plain text (backend expects raw bytes and will add user info)
+    wsRef.current.send(trimmedText);
+    
+    return true;
   }, []);
 
   const disconnect = useCallback(() => {
