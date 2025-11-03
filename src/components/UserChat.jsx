@@ -9,24 +9,29 @@ import { AuthContext } from '../contexts/AuthContext.jsx';
 const UserChat = () => {
     const [input, setInput] = useState('');
     const messagesEndRef = useRef(null);
+    const messagesContainerRef = useRef(null);
     const inputRef = useRef(null);
     const { profile, user, isAuthenticated } = useContext(AuthContext);
 
     const { messages, isConnected, error, sendMessage } = useWebSocket('/socket', {
         onMessage: () => {
-            // Auto-scroll to bottom when new message arrives
+            // Auto-scroll to bottom when new message arrives (only scroll the chat container)
             setTimeout(() => {
                 scrollToBottom();
             }, 100);
         },
     });
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const scrollToBottom = (smooth = true) => {
+        const container = messagesContainerRef.current;
+        if (container) {
+            // Scroll the container itself, not the window
+            container.scrollTo({
+                top: container.scrollHeight,
+                behavior: smooth ? 'smooth' : 'auto'
+            });
+        }
     };
-
-    // Only auto-scroll when receiving messages from others (via onMessage callback)
-    // Don't auto-scroll when user sends their own message
 
     const handleSend = (e) => {
         e.preventDefault();
@@ -40,6 +45,11 @@ const UserChat = () => {
         sendMessage(trimmedInput, username, userID);
         setInput('');
         inputRef.current?.focus();
+
+        // Scroll to show the new message after sending
+        setTimeout(() => {
+            scrollToBottom(true);
+        }, 100);
     };
 
     const formatTimestamp = (timestamp) => {
@@ -61,7 +71,7 @@ const UserChat = () => {
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 p-4 overflow-y-auto min-h-0">
+            <div ref={messagesContainerRef} className="flex-1 p-4 overflow-y-auto min-h-0">
                 {error && (
                     <div className="mb-4 p-2 border border-red-500 bg-red-500/10 rounded text-red-400 text-xs">
                         {error}
