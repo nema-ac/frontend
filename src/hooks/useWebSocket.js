@@ -17,6 +17,8 @@ export const useWebSocket = (url, options = {}) => {
   const isManualCloseRef = useRef(false);
   const connectionIdRef = useRef(0); // Track connection instances to prevent stale handlers
   const seenMessagesRef = useRef(new Map()); // Track seen messages to prevent duplicates
+  const lastActivityRef = useRef(null); // Track last activity time for heartbeat monitoring
+  const heartbeatCheckIntervalRef = useRef(null); // Interval to check connection health
   
   // Update options ref when options change (but don't trigger reconnection)
   useEffect(() => {
@@ -61,6 +63,39 @@ export const useWebSocket = (url, options = {}) => {
         setIsConnected(true);
         setError(null);
         reconnectAttemptsRef.current = 0;
+        lastActivityRef.current = Date.now();
+        
+        // Browser WebSocket API automatically responds to server ping frames with pong frames
+        // The server sends pings every 54 seconds and expects pong within 60 seconds
+        // We track last activity to monitor connection health
+        
+        // Clear any existing heartbeat check interval
+        if (heartbeatCheckIntervalRef.current) {
+          clearInterval(heartbeatCheckIntervalRef.current);
+        }
+        
+        // Optional: Monitor connection health by checking if we've received any activity
+        // (messages or implicit pong responses) within a reasonable timeframe
+        // Server pings are handled automatically by the browser, so we track message activity
+        heartbeatCheckIntervalRef.current = setInterval(() => {
+          if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+            const now = Date.now();
+            const timeSinceLastActivity = now - (lastActivityRef.current || now);
+            
+            // If we haven't received any activity in 90 seconds (server pings every 54s),
+            // something might be wrong, but we'll let the server timeout handle it
+            // This is mainly for debugging/monitoring purposes
+            if (timeSinceLastActivity > 90000) {
+              console.warn('WebSocket: No activity detected for', Math.floor(timeSinceLastActivity / 1000), 'seconds');
+            }
+          } else {
+            // Connection is not open, clear the interval
+            if (heartbeatCheckIntervalRef.current) {
+              clearInterval(heartbeatCheckIntervalRef.current);
+              heartbeatCheckIntervalRef.current = null;
+            }
+          }
+        }, 30000); // Check every 30 seconds
         
         if (optionsRef.current.onOpen) {
           optionsRef.current.onOpen();
@@ -73,9 +108,15 @@ export const useWebSocket = (url, options = {}) => {
           return;
         }
         
+        // Update last activity time - this includes both messages and implicit pong responses
+        // to server ping frames (browser handles pongs automatically)
+        lastActivityRef.current = Date.now();
+        
         try {
           // Parse JSON message from backend
           // Backend sends: { user_id, username, text }
+          // Note: WebSocket ping/pong frames are handled automatically by the browser
+          // and don't trigger onmessage, but any regular messages do
           let data;
           try {
             data = JSON.parse(event.data);
@@ -157,6 +198,15 @@ export const useWebSocket = (url, options = {}) => {
         
         setIsConnected(false);
         
+        // Clean up heartbeat monitoring interval
+        if (heartbeatCheckIntervalRef.current) {
+          clearInterval(heartbeatCheckIntervalRef.current);
+          heartbeatCheckIntervalRef.current = null;
+        }
+        
+        // Reset activity tracking
+        lastActivityRef.current = null;
+        
         // Only clear wsRef if this is still the current connection
         if (wsRef.current === ws) {
           wsRef.current = null;
@@ -224,6 +274,15 @@ export const useWebSocket = (url, options = {}) => {
       clearTimeout(reconnectTimeoutRef.current);
       reconnectTimeoutRef.current = null;
     }
+    
+    // Clean up heartbeat monitoring interval
+    if (heartbeatCheckIntervalRef.current) {
+      clearInterval(heartbeatCheckIntervalRef.current);
+      heartbeatCheckIntervalRef.current = null;
+    }
+    
+    // Reset activity tracking
+    lastActivityRef.current = null;
     
     // Increment connection ID to invalidate any pending handlers
     connectionIdRef.current += 1;
