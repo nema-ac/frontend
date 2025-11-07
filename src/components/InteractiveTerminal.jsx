@@ -57,6 +57,7 @@ const InteractiveTerminal = ({ isFullscreen = false, onToggleFullscreen }) => {
     claimSession,
     error: accessError,
     publicWorminalData,
+    publicTimeRemaining,
     loadingPublicData,
     shouldShowPublicView
   } = useWorminalAccess();
@@ -693,7 +694,7 @@ Or simply type a message to chat with your selected NEMA!`,
                 {/* Show session info when spectating */}
                 {effectivePublicView && publicWorminalData && (
                   <div className="text-xs text-nema-black/70 font-anonymous">
-                    Time Remaining: {Math.floor(publicWorminalData.time_remaining || 0)}s •
+                    Time Remaining: {Math.floor(publicTimeRemaining / 1000)}s •
                     Prompts: {currentSession.prompts_used || 0}/{currentSession.prompts_limit || 10}
                   </div>
                 )}

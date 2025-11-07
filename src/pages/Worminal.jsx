@@ -2,6 +2,7 @@ import { useState } from 'react';
 import InteractiveTerminal from '../components/InteractiveTerminal.jsx';
 import WorminalModal from '../components/WorminalModal.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
+import UserChat from '../components/UserChat.jsx';
 
 const Worminal = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -41,13 +42,23 @@ const Worminal = () => {
           </div>
         </div>
 
-        {/* Interactive Terminal */}
-        <div className="flex-1 min-h-0 flex flex-col">
-          <ErrorBoundary>
-            <InteractiveTerminal
-              onToggleFullscreen={handleToggleFullscreen}
-            />
-          </ErrorBoundary>
+        {/* Main Content Area - Chat on left, Terminal on right */}
+        <div className="flex-1 min-h-0 flex flex-col lg:flex-row lg:gap-2">
+          {/* User Chat - Left Side (hidden on mobile) */}
+          <div className="hidden lg:flex lg:w-80 flex-shrink-0 min-h-0 flex-col">
+            <ErrorBoundary>
+              <UserChat />
+            </ErrorBoundary>
+          </div>
+
+          {/* Interactive Terminal - Right Side */}
+          <div className="flex-1 min-h-0 flex flex-col">
+            <ErrorBoundary>
+              <InteractiveTerminal
+                onToggleFullscreen={handleToggleFullscreen}
+              />
+            </ErrorBoundary>
+          </div>
         </div>
       </div>
 
