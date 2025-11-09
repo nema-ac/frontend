@@ -3,6 +3,7 @@ import { useWebSocketContext } from '../contexts/WebSocketContext.jsx';
 import { AuthContext } from '../contexts/AuthContext.jsx';
 import config from '../config/environment.js';
 import EmojiPicker from './EmojiPicker.jsx';
+import TransactionMessage from './TransactionMessage.jsx';
 
 /**
  * Simple chat component for users to discuss the worminal chat
@@ -253,18 +254,36 @@ const UserChat = () => {
                     </div>
                 ) : (
                     <div className="space-y-2">
-                        {messages.map((message) => (
-                            <div key={message.id} className="text-left">
-                                <div className="text-nema-white text-xs break-words">
-                                    {message.text}
+                        {messages.map((message) => {
+                            // Render transaction messages differently
+                            if (message.type === 'transaction') {
+                                return (
+                                    <div key={message.id} className="text-left">
+                                        <TransactionMessage
+                                            transactionId={message.transactionId}
+                                            username={message.username}
+                                            nemaName={message.nemaName}
+                                            completed={message.completed}
+                                            timestamp={message.timestamp}
+                                        />
+                                    </div>
+                                );
+                            }
+                            
+                            // Render regular chat messages
+                            return (
+                                <div key={message.id} className="text-left">
+                                    <div className="text-nema-white text-xs break-words">
+                                        {message.text}
+                                    </div>
+                                    <div className="text-nema-gray-darker text-[10px] mt-0.5 flex items-center gap-1.5">
+                                        <span>@{message.username || 'Unknown'}</span>
+                                        <span>•</span>
+                                        <span>{formatTimestamp(message.timestamp)}</span>
+                                    </div>
                                 </div>
-                                <div className="text-nema-gray-darker text-[10px] mt-0.5 flex items-center gap-1.5">
-                                    <span>{message.username || 'Unknown'}</span>
-                                    <span>•</span>
-                                    <span>{formatTimestamp(message.timestamp)}</span>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
                 <div ref={messagesEndRef} />

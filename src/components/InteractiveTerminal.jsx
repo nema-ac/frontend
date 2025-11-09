@@ -1034,6 +1034,10 @@ Or simply type a message to chat with your selected NEMA!`,
                 recentChanges={recentNeuralChanges}
                 isPublicView={effectivePublicView}
                 nemaName={effectivePublicView ? publicWorminalData?.nema?.name : selectedNema?.name}
+                states={effectivePublicView
+                  ? (publicWorminalData?.nema?.states || [])
+                  : (activeSessionStates || [])
+                }
               />
             </div>
           </div>
