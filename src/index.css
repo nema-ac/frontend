@@ -23,6 +23,24 @@
 
   --color-textbox-background: rgba(30, 30, 30, 1);
   --color-textbox-border: rgba(68, 68, 68, 1);
+
+  /* Font sizes - centralized theme management */
+  --font-size-base: 14px;
+  --font-size-xs: 10px;
+  --font-size-sm: 12px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 32px;
+
+  /* Display fonts */
+  --font-size-display-1: 32px;
+  --font-size-display-2: 20px;
+  --font-size-header-2: 12px;
+  --font-size-header-3: 10px;
+  --font-size-caption-2: 10px;
+  --font-size-caption-1: 8px;
 }
 
 /* Font Face Declarations */
@@ -83,24 +101,48 @@ body {
   -moz-osx-font-smoothing: grayscale;
   font-weight: 400;
   font-style: normal;
-  font-size: 20px;
+  font-size: var(--font-size-base);
   line-height: 150%;
   letter-spacing: 0%;
 }
 
 /* Glitch text effect */
 @keyframes glitch {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-2px); }
-  40% { transform: translateX(2px); }
-  60% { transform: translateX(-1px); }
-  80% { transform: translateX(1px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20% {
+    transform: translateX(-2px);
+  }
+
+  40% {
+    transform: translateX(2px);
+  }
+
+  60% {
+    transform: translateX(-1px);
+  }
+
+  80% {
+    transform: translateX(1px);
+  }
 }
 
 /* Terminal cursor blink */
 @keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
+
+  0%,
+  50% {
+    opacity: 1;
+  }
+
+  51%,
+  100% {
+    opacity: 0;
+  }
 }
 
 .neon-border {
@@ -127,7 +169,8 @@ body {
 }
 
 /* Header utility class and size variants */
-.nema-header, .nema-display {
+.nema-header,
+.nema-display {
   font-family: 'IntraNet', monospace;
   font-weight: 500;
   font-style: normal;
@@ -135,12 +178,29 @@ body {
   letter-spacing: 0%;
 }
 
-@utility nema-display-1 { font-size: 48px; }
-@utility nema-display-2 { font-size: 32px; }
-@utility nema-header-2 { font-size: 16px; }
-@utility nema-header-3 { font-size: 12px; }
-@utility nema-caption-2 { font-size: 12px; }
-@utility nema-caption-1 { font-size: 10px; }
+@utility nema-display-1 {
+  font-size: var(--font-size-display-1);
+}
+
+@utility nema-display-2 {
+  font-size: var(--font-size-display-2);
+}
+
+@utility nema-header-2 {
+  font-size: var(--font-size-header-2);
+}
+
+@utility nema-header-3 {
+  font-size: var(--font-size-header-3);
+}
+
+@utility nema-caption-2 {
+  font-size: var(--font-size-caption-2);
+}
+
+@utility nema-caption-1 {
+  font-size: var(--font-size-caption-1);
+}
 
 /* Nema card styling with sharp top-left corner and 3D effect */
 .nema-card {
@@ -149,9 +209,12 @@ body {
   border-radius: 0 12px 12px 12px;
   backdrop-filter: blur(4px);
   box-shadow:
-    4px 4px 0 0 rgba(217, 217, 217, 1),    /* Right border */
-    4px 4px 0 0 rgba(217, 217, 217, 1),    /* Bottom border */
-    4px 4px 0 0 rgba(217, 217, 217, 1);  /* Corner fill */
+    4px 4px 0 0 rgba(217, 217, 217, 1),
+    /* Right border */
+    4px 4px 0 0 rgba(217, 217, 217, 1),
+    /* Bottom border */
+    4px 4px 0 0 rgba(217, 217, 217, 1);
+  /* Corner fill */
 }
 
 /* Button styling */

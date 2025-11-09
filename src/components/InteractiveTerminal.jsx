@@ -554,7 +554,7 @@ Or simply type a message to chat with your selected NEMA!`,
     <div className={`${isFullscreen ? 'h-full flex flex-col' : 'flex-1 flex flex-col min-h-0'}`}>
       <div className={`flex flex-col lg:flex-row gap-2 ${isFullscreen ? 'flex-1 min-h-0' : 'lg:flex-1 lg:min-h-0'}`}>
         {/* Terminal */}
-        <div className={`border border-nema-gray bg-nema-black/30 font-anonymous text-sm flex flex-col transition-all duration-300 ${isFullscreen
+        <div className={`border border-nema-gray bg-nema-black/30 font-anonymous text-xs flex flex-col transition-all duration-300 ${isFullscreen
           ? 'h-full w-full'
           : `min-h-0 ${showNeuralState ? 'w-full lg:w-2/3 lg:flex-[2] max-lg:min-h-[calc(100vh-12rem)] lg:min-h-0' : 'w-full flex-1'}`
           }`}>
@@ -723,7 +723,7 @@ Or simply type a message to chat with your selected NEMA!`,
           </div>
 
           {/* Terminal Content */}
-          <div ref={scrollContainerRef} className="flex-1 p-4 overflow-y-auto min-h-0">
+          <div ref={scrollContainerRef} className="flex-1 p-3 overflow-y-auto min-h-0">
             {/* Claim Button - Only show when user needs to claim */}
             {needsToClaim && canClaim && (
               <div className="mb-4 p-4 border-2 border-nema-cyan bg-nema-cyan/10 rounded">
@@ -732,10 +732,10 @@ Or simply type a message to chat with your selected NEMA!`,
                     <div className="text-nema-cyan font-bold mb-1 nema-header-3">
                       Your Session is Ready!
                     </div>
-                    <div className="text-nema-white text-sm">
+                    <div className="text-nema-white text-xs">
                       Claim you Worminal session and starting chatting with you Nema before time expires.
                     </div>
-                    <div className="text-nema-gray-darker text-xs mt-1">
+                    <div className="text-nema-gray-darker text-[10px] mt-1">
                       Time remaining to claim: {Math.floor(timeRemaining / 1000)}s
                     </div>
                   </div>
@@ -761,7 +761,7 @@ Or simply type a message to chat with your selected NEMA!`,
 
             {/* Access Error Display */}
             {accessError && (
-              <div className="mb-4 p-3 border border-red-500 bg-red-500/10 rounded text-red-400 text-sm">
+              <div className="mb-4 p-3 border border-red-500 bg-red-500/10 rounded text-red-400 text-xs">
                 Access Error: {accessError}
               </div>
             )}
@@ -782,7 +782,7 @@ Or simply type a message to chat with your selected NEMA!`,
                 <div className="text-gray-300 mb-6 max-w-md">
                   The Worminal is currently available. Waiting for the next user to claim access...
                 </div>
-                <div className="text-sm text-gray-400">
+                <div className="text-xs text-gray-400">
                   Check back soon to see live interactions!
                 </div>
               </div>
@@ -796,7 +796,7 @@ Or simply type a message to chat with your selected NEMA!`,
                   Please select a nema from the dropdown above to start chatting.
                   You can also use terminal commands to manage your nemas.
                 </div>
-                <div className="text-sm text-gray-400 space-y-2">
+                <div className="text-xs text-gray-400 space-y-2">
                   <div><code className="text-cyan-300">nemas</code> - List all your nemas</div>
                   <div><code className="text-cyan-300">select &lt;name&gt;</code> - Select a nema by name</div>
                   <div><code className="text-cyan-300">help</code> - Show all available commands</div>
@@ -810,7 +810,7 @@ Or simply type a message to chat with your selected NEMA!`,
                 <div className="text-gray-300 mb-6 max-w-md">
                   You don't have any nemas yet! Create your first AI companion to start chatting.
                 </div>
-                <div className="text-sm text-gray-400">
+                <div className="text-xs text-gray-400">
                   Visit your <a href="/profile" className="text-cyan-400 underline hover:text-cyan-300">profile page</a> to create your first nema.
                 </div>
               </div>
@@ -855,7 +855,7 @@ Or simply type a message to chat with your selected NEMA!`,
                 )}
 
                 {loadingPublicData && (
-                  <div className="text-nema-gray-darker text-center py-4 text-sm">
+                  <div className="text-nema-gray-darker text-center py-4 text-xs">
                     Loading public session data...
                   </div>
                 )}
@@ -1010,7 +1010,7 @@ Or simply type a message to chat with your selected NEMA!`,
 
         {/* Neural State Sidebar */}
         {showNeuralState && (
-          <div className={`border border-nema-gray bg-nema-black/30 font-anonymous text-sm flex flex-col ${isFullscreen
+          <div className={`border border-nema-gray bg-nema-black/30 font-anonymous text-xs flex flex-col ${isFullscreen
             ? 'w-full lg:w-1/3 h-full'
             : 'w-full lg:w-1/3 lg:flex-[1] lg:min-h-0'
             }`}>
@@ -1026,7 +1026,7 @@ Or simply type a message to chat with your selected NEMA!`,
             </div>
 
             {/* Neural State Content */}
-            <div className="flex-1 p-4 overflow-y-auto min-h-0">
+            <div className="flex-1 p-3 overflow-y-auto min-h-0">
               <NeuralStatePanel
                 neuralState={effectivePublicView && publicWorminalData?.nema?.states?.[0]
                   ? publicWorminalData.nema.states[0]

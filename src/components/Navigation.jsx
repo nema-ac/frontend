@@ -11,7 +11,7 @@ const Navigation = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b border-nema-secondary">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16 gap-4">
+        <div className="flex justify-between items-center h-12 gap-3">
           {/* Mobile: Logo */}
           <div className="md:hidden">
             <Link to="/" className="flex items-center">
@@ -19,7 +19,7 @@ const Navigation = () => {
                 src="/mobile-nema-logo.png"
                 alt="NEMA"
                 className="object-contain"
-                style={{ height: 36, width: 36 }}
+                style={{ height: 28, width: 28 }}
               />
             </Link>
           </div>
@@ -31,57 +31,53 @@ const Navigation = () => {
                 src="/nema-lab-logo.png"
                 alt="NEMA LAB Logo"
                 className="object-contain"
-                style={{ height: 32, width: 'auto' }}
+                style={{ height: 24, width: 'auto' }}
               />
             </Link>
           </div>
 
           {/* Navigation Links - Show on md and up */}
-          <div className="hidden md:flex items-center gap-4 lg:gap-6 xl:gap-8 font-anonymous flex-1 justify-center min-w-0">
+          <div className="hidden md:flex items-center gap-3 lg:gap-4 xl:gap-5 font-anonymous flex-1 justify-center min-w-0">
             <Link
               to="/"
-              className={`text-base lg:text-lg xl:text-xl font-medium transition-colors duration-200 hover:text-nema-cyan whitespace-nowrap ${
-                location.pathname === '/'
+              className={`text-sm lg:text-sm xl:text-sm font-medium transition-colors duration-200 hover:text-nema-cyan whitespace-nowrap ${location.pathname === '/'
                   ? 'text-nema-cyan'
                   : 'text-nema-secondary'
-              }`}
+                }`}
             >
               Worminal
             </Link>
             <Link
               to="/about"
-              className={`text-base lg:text-lg xl:text-xl font-medium transition-colors duration-200 hover:text-nema-cyan whitespace-nowrap ${
-                location.pathname === '/about'
+              className={`text-sm lg:text-sm xl:text-sm font-medium transition-colors duration-200 hover:text-nema-cyan whitespace-nowrap ${location.pathname === '/about'
                   ? 'text-nema-cyan'
                   : 'text-nema-secondary'
-              }`}
+                }`}
             >
               About
             </Link>
             <Link
               to="/roadmap"
-              className={`text-base lg:text-lg xl:text-xl font-medium transition-colors duration-200 hover:text-nema-cyan whitespace-nowrap ${
-                location.pathname === '/roadmap'
+              className={`text-sm lg:text-sm xl:text-sm font-medium transition-colors duration-200 hover:text-nema-cyan whitespace-nowrap ${location.pathname === '/roadmap'
                   ? 'text-nema-cyan'
                   : 'text-nema-secondary'
-              }`}
+                }`}
             >
               Roadmap
             </Link>
             <Link
               to="/airdrop"
-              className={`text-base lg:text-lg xl:text-xl font-medium transition-colors duration-200 hover:text-nema-cyan whitespace-nowrap ${
-                location.pathname === '/airdrop'
+              className={`text-sm lg:text-sm xl:text-sm font-medium transition-colors duration-200 hover:text-nema-cyan whitespace-nowrap ${location.pathname === '/airdrop'
                   ? 'text-nema-cyan'
                   : 'text-nema-secondary'
-              }`}
+                }`}
             >
               Token
             </Link>
           </div>
 
           {/* Right side buttons - Show on md and up */}
-          <div className="hidden md:flex items-center gap-2 lg:gap-4 flex-shrink-0">
+          <div className="hidden md:flex items-center gap-2 flex-shrink-0">
             {/* Wallet Button */}
             <div className="relative">
               <WalletButton />
@@ -98,7 +94,7 @@ const Navigation = () => {
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-nema-secondary hover:text-nema-cyan focus:outline-none cursor-pointer"
             >
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 {isMenuOpen ? (
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 ) : (
@@ -116,11 +112,10 @@ const Navigation = () => {
               <Link
                 to="/"
                 onClick={() => setIsMenuOpen(false)}
-                className={`block text-lg font-medium transition-colors duration-200 hover:text-nema-cyan ${
-                  location.pathname === '/'
+                className={`block text-lg font-medium transition-colors duration-200 hover:text-nema-cyan ${location.pathname === '/'
                     ? 'text-nema-cyan'
                     : 'text-nema-secondary'
-                }`}
+                  }`}
               >
                 Worminal
               </Link>
@@ -147,11 +142,10 @@ const Navigation = () => {
               <Link
                 to="/airdrop"
                 onClick={() => setIsMenuOpen(false)}
-                className={`block text-lg font-medium transition-colors duration-200 hover:text-nema-cyan ${
-                  location.pathname === '/airdrop'
+                className={`block text-lg font-medium transition-colors duration-200 hover:text-nema-cyan ${location.pathname === '/airdrop'
                     ? 'text-nema-cyan'
                     : 'text-nema-secondary'
-                }`}
+                  }`}
               >
                 Token
               </Link>

@@ -110,10 +110,10 @@ const UserChat = () => {
     };
 
     return (
-        <div className="h-full flex flex-col border border-nema-gray bg-nema-black/30 font-anonymous text-sm">
+        <div className="h-full flex flex-col border border-nema-gray bg-nema-black/30 font-anonymous text-xs">
             {/* Chat Header */}
-            <div className="relative flex items-center justify-between p-2 border-b border-nema-gray flex-shrink-0">
-                <h3 className="nema-display nema-header-2 text-nema-cyan">USER CHAT</h3>
+            <div className="relative flex items-center justify-between p-1.5 border-b border-nema-gray flex-shrink-0">
+                <h3 className="nema-display nema-header-2 text-nema-cyan text-xs">USER CHAT</h3>
                 <div className="flex items-center gap-2">
                     {/* Connected Clients Button */}
                     <button
@@ -167,25 +167,25 @@ const UserChat = () => {
             </div>
 
             {/* Messages Area */}
-            <div ref={messagesContainerRef} className="flex-1 p-4 overflow-y-auto min-h-0">
+            <div ref={messagesContainerRef} className="flex-1 p-3 overflow-y-auto min-h-0">
                 {error && (
-                    <div className="mb-4 p-2 border border-red-500 bg-red-500/10 rounded text-red-400 text-xs">
+                    <div className="mb-3 p-1.5 border border-red-500 bg-red-500/10 rounded text-red-400 text-xs">
                         {error}
                     </div>
                 )}
 
                 {messages.length === 0 ? (
-                    <div className="text-nema-gray-darker text-xs text-center py-8">
+                    <div className="text-nema-gray-darker text-xs text-center py-6">
                         No messages yet. Start the conversation!
                     </div>
                 ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                         {messages.map((message) => (
                             <div key={message.id} className="text-left">
-                                <div className="text-nema-white text-sm break-words">
+                                <div className="text-nema-white text-xs break-words">
                                     {message.text}
                                 </div>
-                                <div className="text-nema-gray-darker text-xs mt-1 flex items-center gap-2">
+                                <div className="text-nema-gray-darker text-[10px] mt-0.5 flex items-center gap-1.5">
                                     <span>{message.username || 'Unknown'}</span>
                                     <span>•</span>
                                     <span>{formatTimestamp(message.timestamp)}</span>
@@ -199,8 +199,8 @@ const UserChat = () => {
 
             {/* Input Area - Only show for authenticated users */}
             {isAuthenticated ? (
-                <div className="p-4 border-t border-nema-gray flex-shrink-0">
-                    <form onSubmit={handleSend} className="flex items-center gap-2 w-full min-w-0">
+                <div className="p-2 border-t border-nema-gray flex-shrink-0">
+                    <form onSubmit={handleSend} className="flex items-center gap-1.5 w-full min-w-0">
                         <input
                             ref={inputRef}
                             type="text"
@@ -208,20 +208,20 @@ const UserChat = () => {
                             onChange={(e) => setInput(e.target.value)}
                             placeholder={isConnected ? "Type a message..." : "Connecting..."}
                             disabled={!isConnected}
-                            className="flex-1 min-w-0 bg-transparent text-nema-white outline-none caret-nema-cyan placeholder-nema-gray-darker font-anonymous text-sm"
+                            className="flex-1 min-w-0 bg-transparent text-nema-white outline-none caret-nema-cyan placeholder-nema-gray-darker font-anonymous text-xs"
                         />
                         <button
                             type="submit"
                             disabled={!isConnected || !input.trim()}
-                            className="flex-shrink-0 px-4 py-2 bg-nema-cyan text-nema-black font-bold rounded hover:bg-nema-cyan/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm whitespace-nowrap"
+                            className="flex-shrink-0 px-3 py-1.5 bg-nema-cyan text-nema-black font-bold rounded hover:bg-nema-cyan/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs whitespace-nowrap"
                         >
                             Send
                         </button>
                     </form>
                 </div>
             ) : (
-                <div className="p-4 border-t border-nema-gray flex-shrink-0">
-                    <div className="text-nema-gray-darker text-xs text-center py-2">
+                <div className="p-2 border-t border-nema-gray flex-shrink-0">
+                    <div className="text-nema-gray-darker text-[10px] text-center py-1.5">
                         Sign in to send messages
                     </div>
                 </div>

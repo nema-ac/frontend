@@ -360,7 +360,7 @@ Building the future of digital biology with $NEMA 🧠`;
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center pt-16">
+      <div className="min-h-screen flex items-center justify-center pt-14">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-cyan-400 mb-4">Access Denied</h1>
           <p className="text-gray-300">Please sign in to view your profile.</p>
@@ -371,7 +371,7 @@ Building the future of digital biology with $NEMA 🧠`;
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center pt-16">
+      <div className="min-h-screen flex items-center justify-center pt-14">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
           <p className="text-gray-300">Loading profile...</p>
@@ -381,10 +381,10 @@ Building the future of digital biology with $NEMA 🧠`;
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-16">
+    <div className="min-h-screen pt-14 pb-12">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
         {/* Header Section with Nema Info */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
           {/* Left: Main Nema */}
           <div className="flex items-center space-x-6">
             <div className="flex-shrink-0 relative">
@@ -392,7 +392,7 @@ Building the future of digital biology with $NEMA 🧠`;
                 <img
                   src={getProfileAvatarUrl(contextProfile)}
                   alt="Nema Avatar"
-                  className="w-32 h-32 rounded-full object-cover cursor-pointer"
+                  className="w-20 h-20 rounded-full object-cover cursor-pointer"
                   style={{ imageRendering: 'pixelated' }}
                   onClick={() => setShowAvatarModal(true)}
                 />
@@ -410,13 +410,13 @@ Building the future of digital biology with $NEMA 🧠`;
               )}
             </div>
             <div className="flex-1">
-              <h1 className="nema-display nema-display-2 max-md:nema-header-2 text-nema-cyan mb-2">
+              <h1 className="nema-display nema-display-2 max-md:nema-header-2 text-nema-cyan mb-1.5 text-xl max-md:text-base">
                 {contextProfile?.nemas?.[0]?.name || 'MY MAIN NEMA'}
               </h1>
-              <div className="space-y-1 font-anonymous">
+              <div className="space-y-0.5 font-anonymous">
                 <div>
-                  <span className="text-nema-secondary text-sm">Age: </span>
-                  <span className="text-nema-white">
+                  <span className="text-nema-secondary text-xs">Age: </span>
+                  <span className="text-nema-white text-xs">
                     {contextProfile?.nemas?.[0]?.created_at ?
                       (() => {
                         const createdDate = new Date(contextProfile.nemas[0].created_at);
@@ -437,7 +437,7 @@ Building the future of digital biology with $NEMA 🧠`;
                   </span>
                 </div>
                 <div>
-                  <span className="text-nema-white text-sm">
+                  <span className="text-nema-white text-xs">
                     {contextProfile?.nemas?.[0]?.description || 'This is a description of my nema worm I love it so much'}
                   </span>
                 </div>
@@ -447,17 +447,17 @@ Building the future of digital biology with $NEMA 🧠`;
 
           {/* Right: Bio text bubble */}
           <div className="relative">
-            <div className="nema-card p-6">
-              <div className="absolute top-4 right-4 w-3 h-3 bg-nema-cyan rounded-full"></div>
-              <p className="text-nema-white font-anonymous text-sm leading-relaxed">
+            <div className="nema-card p-4">
+              <div className="absolute top-3 right-3 w-2.5 h-2.5 bg-nema-cyan rounded-full"></div>
+              <p className="text-nema-white font-anonymous text-xs leading-relaxed">
                 Just generated my unique C. elegans avatar on @Nema_Lab.
                 Building the future of digital biology on $NEMA
               </p>
             </div>
-            <div className="flex justify-end mt-4">
+            <div className="flex justify-end mt-3">
               <div
                 onClick={handleShareOnTwitter}
-                className="px-8 py-2 bg-nema-button-500 rounded-lg text-nema-white-light hover:bg-nema-button-600 transition-colors font-anonymous text-base cursor-pointer"
+                className="px-4 py-1.5 bg-nema-button-500 rounded-lg text-nema-white-light hover:bg-nema-button-600 transition-colors font-anonymous text-xs cursor-pointer"
               >
                 Share on X
               </div>
@@ -466,19 +466,19 @@ Building the future of digital biology with $NEMA 🧠`;
         </div>
 
         {/* Middle Section - Current State and Emotional Timeline */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
           {/* Current State */}
-          <div className="nema-card p-6">
-            <h2 className="text-xl font-intranet text-nema-cyan mb-4">CURRENT STATE</h2>
+          <div className="nema-card p-4">
+            <h2 className="text-base font-intranet text-nema-cyan mb-3">CURRENT STATE</h2>
             <div className="aspect-square bg-nema-black/50 border border-nema-cyan/20 rounded-lg flex items-center justify-center">
               {/* Placeholder for 3D visualization */}
               <div className="text-center font-anonymous">
-                <div className="w-32 h-32 mx-auto mb-4 border border-nema-cyan/30 rounded-lg flex items-center justify-center">
-                  <span className="text-nema-secondary text-sm">3D Model</span>
+                <div className="w-20 h-20 mx-auto mb-2 border border-nema-cyan/30 rounded-lg flex items-center justify-center">
+                  <span className="text-nema-secondary text-xs">3D Model</span>
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <button className="bg-nema-cyan/20 border border-nema-cyan/30 p-2 rounded">+</button>
-                  <button className="bg-nema-cyan/20 border border-nema-cyan/30 p-2 rounded">+</button>
+                <div className="grid grid-cols-2 gap-1.5 text-xs">
+                  <button className="bg-nema-cyan/20 border border-nema-cyan/30 p-1.5 rounded text-xs">+</button>
+                  <button className="bg-nema-cyan/20 border border-nema-cyan/30 p-1.5 rounded text-xs">+</button>
                 </div>
               </div>
             </div>
@@ -501,10 +501,10 @@ Building the future of digital biology with $NEMA 🧠`;
                 className="w-full"
               />
             ) : (
-              <div className="nema-card p-6">
-                <h2 className="text-xl font-intranet text-nema-cyan mb-4">EMOTIONAL STATE</h2>
-                <div className="h-64 bg-nema-black/50 border border-nema-cyan/20 rounded-lg flex items-center justify-center">
-                  <span className="text-nema-secondary text-sm font-anonymous">
+              <div className="nema-card p-4">
+                <h2 className="text-base font-intranet text-nema-cyan mb-3">EMOTIONAL STATE</h2>
+                <div className="h-48 bg-nema-black/50 border border-nema-cyan/20 rounded-lg flex items-center justify-center">
+                  <span className="text-nema-secondary text-xs font-anonymous px-4 text-center">
                     No emotional state data available yet. Start chatting with your Nema to see emotional states evolve.
                   </span>
                 </div>
@@ -514,9 +514,9 @@ Building the future of digital biology with $NEMA 🧠`;
         </div>
 
         {/* MY ACCOUNT Section */}
-        <div className="nema-card p-8">
+        <div className="nema-card p-5">
           {/* Header with Avatar on mobile */}
-          <div className="flex items-center gap-4 mb-6">
+          <div className="flex items-center gap-3 mb-4">
             {/* Avatar - shows on mobile */}
             <div className="flex-shrink-0 md:hidden">
               <div className="relative">
@@ -528,10 +528,10 @@ Building the future of digital biology with $NEMA 🧠`;
                 />
               </div>
             </div>
-            <h2 className="nema-display nema-display-2 max-md:nema-header-2 text-nema-cyan">MY ACCOUNT</h2>
+            <h2 className="nema-display nema-display-2 max-md:nema-header-2 text-nema-cyan text-xl max-md:text-base">MY ACCOUNT</h2>
           </div>
 
-          <div className="flex flex-col md:flex-row md:items-start md:space-x-8">
+          <div className="flex flex-col md:flex-row md:items-start md:space-x-6">
             {/* Avatar - shows on desktop */}
             <div className="hidden md:block flex-shrink-0">
               <div className="relative">
@@ -545,9 +545,9 @@ Building the future of digital biology with $NEMA 🧠`;
             </div>
 
             {/* Account Details */}
-            <div className="flex-1 space-y-8 w-full">
+            <div className="flex-1 space-y-4 w-full">
               {/* Top Row - Editable Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-anonymous">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 font-anonymous">
                 <div className="max-w-full">
                   <label className="block text-nema-white text-sm mb-2">Username*</label>
                   <input
@@ -594,7 +594,7 @@ Building the future of digital biology with $NEMA 🧠`;
               <div className="border-t border-nema-gray/20"></div>
 
               {/* Bottom Row - Read-only Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 font-anonymous">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 font-anonymous">
                 <div className="max-w-full">
                   <label className="block text-nema-gray-darker text-sm mb-1">Wallet Address</label>
                   <div className="px-3 py-2 flex items-center max-w-full overflow-hidden">
@@ -631,7 +631,7 @@ Building the future of digital biology with $NEMA 🧠`;
           </div>
 
           {/* Action Buttons */}
-          <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+          <div className="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <button
               onClick={handleSubmit}
               disabled={updateLoading}
