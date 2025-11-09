@@ -4,9 +4,47 @@ import config from '../config/environment.js';
 /**
  * Custom hook for managing WebSocket connection
  * Handles connection, message sending/receiving, and reconnection
+ * Messages persist across navigation using sessionStorage
  */
 export const useWebSocket = (url, options = {}) => {
-  const [messages, setMessages] = useState([]);
+  // Storage key for persisting messages (based on WebSocket URL)
+  const storageKey = `nema_userchat_messages_${url}`;
+  
+  // Save messages to sessionStorage (limit to last 500 messages to prevent storage bloat)
+  const persistMessages = useCallback((msgs) => {
+    try {
+      // Keep only the most recent 500 messages
+      const messagesToStore = msgs.slice(-500);
+      sessionStorage.setItem(storageKey, JSON.stringify(messagesToStore));
+    } catch (err) {
+      console.warn('Failed to persist messages:', err);
+      // If storage is full, try to clear old messages and retry with fewer
+      try {
+        const reduced = msgs.slice(-250);
+        sessionStorage.setItem(storageKey, JSON.stringify(reduced));
+      } catch (retryErr) {
+        console.error('Failed to persist messages even after reduction:', retryErr);
+      }
+    }
+  }, [storageKey]);
+  
+  // Initialize messages from sessionStorage
+  const [messages, setMessages] = useState(() => {
+    try {
+      const stored = sessionStorage.getItem(storageKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        // Convert timestamp strings back to Date objects
+        return parsed.map(msg => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp),
+        }));
+      }
+    } catch (err) {
+      console.warn('Failed to load persisted messages:', err);
+    }
+    return [];
+  });
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState(null);
   
@@ -166,7 +204,38 @@ export const useWebSocket = (url, options = {}) => {
             timestamp: new Date(now),
           };
 
-          setMessages(prev => [...prev, message]);
+          setMessages(prev => {
+            // Check if this message might be a duplicate of an optimistic message
+            // (same user, same text, within last 5 seconds)
+            const fiveSecondsAgo = now - 5000;
+            const isDuplicateOptimistic = prev.some(msg => 
+              msg.isOptimistic && 
+              msg.userID === userID && 
+              msg.text === messageText &&
+              msg.timestamp.getTime() > fiveSecondsAgo
+            );
+            
+            let updated;
+            if (isDuplicateOptimistic) {
+              // Replace optimistic message with real one
+              updated = prev.map(msg => 
+                msg.isOptimistic && 
+                msg.userID === userID && 
+                msg.text === messageText &&
+                msg.timestamp.getTime() > fiveSecondsAgo
+                  ? message
+                  : msg
+              );
+            } else {
+              updated = [...prev, message];
+            }
+            
+            // Keep only last 500 messages in memory
+            const limited = updated.slice(-500);
+            // Persist to sessionStorage
+            persistMessages(limited);
+            return limited;
+          });
           
           if (optionsRef.current.onMessage) {
             optionsRef.current.onMessage(message);
@@ -258,14 +327,20 @@ export const useWebSocket = (url, options = {}) => {
       isOptimistic: true, // Flag to identify optimistic messages
     };
 
-    // Add to messages immediately
-    setMessages(prev => [...prev, optimisticMessage]);
+    // Add to messages immediately and persist
+    setMessages(prev => {
+      const updated = [...prev, optimisticMessage];
+      // Keep only last 500 messages in memory
+      const limited = updated.slice(-500);
+      persistMessages(limited);
+      return limited;
+    });
 
     // Send as plain text (backend expects raw bytes and will add user info)
     wsRef.current.send(trimmedText);
     
     return true;
-  }, []);
+  }, [persistMessages]);
 
   const disconnect = useCallback(() => {
     isManualCloseRef.current = true;
@@ -297,6 +372,8 @@ export const useWebSocket = (url, options = {}) => {
       wsRef.current = null;
     }
     
+    // Note: We don't clear messages here - they persist in sessionStorage
+    // Messages will only be cleared on page reload/close (sessionStorage behavior)
     setIsConnected(false);
   }, []);
 
