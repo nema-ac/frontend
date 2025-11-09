@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { NemaProvider } from './contexts/NemaContext';
+import { WebSocketProvider } from './contexts/WebSocketContext';
 import Navigation from './components/Navigation';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -17,26 +18,28 @@ function App() {
     <Router>
       <AuthProvider>
         <NemaProvider>
-          <div className="min-h-screen bg-nema-black text-nema-white font-anonymous relative">
-            <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "url('/bg-texture.png')", backgroundSize: '100% 100%', backgroundAttachment: 'fixed', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', pointerEvents: 'none' }}></div>
-            <div className="relative z-10">
-            <Navigation />
-            <Routes>
-              <Route path="/" element={<Worminal />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/roadmap" element={<Roadmap />} />
-              <Route path="/docs" element={<Docs />} />
-              <Route path="/airdrop" element={<Airdrop />} />
-              <Route path="/onboarding" element={<OnboardingScreen />} />
-              <Route path="/profile" element={
-                <ProtectedRoute requireAuth={true} redirectNewUsers={true}>
-                  <Profile />
-                </ProtectedRoute>
-              } />
-            </Routes>
-            <Footer />
+          <WebSocketProvider>
+            <div className="min-h-screen bg-nema-black text-nema-white font-anonymous relative">
+              <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "url('/bg-texture.png')", backgroundSize: '100% 100%', backgroundAttachment: 'fixed', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', pointerEvents: 'none' }}></div>
+              <div className="relative z-10">
+              <Navigation />
+              <Routes>
+                <Route path="/" element={<Worminal />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/roadmap" element={<Roadmap />} />
+                <Route path="/docs" element={<Docs />} />
+                <Route path="/airdrop" element={<Airdrop />} />
+                <Route path="/onboarding" element={<OnboardingScreen />} />
+                <Route path="/profile" element={
+                  <ProtectedRoute requireAuth={true} redirectNewUsers={true}>
+                    <Profile />
+                  </ProtectedRoute>
+                } />
+              </Routes>
+              <Footer />
+              </div>
             </div>
-          </div>
+          </WebSocketProvider>
         </NemaProvider>
       </AuthProvider>
     </Router>

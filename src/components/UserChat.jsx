@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useContext } from 'react';
-import { useWebSocket } from '../hooks/useWebSocket.js';
+import { useWebSocketContext } from '../contexts/WebSocketContext.jsx';
 import { AuthContext } from '../contexts/AuthContext.jsx';
 import config from '../config/environment.js';
+import EmojiPicker from './EmojiPicker.jsx';
 
 /**
  * Simple chat component for users to discuss the worminal chat
@@ -11,20 +12,15 @@ const UserChat = () => {
     const [input, setInput] = useState('');
     const [connectedClients, setConnectedClients] = useState([]);
     const [showClientsModal, setShowClientsModal] = useState(false);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const messagesEndRef = useRef(null);
     const messagesContainerRef = useRef(null);
     const inputRef = useRef(null);
     const clientsModalRef = useRef(null);
+    const emojiPickerRef = useRef(null);
     const { profile, user, isAuthenticated } = useContext(AuthContext);
 
-    const { messages, isConnected, error, sendMessage } = useWebSocket('/socket', {
-        onMessage: () => {
-            // Auto-scroll to bottom when new message arrives (only scroll the chat container)
-            setTimeout(() => {
-                scrollToBottom();
-            }, 100);
-        },
-    });
+    const { messages, isConnected, error, sendMessage } = useWebSocketContext();
 
     const scrollToBottom = (smooth = true) => {
         const container = messagesContainerRef.current;
@@ -37,10 +33,38 @@ const UserChat = () => {
         }
     };
 
+    // Auto-scroll to bottom when new message arrives
+    useEffect(() => {
+        if (messages.length > 0) {
+            setTimeout(() => {
+                scrollToBottom();
+            }, 100);
+        }
+    }, [messages]);
+
+    // Check if input contains a URL/link
+    const containsLink = (text) => {
+        // Common URL patterns
+        const urlPatterns = [
+            /https?:\/\/[^\s]+/gi,  // http:// or https://
+            /www\.[^\s]+/gi,         // www.
+            /[a-zA-Z0-9-]+\.[a-zA-Z]{2,}[^\s]*/gi,  // domain.com
+        ];
+        
+        return urlPatterns.some(pattern => pattern.test(text));
+    };
+
     const handleSend = (e) => {
         e.preventDefault();
         const trimmedInput = input.trim();
         if (!trimmedInput || !isConnected) return;
+
+        // Check for links
+        if (containsLink(trimmedInput)) {
+            // Show error or prevent sending
+            alert('Links are not allowed in chat. Please remove any URLs from your message.');
+            return;
+        }
 
         // Get username and userID for optimistic message
         const username = profile?.username || user?.wallet_address?.slice(0, 8) || 'You';
@@ -48,12 +72,31 @@ const UserChat = () => {
 
         sendMessage(trimmedInput, username, userID);
         setInput('');
+        setShowEmojiPicker(false);
         inputRef.current?.focus();
 
         // Scroll to show the new message after sending
         setTimeout(() => {
             scrollToBottom(true);
         }, 100);
+    };
+
+    const handleEmojiSelect = (emoji) => {
+        const textarea = inputRef.current;
+        if (textarea) {
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = input.substring(0, start) + emoji + input.substring(end);
+            setInput(text);
+            
+            // Set cursor position after emoji
+            setTimeout(() => {
+                textarea.focus();
+                textarea.setSelectionRange(start + emoji.length, start + emoji.length);
+            }, 0);
+        } else {
+            setInput(input + emoji);
+        }
     };
 
     // Poll connected clients every 15 seconds
@@ -90,16 +133,46 @@ const UserChat = () => {
             if (clientsModalRef.current && !clientsModalRef.current.contains(event.target)) {
                 setShowClientsModal(false);
             }
+
+            // Close emoji picker when clicking outside
+            if (showEmojiPicker && emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
+                // Don't close if clicking the emoji button
+                if (!event.target.closest('button[title="Add emoji"]')) {
+                    setShowEmojiPicker(false);
+                }
+            }
         };
 
-        if (showClientsModal) {
+        if (showClientsModal || showEmojiPicker) {
             document.addEventListener('mousedown', handleClickOutside);
         }
 
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [showClientsModal]);
+    }, [showClientsModal, showEmojiPicker]);
+
+    // Auto-resize textarea to expand upward, then become scrollable
+    useEffect(() => {
+        const textarea = inputRef.current;
+        if (textarea) {
+            // Reset height to auto to get the correct scrollHeight
+            textarea.style.height = 'auto';
+            // Set height based on scrollHeight (content)
+            const scrollHeight = textarea.scrollHeight;
+            // Limit max height (e.g., 4 lines)
+            const maxHeight = 96; // ~4 lines at 24px line height
+            const newHeight = Math.min(scrollHeight, maxHeight);
+            textarea.style.height = `${newHeight}px`;
+            
+            // Enable scrolling if content exceeds max height
+            if (scrollHeight > maxHeight) {
+                textarea.style.overflowY = 'auto';
+            } else {
+                textarea.style.overflowY = 'hidden';
+            }
+        }
+    }, [input]);
 
     const formatTimestamp = (timestamp) => {
         return new Date(timestamp).toLocaleTimeString('en-US', {
@@ -200,16 +273,54 @@ const UserChat = () => {
             {/* Input Area - Only show for authenticated users */}
             {isAuthenticated ? (
                 <div className="p-2 border-t border-nema-gray flex-shrink-0">
-                    <form onSubmit={handleSend} className="flex items-center gap-1.5 w-full min-w-0">
-                        <input
-                            ref={inputRef}
-                            type="text"
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            placeholder={isConnected ? "Type a message..." : "Connecting..."}
-                            disabled={!isConnected}
-                            className="flex-1 min-w-0 bg-transparent text-nema-white outline-none caret-nema-cyan placeholder-nema-gray-darker font-anonymous text-xs"
-                        />
+                    <form onSubmit={handleSend} className="flex items-end gap-1.5 w-full min-w-0">
+                        <div className="flex-1 min-w-0 relative flex items-end">
+                            <textarea
+                                ref={inputRef}
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    // Allow Enter to submit, Shift+Enter for new line
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        handleSend(e);
+                                    }
+                                }}
+                                placeholder={isConnected ? "Type a message..." : "Connecting..."}
+                                disabled={!isConnected}
+                                rows={1}
+                                className="flex-1 min-w-0 bg-transparent text-nema-white outline-none caret-nema-cyan placeholder-nema-gray-darker font-anonymous text-xs resize-none min-h-[24px] max-h-[96px]"
+                                style={{ 
+                                    height: 'auto',
+                                    lineHeight: '24px',
+                                    overflowY: 'hidden'
+                                }}
+                            />
+                            {/* Emoji Picker Button */}
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowEmojiPicker(!showEmojiPicker);
+                                }}
+                                className="flex-shrink-0 ml-1.5 p-1 text-nema-gray-darker hover:text-nema-cyan transition-colors"
+                                title="Add emoji"
+                            >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </button>
+                            {/* Emoji Picker */}
+                            {showEmojiPicker && (
+                                <div ref={emojiPickerRef} className="absolute bottom-full left-0 mb-2 z-50">
+                                    <EmojiPicker
+                                        isOpen={showEmojiPicker}
+                                        onEmojiSelect={handleEmojiSelect}
+                                        onClose={() => setShowEmojiPicker(false)}
+                                    />
+                                </div>
+                            )}
+                        </div>
                         <button
                             type="submit"
                             disabled={!isConnected || !input.trim()}
