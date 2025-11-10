@@ -4,6 +4,8 @@ import { AuthContext } from '../contexts/AuthContext.jsx';
 import config from '../config/environment.js';
 import EmojiPicker from './EmojiPicker.jsx';
 import TransactionMessage from './TransactionMessage.jsx';
+import SessionClaimMessage from './SessionClaimMessage.jsx';
+import { useWorminalAccessContext } from '../contexts/WorminalAccessContext.jsx';
 
 /**
  * Simple chat component for users to discuss the worminal chat
@@ -22,6 +24,21 @@ const UserChat = () => {
     const { profile, user, isAuthenticated } = useContext(AuthContext);
 
     const { messages, isConnected, error, sendMessage } = useWebSocketContext();
+    const { claimSession, refreshSession } = useWorminalAccessContext();
+    const lastClaimedSessionIdRef = useRef(null);
+
+    // Refresh session state when session_claimed message is received
+    useEffect(() => {
+        const claimedMessage = messages.find(msg =>
+            msg.type === 'session_claimed' &&
+            msg.sessionId !== lastClaimedSessionIdRef.current
+        );
+
+        if (claimedMessage) {
+            lastClaimedSessionIdRef.current = claimedMessage.sessionId;
+            refreshSession();
+        }
+    }, [messages, refreshSession]);
 
     const scrollToBottom = (smooth = true) => {
         const container = messagesContainerRef.current;
@@ -51,7 +68,7 @@ const UserChat = () => {
             /www\.[^\s]+/gi,         // www.
             /[a-zA-Z0-9-]+\.[a-zA-Z]{2,}[^\s]*/gi,  // domain.com
         ];
-        
+
         return urlPatterns.some(pattern => pattern.test(text));
     };
 
@@ -89,7 +106,7 @@ const UserChat = () => {
             const end = textarea.selectionEnd;
             const text = input.substring(0, start) + emoji + input.substring(end);
             setInput(text);
-            
+
             // Set cursor position after emoji
             setTimeout(() => {
                 textarea.focus();
@@ -165,7 +182,7 @@ const UserChat = () => {
             const maxHeight = 96; // ~4 lines at 24px line height
             const newHeight = Math.min(scrollHeight, maxHeight);
             textarea.style.height = `${newHeight}px`;
-            
+
             // Enable scrolling if content exceeds max height
             if (scrollHeight > maxHeight) {
                 textarea.style.overflowY = 'auto';
@@ -269,7 +286,37 @@ const UserChat = () => {
                                     </div>
                                 );
                             }
-                            
+
+                            // Render session claim messages
+                            if (message.type === 'session_claim') {
+                                return (
+                                    <div key={message.id} className="text-left">
+                                        <SessionClaimMessage
+                                            sessionId={message.sessionId}
+                                            message={message.message}
+                                            timestamp={message.timestamp}
+                                            onClaim={claimSession}
+                                            refreshSession={refreshSession}
+                                        />
+                                    </div>
+                                );
+                            }
+
+                            // Render session claimed messages (when someone claims a session)
+                            if (message.type === 'session_claimed') {
+                                return (
+                                    <div key={message.id} className="text-left">
+                                        <div className="p-2 bg-nema-black/30 border border-nema-gray rounded text-xs">
+                                            <div className="text-nema-cyan text-[10px] font-bold mb-1">SESSION CLAIMED</div>
+                                            <div className="text-nema-white text-[10px]">{message.message}</div>
+                                            <div className="text-nema-gray-darker text-[10px] mt-1">
+                                                {formatTimestamp(message.timestamp)}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            }
+
                             // Render regular chat messages
                             return (
                                 <div key={message.id} className="text-left">
@@ -309,7 +356,7 @@ const UserChat = () => {
                                 disabled={!isConnected}
                                 rows={1}
                                 className="flex-1 min-w-0 bg-transparent text-nema-white outline-none caret-nema-cyan placeholder-nema-gray-darker font-anonymous text-xs resize-none min-h-[24px] max-h-[96px]"
-                                style={{ 
+                                style={{
                                     height: 'auto',
                                     lineHeight: '24px',
                                     overflowY: 'hidden'

@@ -223,6 +223,107 @@ export const useWebSocket = (url, options = {}) => {
             return;
           }
           
+          // Handle session claim messages
+          if (messageType === 'session_claim') {
+            const sessionId = data.session_id || 0;
+            const messageText = data.message || 'A Worminal session is now available for anyone to claim!';
+            
+            // Create deduplication key for session claims
+            const dedupeKey = `session-claim-${sessionId}`;
+            const lastSeen = seenMessagesRef.current.get(dedupeKey);
+            
+            if (lastSeen && (now - lastSeen < 5000)) {
+              // Already seen this session claim notification within the last 5 seconds, skip it
+              return;
+            }
+            
+            // Add to seen messages
+            seenMessagesRef.current.set(dedupeKey, now);
+            
+            // Clean up old entries (older than 10 seconds for session claims)
+            seenMessagesRef.current.forEach((time, key) => {
+              if (key.startsWith('session-claim-') && (now - time > 10000)) {
+                seenMessagesRef.current.delete(key);
+              }
+            });
+            
+            const message = {
+              id: `session-claim-${now}-${sessionId}`,
+              type: 'session_claim',
+              sessionId: sessionId,
+              message: messageText,
+              timestamp: new Date(now),
+            };
+            
+            setMessages(prev => {
+              const updated = [...prev, message];
+              // Keep only last 500 messages in memory
+              const limited = updated.slice(-500);
+              // Persist to sessionStorage
+              persistMessages(limited);
+              return limited;
+            });
+            
+            if (optionsRef.current.onMessage) {
+              optionsRef.current.onMessage(message);
+            }
+            return;
+          }
+          
+          // Handle session claimed messages (when someone claims a session)
+          if (messageType === 'session_claimed') {
+            const sessionId = data.session_id || 0;
+            const messageText = data.message || 'A session was claimed!';
+            const username = data.username || 'Someone';
+            
+            // Create deduplication key for session claimed notifications
+            const dedupeKey = `session-claimed-${sessionId}`;
+            const lastSeen = seenMessagesRef.current.get(dedupeKey);
+            
+            if (lastSeen && (now - lastSeen < 5000)) {
+              // Already seen this notification within the last 5 seconds, skip it
+              return;
+            }
+            
+            // Add to seen messages
+            seenMessagesRef.current.set(dedupeKey, now);
+            
+            // Clean up old entries (older than 10 seconds)
+            seenMessagesRef.current.forEach((time, key) => {
+              if (key.startsWith('session-claimed-') && (now - time > 10000)) {
+                seenMessagesRef.current.delete(key);
+              }
+            });
+            
+            const message = {
+              id: `session-claimed-${now}-${sessionId}`,
+              type: 'session_claimed',
+              sessionId: sessionId,
+              message: messageText,
+              username: username,
+              timestamp: new Date(now),
+            };
+            
+            setMessages(prev => {
+              const updated = [...prev, message];
+              // Keep only last 500 messages in memory
+              const limited = updated.slice(-500);
+              // Persist to sessionStorage
+              persistMessages(limited);
+              return limited;
+            });
+            
+            // Trigger refresh callback if provided (for refreshing access state)
+            if (optionsRef.current.onSessionClaimed) {
+              optionsRef.current.onSessionClaimed(sessionId);
+            }
+            
+            if (optionsRef.current.onMessage) {
+              optionsRef.current.onMessage(message);
+            }
+            return;
+          }
+          
           // Handle userchat messages (existing logic)
           if (messageType === 'userchat') {
             // Extract message fields (backend uses snake_case: user_id, username, text)

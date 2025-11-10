@@ -10,7 +10,7 @@ import { AuthContext } from '../contexts/AuthContext.jsx';
 import { ErrorDisplay } from './ErrorBoundary.jsx';
 import nemaService from '../services/nema.js';
 import CompactEmotionRadar from './CompactEmotionRadar.jsx';
-import { useWorminalAccess } from '../hooks/useWorminalAccess.js';
+import { useWorminalAccessContext } from '../contexts/WorminalAccessContext.jsx';
 import MessageBubble from './MessageBubble.jsx';
 import NeuralStatePanel from './NeuralStatePanel.jsx';
 import ViewSelector from './ViewSelector.jsx';
@@ -60,7 +60,7 @@ const InteractiveTerminal = ({ isFullscreen = false, onToggleFullscreen }) => {
     publicTimeRemaining,
     loadingPublicData,
     shouldShowPublicView
-  } = useWorminalAccess();
+  } = useWorminalAccessContext();
 
   // Store neural states for active session (from publicWorminalData when user has access)
   const [activeSessionStates, setActiveSessionStates] = useState(null);
