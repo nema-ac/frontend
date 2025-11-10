@@ -680,7 +680,7 @@ Or simply type a message to chat with your selected NEMA!`,
                 ) : (
                   /* User doesn't have access but session exists - show session holder info */
                   <div className="text-nema-black text-sm nema-header-2">
-                    WORMINAL IN USE - {currentSession.username.toUpperCase()}
+                    WORMINAL IN USE{currentSession.username && currentSession.username.trim() !== '' ? ` - ${currentSession.username.toUpperCase()}` : ''}
                   </div>
                 )}
               </div>

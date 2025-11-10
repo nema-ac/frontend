@@ -13,8 +13,10 @@ export const useWorminalAccess = () => {
   const { profile, isAuthenticated } = useContext(AuthContext);
   const [currentSession, setCurrentSession] = useState(null);
   const [timeRemaining, setTimeRemaining] = useState(0);
+  const [openForAnyone, setOpenForAnyone] = useState(false);
   const [canClaim, setCanClaim] = useState(false);
   const [claimReason, setClaimReason] = useState('');
+  const [hasAccessFromAPI, setHasAccessFromAPI] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [claiming, setClaiming] = useState(false);
@@ -32,6 +34,7 @@ export const useWorminalAccess = () => {
       const data = await accessService.getCurrentSession();
       setCurrentSession(data.session);
       setTimeRemaining(data.time_remaining_ms || 0);
+      setOpenForAnyone(data.open_for_anyone || false);
       setError(null);
     } catch (err) {
       console.error('Error fetching current session:', err);
@@ -43,20 +46,15 @@ export const useWorminalAccess = () => {
 
   // Check if user can claim the current pending session
   const checkCanClaim = useCallback(async () => {
-    // Only check if user is authenticated, session exists, is pending, and belongs to current user
+    // Only check if user is authenticated and session exists and is pending
     if (!isAuthenticated || !profile || !currentSession || currentSession.status !== 'pending_claim') {
       setCanClaim(false);
       setClaimReason('no_pending_session');
       return;
     }
 
-    // Only query the API if the session belongs to the current user
-    if (currentSession.wallet_address !== profile.wallet_address) {
-      setCanClaim(false);
-      setClaimReason('not_your_session');
-      return;
-    }
-
+    // Always call the API to check claim eligibility - the backend will determine
+    // if the user can claim based on whether it's their session or open for anyone
     try {
       const data = await accessService.canClaim();
       setCanClaim(data.can_claim);
@@ -91,31 +89,47 @@ export const useWorminalAccess = () => {
     }
   }, [canClaim, claiming, fetchCurrentSession]);
 
-  // Check if current user has access (session is theirs and active)
+  // Fetch access status from authenticated endpoint
+  const fetchAccessStatus = useCallback(async () => {
+    if (!isAuthenticated) {
+      setHasAccessFromAPI(false);
+      return;
+    }
+
+    try {
+      const data = await accessService.checkAccess();
+      setHasAccessFromAPI(data.has_access || false);
+    } catch (err) {
+      // If not authenticated or endpoint fails, user doesn't have access
+      console.error('Error checking access:', err);
+      setHasAccessFromAPI(false);
+    }
+  }, [isAuthenticated]);
+
+  // Check if current user has access (uses authenticated endpoint)
   const hasAccess = useCallback(() => {
-    if (!isAuthenticated || !profile || !currentSession) {
+    if (!isAuthenticated || !currentSession) {
       return false;
     }
 
-    // User has access if the session is active and belongs to them
-    return (
-      currentSession.status === 'active' &&
-      currentSession.wallet_address === profile.wallet_address
-    );
-  }, [isAuthenticated, profile, currentSession]);
+    // Use API response for access check (more reliable than wallet comparison)
+    return hasAccessFromAPI && currentSession.status === 'active';
+  }, [isAuthenticated, currentSession, hasAccessFromAPI]);
 
   // Check if current user is in the session but hasn't claimed yet
+  // Uses canClaim status instead of wallet comparison
   const needsToClaim = useCallback(() => {
-    if (!isAuthenticated || !profile || !currentSession) {
+    if (!isAuthenticated || !currentSession) {
       return false;
     }
 
+    // User needs to claim if session is pending and they can claim it
     return (
       currentSession.status === 'pending_claim' &&
-      currentSession.wallet_address === profile.wallet_address &&
+      canClaim &&
       !currentSession.claimed_at
     );
-  }, [isAuthenticated, profile, currentSession]);
+  }, [isAuthenticated, currentSession, canClaim]);
 
   // Fetch public Worminal data (when user is spectating)
   const fetchPublicWorminalData = useCallback(async () => {
@@ -143,14 +157,16 @@ export const useWorminalAccess = () => {
     // 2. Session has a valid username (not empty)
     // 3. User doesn't have access
     // 4. User doesn't need to claim
+    // 5. User can't claim (either not their session or not open for anyone)
     return (
       currentSession &&
       currentSession.username &&
       currentSession.username.trim() !== '' &&
       !hasAccess() &&
-      !needsToClaim()
+      !needsToClaim() &&
+      !canClaim
     );
-  }, [currentSession, hasAccess, needsToClaim]);
+  }, [currentSession, hasAccess, needsToClaim, canClaim]);
 
   // Poll current session every 10 seconds
   useEffect(() => {
@@ -160,6 +176,19 @@ export const useWorminalAccess = () => {
 
     return () => clearInterval(interval);
   }, [fetchCurrentSession]);
+
+  // Poll access status when authenticated (refresh when session changes)
+  useEffect(() => {
+    if (isAuthenticated && currentSession) {
+      fetchAccessStatus();
+      
+      // Refresh access status periodically
+      const interval = setInterval(fetchAccessStatus, POLL_INTERVAL);
+      return () => clearInterval(interval);
+    } else {
+      setHasAccessFromAPI(false);
+    }
+  }, [isAuthenticated, currentSession, fetchAccessStatus]);
 
   // Countdown timer - decrements timeRemaining every second
   // Uses a single continuous interval that checks if countdown should run
@@ -246,7 +275,7 @@ export const useWorminalAccess = () => {
     previousPublicTimeRemainingRef.current = publicTimeRemaining;
   }, [publicTimeRemaining, fetchPublicWorminalData, shouldShowPublicView]);
 
-  // Check claim eligibility when session changes
+  // Check claim eligibility when session changes or openForAnyone flag changes
   useEffect(() => {
     if (currentSession && currentSession.status === 'pending_claim') {
       checkCanClaim();
@@ -254,7 +283,7 @@ export const useWorminalAccess = () => {
       setCanClaim(false);
       setClaimReason('no_pending_session');
     }
-  }, [currentSession, checkCanClaim]);
+  }, [currentSession, openForAnyone, checkCanClaim]);
 
   // Fetch public data when user should see public view
   useEffect(() => {
@@ -274,6 +303,7 @@ export const useWorminalAccess = () => {
   return {
     currentSession,
     timeRemaining,
+    openForAnyone,
     canClaim,
     claimReason,
     loading,
