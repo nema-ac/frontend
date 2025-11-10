@@ -57,20 +57,20 @@ const MessageBubble = ({
         <img
           src={displayAvatarUrl}
           alt={`${sender} Avatar`}
-          className={`w-12 h-12 rounded-full border-2 flex-shrink-0 ${avatarBorderClass}`}
+          className={`w-8 h-8 rounded-full border-2 flex-shrink-0 ${avatarBorderClass}`}
           style={{ imageRendering: 'pixelated' }}
         />
       )}
 
       <div className="flex-1">
-        <div className={`nema-card p-4 ${cardBgClass}`}>
-          <div className={`${messageClass} whitespace-pre-wrap break-words`}>
+        <div className={`nema-card p-3 ${cardBgClass}`}>
+          <div className={`${messageClass} whitespace-pre-wrap break-words text-xs`}>
             {content}
           </div>
 
           {/* Show neural changes if available */}
           {neuralChanges.length > 0 && (
-            <div className="mt-2 text-xs">
+            <div className="mt-1.5 text-[10px]">
               <span className="text-nema-gray-darker">Neural changes:</span>{' '}
               <span className="text-nema-cyan">
                 {formatNeuralChanges(neuralChanges)}
@@ -82,7 +82,7 @@ const MessageBubble = ({
           )}
         </div>
 
-        <div className={`text-nema-white-caption nema-caption-2 mt-2 ${alignCenter ? 'text-center' : alignRight ? 'text-right' : 'text-left'}`}>
+        <div className={`text-nema-white-caption nema-caption-2 mt-1.5 text-[10px] ${alignCenter ? 'text-center' : alignRight ? 'text-right' : 'text-left'}`}>
           [{formatTimestamp(timestamp)}] {sender}@{isNemaMessage ? 'neural' : 'worminal'}
         </div>
       </div>
@@ -92,7 +92,7 @@ const MessageBubble = ({
         <img
           src={displayAvatarUrl}
           alt={`${sender} Avatar`}
-          className={`w-12 h-12 rounded-full border-2 flex-shrink-0 ${avatarBorderClass}`}
+          className={`w-8 h-8 rounded-full border-2 flex-shrink-0 ${avatarBorderClass}`}
           style={{ imageRendering: 'pixelated' }}
         />
       )}

@@ -403,26 +403,26 @@ const EmotionalStateVisualization = ({
 
     // Full variant
     return (
-        <div className={`border border-nema-gray p-6 bg-nema-black/30 ${className}`}>
+        <div className={`border border-nema-gray p-4 bg-nema-black/30 ${className}`}>
             {/* Header */}
-            <div className="mb-4">
-                <h2 className="text-xl font-intranet text-nema-cyan mb-4">EMOTIONAL STATE</h2>
+            <div className="mb-3">
+                <h2 className="text-base font-intranet text-nema-cyan mb-2">EMOTIONAL STATE</h2>
             </div>
 
             {/* Timeline at the top - only real data */}
             {showHistory && historyData.length > 0 && displayedEmotion && (
-                <div className="mb-6 border border-nema-gray/30 p-3 bg-nema-black/50">
-                    <div className="text-xs font-anonymous text-nema-white mb-2">
+                <div className="mb-4 border border-nema-gray/30 p-2 bg-nema-black/50">
+                    <div className="text-xs font-anonymous text-nema-white mb-1.5">
                         EMOTIONAL TIMELINE - {displayedEmotion.label.toUpperCase()}
                     </div>
-                    <svg ref={timelineRef} className="w-full h-24"></svg>
+                    <svg ref={timelineRef} className="w-full h-20"></svg>
                 </div>
             )}
 
             {/* Main Grid Layout */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
                 {/* Left: Emotion Bars */}
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                     {Object.entries(normalizedState).map(([emotion, value]) => {
                         const config = emotionConfig[emotion];
                         const animatedValue = animatedValues[emotion] ?? value;
@@ -433,7 +433,7 @@ const EmotionalStateVisualization = ({
                             <button
                                 key={emotion}
                                 onClick={() => setSelectedEmotion(emotion)}
-                                className={`w-full text-left space-y-1 p-2 rounded transition-all duration-200 ${isSelected ? 'bg-nema-cyan/10 border border-nema-cyan/50' : 'hover:bg-nema-black/50'
+                                className={`w-full text-left space-y-0.5 p-1.5 rounded transition-all duration-200 ${isSelected ? 'bg-nema-cyan/10 border border-nema-cyan/50' : 'hover:bg-nema-black/50'
                                     }`}
                             >
                                 <div className="flex items-center justify-between text-xs font-anonymous">
@@ -444,7 +444,7 @@ const EmotionalStateVisualization = ({
                                         {Math.round(percentage)}
                                     </span>
                                 </div>
-                                <div className="relative h-2 bg-nema-black border border-nema-gray/30 overflow-hidden">
+                                <div className="relative h-1.5 bg-nema-black border border-nema-gray/30 overflow-hidden">
                                     <div
                                         className={`absolute inset-0 bg-nema-cyan transition-all duration-700 ${isSelected ? 'opacity-100' : 'opacity-60'
                                             }`}
@@ -461,7 +461,7 @@ const EmotionalStateVisualization = ({
                 </div>
 
                 {/* Right: Circular Indicators - Clickable */}
-                <div className="grid grid-cols-4 gap-3">
+                <div className="grid grid-cols-4 gap-2">
                     {Object.entries(normalizedState)
                         .sort(([, a], [, b]) => (b || 0) - (a || 0))
                         .map(([emotion, value]) => {
@@ -518,12 +518,12 @@ const EmotionalStateVisualization = ({
                                             />
                                         </svg>
                                         {/* Label below circle */}
-                                        <div className="mt-1.5 text-center">
-                                            <span className={`text-[8px] font-anonymous leading-tight block ${isSelected ? 'text-nema-cyan font-bold' : 'text-nema-white'
+                                        <div className="mt-1 text-center">
+                                            <span className={`text-[7px] font-anonymous leading-tight block ${isSelected ? 'text-nema-cyan font-bold' : 'text-nema-white'
                                                 }`}>
                                                 {config.abbreviation}
                                             </span>
-                                            <span className={`text-[7px] font-anonymous mt-0.5 block ${isSelected ? 'text-nema-cyan' : 'text-nema-gray-darker'
+                                            <span className={`text-[6px] font-anonymous mt-0.5 block ${isSelected ? 'text-nema-cyan' : 'text-nema-gray-darker'
                                                 }`}>
                                                 {Math.round(percentage)}
                                             </span>

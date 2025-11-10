@@ -370,6 +370,22 @@ class NemaService {
       throw new Error(`Failed to get neural summary: ${error.message}`);
     }
   }
+
+  /**
+   * Get gallery of all nemas in the system (public endpoint)
+   * Returns up to 200 nemas sorted by interaction count
+   * @returns {Promise<Object>} Gallery data with nemas array and total count
+   */
+  async getGallery() {
+    try {
+      return await apiClient.get('/nema/gallery');
+    } catch (error) {
+      if (error instanceof NetworkError || error instanceof ServerError) {
+        throw error;
+      }
+      throw new Error(`Failed to fetch gallery: ${error.message}`);
+    }
+  }
 }
 
 // Create singleton instance

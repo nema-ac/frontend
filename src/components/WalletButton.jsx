@@ -151,8 +151,8 @@ const WalletButton = () => {
     if (loading) {
         return (
             <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
-                <span className="text-sm">Loading...</span>
+                <div className="w-3 h-3 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-xs">Loading...</span>
             </div>
         );
     }
@@ -164,22 +164,22 @@ const WalletButton = () => {
         return (
             <Link
                 to="/profile"
-                className="flex items-center space-x-3 pr-6 transition-colors duration-200 group"
+                className="flex items-center space-x-2 pr-4 transition-colors duration-200 group"
             >
                 {/* Worm Avatar */}
                 <img
                     src={getProfileAvatarUrl(profile)}
                     alt="Worm Avatar"
-                    className="w-12 h-12 rounded-full border-2 border-white group-hover:border-cyan-400 transition-colors duration-200"
+                    className="w-8 h-8 rounded-full border-2 border-white group-hover:border-cyan-400 transition-colors duration-200"
                     style={{ imageRendering: 'pixelated' }}
                 />
 
                 {/* User Info */}
                 <div className="text-left">
-                    <div className="text-sm font-medium text-white group-hover:text-cyan-400">
+                    <div className="text-xs font-medium text-white group-hover:text-cyan-400">
                         {profile?.username || 'Anonymous'}
                     </div>
-                    <div className="text-xs text-gray-400 group-hover:text-cyan-300">
+                    <div className="text-[10px] text-gray-400 group-hover:text-cyan-300">
                         {formatTokenAmount(profile?.nema_balance || 0)} NEMA
                     </div>
                 </div>
@@ -192,7 +192,7 @@ const WalletButton = () => {
             {!publicKey ? (
                 <button
                     onClick={() => setVisible(true)}
-                    className="px-4 py-2 text-sm bg-cyan-500 hover:bg-cyan-600 text-white rounded-md transition-all duration-200 font-medium cursor-pointer"
+                    className="px-3 py-1.5 text-xs bg-cyan-500 hover:bg-cyan-600 text-white rounded-md transition-all duration-200 font-medium cursor-pointer"
                 >
                     Connect Wallet
                 </button>
@@ -201,7 +201,7 @@ const WalletButton = () => {
                     <button
                         onClick={handleAuthenticate}
                         disabled={isAuthenticating}
-                        className="px-4 py-2 text-sm bg-cyan-500 hover:bg-cyan-600 text-white rounded-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 font-medium cursor-pointer"
+                        className="px-3 py-1.5 text-xs bg-cyan-500 hover:bg-cyan-600 text-white rounded-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1.5 font-medium cursor-pointer"
                     >
                         {isAuthenticating ? (
                             <>

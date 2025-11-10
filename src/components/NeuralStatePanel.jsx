@@ -6,12 +6,14 @@
 import { useState } from 'react';
 import NeuronList from './NeuronList.jsx';
 import EmotionalStateVisualization from './EmotionalStateVisualization.jsx';
+import BlockchainTransactions from './BlockchainTransactions.jsx';
 
 const NeuralStatePanel = ({
   neuralState = null,
   recentChanges = [],
   isPublicView = false,
-  nemaName = 'nema'
+  nemaName = 'nema',
+  states = [] // Array of all neural states for blockchain transactions
 }) => {
   const [neuralSearchTerm, setNeuralSearchTerm] = useState('');
   const [showActiveOnly, setShowActiveOnly] = useState(false);
@@ -63,6 +65,9 @@ const NeuralStatePanel = ({
         )}
         <div><span className="text-nema-gray-darker">Total neurons:</span> 302</div>
       </div>
+
+      {/* Blockchain Transactions */}
+      <BlockchainTransactions states={states} />
 
       {/* Emotional State */}
       {emotionalState && (

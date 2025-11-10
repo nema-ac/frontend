@@ -4,9 +4,47 @@ import config from '../config/environment.js';
 /**
  * Custom hook for managing WebSocket connection
  * Handles connection, message sending/receiving, and reconnection
+ * Messages persist across navigation using sessionStorage
  */
 export const useWebSocket = (url, options = {}) => {
-  const [messages, setMessages] = useState([]);
+  // Storage key for persisting messages (based on WebSocket URL)
+  const storageKey = `nema_userchat_messages_${url}`;
+  
+  // Save messages to sessionStorage (limit to last 500 messages to prevent storage bloat)
+  const persistMessages = useCallback((msgs) => {
+    try {
+      // Keep only the most recent 500 messages
+      const messagesToStore = msgs.slice(-500);
+      sessionStorage.setItem(storageKey, JSON.stringify(messagesToStore));
+    } catch (err) {
+      console.warn('Failed to persist messages:', err);
+      // If storage is full, try to clear old messages and retry with fewer
+      try {
+        const reduced = msgs.slice(-250);
+        sessionStorage.setItem(storageKey, JSON.stringify(reduced));
+      } catch (retryErr) {
+        console.error('Failed to persist messages even after reduction:', retryErr);
+      }
+    }
+  }, [storageKey]);
+  
+  // Initialize messages from sessionStorage
+  const [messages, setMessages] = useState(() => {
+    try {
+      const stored = sessionStorage.getItem(storageKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        // Convert timestamp strings back to Date objects
+        return parsed.map(msg => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp),
+        }));
+      }
+    } catch (err) {
+      console.warn('Failed to load persisted messages:', err);
+    }
+    return [];
+  });
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState(null);
   
@@ -114,7 +152,7 @@ export const useWebSocket = (url, options = {}) => {
         
         try {
           // Parse JSON message from backend
-          // Backend sends: { user_id, username, text }
+          // Backend sends messages with type field: { type: "userchat" | "transaction", ... }
           // Note: WebSocket ping/pong frames are handled automatically by the browser
           // and don't trigger onmessage, but any regular messages do
           let data;
@@ -125,52 +163,150 @@ export const useWebSocket = (url, options = {}) => {
             return;
           }
           
-          // Extract message fields (backend uses snake_case: user_id, username, text)
-          const messageText = data.text || '';
-          const userID = data.user_id || data.userID || 'unknown';
-          const username = data.username || 'Unknown';
-          
-          if (!messageText) {
-            console.warn('Received message with no text:', data);
-            return;
-          }
-          
-          // Create a unique key for deduplication: user_id + text + timestamp (rounded to seconds)
+          // Check message type
+          const messageType = data.type || 'userchat'; // Default to userchat for backwards compatibility
           const now = Date.now();
-          const nowSeconds = Math.floor(now / 1000);
-          const dedupeKey = `${userID}-${messageText}-${nowSeconds}`;
           
-          // Check if we've already seen this exact message recently (within 2 seconds)
-          const lastSeen = seenMessagesRef.current.get(dedupeKey);
-          
-          if (lastSeen && (now - lastSeen < 2000)) {
-            // Already seen this message within the last 2 seconds, skip it
+          // Handle transaction messages
+          if (messageType === 'transaction') {
+            const transactionId = data.transaction_id || '';
+            const username = data.username || 'Unknown';
+            const nemaName = data.nema_name || '';
+            const completed = data.completed !== undefined ? data.completed : true;
+            
+            if (!transactionId) {
+              console.warn('Received transaction message with no transaction_id:', data);
+              return;
+            }
+            
+            // Create deduplication key for transactions
+            const dedupeKey = `tx-${transactionId}`;
+            const lastSeen = seenMessagesRef.current.get(dedupeKey);
+            
+            if (lastSeen && (now - lastSeen < 5000)) {
+              // Already seen this transaction within the last 5 seconds, skip it
+              return;
+            }
+            
+            // Add to seen messages
+            seenMessagesRef.current.set(dedupeKey, now);
+            
+            // Clean up old entries (older than 10 seconds for transactions)
+            seenMessagesRef.current.forEach((time, key) => {
+              if (key.startsWith('tx-') && (now - time > 10000)) {
+                seenMessagesRef.current.delete(key);
+              }
+            });
+            
+            const message = {
+              id: `tx-${now}-${transactionId}`,
+              type: 'transaction',
+              transactionId: transactionId,
+              username: username,
+              nemaName: nemaName,
+              completed: completed,
+              timestamp: new Date(now),
+            };
+            
+            setMessages(prev => {
+              const updated = [...prev, message];
+              // Keep only last 500 messages in memory
+              const limited = updated.slice(-500);
+              // Persist to sessionStorage
+              persistMessages(limited);
+              return limited;
+            });
+            
+            if (optionsRef.current.onMessage) {
+              optionsRef.current.onMessage(message);
+            }
             return;
           }
           
-          // Add to seen messages with current timestamp
-          seenMessagesRef.current.set(dedupeKey, now);
-          
-          // Clean up old entries (older than 5 seconds)
-          seenMessagesRef.current.forEach((time, key) => {
-            if (now - time > 5000) {
-              seenMessagesRef.current.delete(key);
+          // Handle userchat messages (existing logic)
+          if (messageType === 'userchat') {
+            // Extract message fields (backend uses snake_case: user_id, username, text)
+            const messageText = data.text || '';
+            const userID = data.user_id || data.userID || 'unknown';
+            const username = data.username || 'Unknown';
+            
+            if (!messageText) {
+              console.warn('Received message with no text:', data);
+              return;
             }
+            
+            // Create a unique key for deduplication: user_id + text + timestamp (rounded to seconds)
+            const nowSeconds = Math.floor(now / 1000);
+            const dedupeKey = `${userID}-${messageText}-${nowSeconds}`;
+            
+            // Check if we've already seen this exact message recently (within 2 seconds)
+            const lastSeen = seenMessagesRef.current.get(dedupeKey);
+            
+            if (lastSeen && (now - lastSeen < 2000)) {
+              // Already seen this message within the last 2 seconds, skip it
+              return;
+            }
+            
+            // Add to seen messages with current timestamp
+            seenMessagesRef.current.set(dedupeKey, now);
+            
+            // Clean up old entries (older than 5 seconds)
+            seenMessagesRef.current.forEach((time, key) => {
+              if (!key.startsWith('tx-') && (now - time > 5000)) {
+                seenMessagesRef.current.delete(key);
+              }
+            });
+
+            const message = {
+              id: `${now}-${Math.random()}-${userID}`,
+              type: 'userchat',
+              text: messageText,
+              username: username,
+              userID: userID,
+              timestamp: new Date(now),
+            };
+
+          setMessages(prev => {
+            // Check if this message might be a duplicate of an optimistic message
+            // (same user, same text, within last 5 seconds)
+            const fiveSecondsAgo = now - 5000;
+            const isDuplicateOptimistic = prev.some(msg => 
+              msg.isOptimistic && 
+              msg.userID === userID && 
+              msg.text === messageText &&
+              msg.timestamp.getTime() > fiveSecondsAgo
+            );
+            
+            let updated;
+            if (isDuplicateOptimistic) {
+              // Replace optimistic message with real one
+              updated = prev.map(msg => 
+                msg.isOptimistic && 
+                msg.userID === userID && 
+                msg.text === messageText &&
+                msg.timestamp.getTime() > fiveSecondsAgo
+                  ? message
+                  : msg
+              );
+            } else {
+              updated = [...prev, message];
+            }
+            
+            // Keep only last 500 messages in memory
+            const limited = updated.slice(-500);
+            // Persist to sessionStorage
+            persistMessages(limited);
+            return limited;
           });
-
-          const message = {
-            id: `${now}-${Math.random()}-${userID}`,
-            text: messageText,
-            username: username,
-            userID: userID,
-            timestamp: new Date(now),
-          };
-
-          setMessages(prev => [...prev, message]);
           
           if (optionsRef.current.onMessage) {
             optionsRef.current.onMessage(message);
           }
+          return;
+        }
+        
+        // Unknown message type - log warning but don't crash
+        console.warn('Received message with unknown type:', messageType, data);
         } catch (err) {
           console.error('Error processing websocket message:', err);
         }
@@ -258,14 +394,20 @@ export const useWebSocket = (url, options = {}) => {
       isOptimistic: true, // Flag to identify optimistic messages
     };
 
-    // Add to messages immediately
-    setMessages(prev => [...prev, optimisticMessage]);
+    // Add to messages immediately and persist
+    setMessages(prev => {
+      const updated = [...prev, optimisticMessage];
+      // Keep only last 500 messages in memory
+      const limited = updated.slice(-500);
+      persistMessages(limited);
+      return limited;
+    });
 
     // Send as plain text (backend expects raw bytes and will add user info)
     wsRef.current.send(trimmedText);
     
     return true;
-  }, []);
+  }, [persistMessages]);
 
   const disconnect = useCallback(() => {
     isManualCloseRef.current = true;
@@ -297,6 +439,8 @@ export const useWebSocket = (url, options = {}) => {
       wsRef.current = null;
     }
     
+    // Note: We don't clear messages here - they persist in sessionStorage
+    // Messages will only be cleared on page reload/close (sessionStorage behavior)
     setIsConnected(false);
   }, []);
 
