@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Logo from './Logo';
 import WalletButton from './WalletButton';
@@ -7,6 +7,30 @@ import BuyTokenButton from './BuyTokenButton';
 const Navigation = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
+
+  // Close dropdown when route changes
+  useEffect(() => {
+    setIsDropdownOpen(false);
+  }, [location.pathname]);
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b border-nema-secondary">
@@ -37,43 +61,122 @@ const Navigation = () => {
           </div>
 
           {/* Navigation Links - Show on md and up */}
-          <div className="hidden md:flex items-center gap-3 lg:gap-4 xl:gap-5 font-anonymous flex-1 justify-center min-w-0">
+          <div className="hidden md:flex items-center gap-3 lg:gap-4 xl:gap-5 flex-1 justify-center min-w-0">
+            {/* Always visible: Worminal and Gallery */}
             <Link
               to="/"
-              className={`text-sm lg:text-sm xl:text-sm font-medium transition-colors duration-200 hover:text-nema-cyan whitespace-nowrap ${location.pathname === '/'
-                  ? 'text-nema-cyan'
-                  : 'text-nema-secondary'
+              className={`nav-link nema-display nema-header-2 transition-all duration-200 whitespace-nowrap ${location.pathname === '/'
+                  ? 'nav-link-active'
+                  : 'nav-link-inactive'
                 }`}
             >
               Worminal
+              <span className="nav-badge-new">NEW</span>
             </Link>
             <Link
+              to="/gallery"
+              className={`nav-link nema-display nema-header-2 transition-all duration-200 whitespace-nowrap ${location.pathname === '/gallery'
+                  ? 'nav-link-active'
+                  : 'nav-link-inactive'
+                }`}
+            >
+              Gallery
+              <span className="nav-badge-new">NEW</span>
+            </Link>
+            
+            {/* Show on xl and up, hide on md/lg */}
+            <Link
               to="/about"
-              className={`text-sm lg:text-sm xl:text-sm font-medium transition-colors duration-200 hover:text-nema-cyan whitespace-nowrap ${location.pathname === '/about'
-                  ? 'text-nema-cyan'
-                  : 'text-nema-secondary'
+              className={`hidden xl:block nav-link nema-display nema-header-2 transition-all duration-200 whitespace-nowrap ${location.pathname === '/about'
+                  ? 'nav-link-active'
+                  : 'nav-link-inactive'
                 }`}
             >
               About
             </Link>
             <Link
               to="/roadmap"
-              className={`text-sm lg:text-sm xl:text-sm font-medium transition-colors duration-200 hover:text-nema-cyan whitespace-nowrap ${location.pathname === '/roadmap'
-                  ? 'text-nema-cyan'
-                  : 'text-nema-secondary'
+              className={`hidden xl:block nav-link nema-display nema-header-2 transition-all duration-200 whitespace-nowrap ${location.pathname === '/roadmap'
+                  ? 'nav-link-active'
+                  : 'nav-link-inactive'
                 }`}
             >
               Roadmap
             </Link>
             <Link
               to="/airdrop"
-              className={`text-sm lg:text-sm xl:text-sm font-medium transition-colors duration-200 hover:text-nema-cyan whitespace-nowrap ${location.pathname === '/airdrop'
-                  ? 'text-nema-cyan'
-                  : 'text-nema-secondary'
+              className={`hidden xl:block nav-link nema-display nema-header-2 transition-all duration-200 whitespace-nowrap ${location.pathname === '/airdrop'
+                  ? 'nav-link-active'
+                  : 'nav-link-inactive'
                 }`}
             >
               Token
             </Link>
+            
+            {/* Dropdown menu button for md/lg screens */}
+            <div ref={dropdownRef} className="xl:hidden relative">
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className={`nav-link nema-display nema-header-2 transition-all duration-200 whitespace-nowrap ${isDropdownOpen || ['/about', '/roadmap', '/airdrop'].includes(location.pathname)
+                    ? 'nav-link-active'
+                    : 'nav-link-inactive'
+                  }`}
+              >
+                More
+                <svg 
+                  className={`w-3 h-3 ml-1 inline-block transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {/* Dropdown menu */}
+              {isDropdownOpen && (
+                <div className="absolute top-full left-0 mt-2 bg-nema-black border border-nema-gray shadow-lg z-50 min-w-[120px]">
+                  <div className="py-2">
+                    <Link
+                      to="/about"
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`nav-link nav-link-dropdown nema-display nema-header-2 transition-all duration-200 block ${location.pathname === '/about'
+                          ? 'nav-link-active'
+                          : 'nav-link-inactive'
+                        }`}
+                    >
+                      About
+                    </Link>
+                    <Link
+                      to="/roadmap"
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`nav-link nav-link-dropdown nema-display nema-header-2 transition-all duration-200 block ${location.pathname === '/roadmap'
+                          ? 'nav-link-active'
+                          : 'nav-link-inactive'
+                        }`}
+                    >
+                      Roadmap
+                    </Link>
+                    <Link
+                      to="/airdrop"
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`nav-link nav-link-dropdown nema-display nema-header-2 transition-all duration-200 block ${location.pathname === '/airdrop'
+                          ? 'nav-link-active'
+                          : 'nav-link-inactive'
+                        }`}
+                    >
+                      Token
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Right side buttons - Show on md and up */}
@@ -108,23 +211,35 @@ const Navigation = () => {
         {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="md:hidden bg-nema-black border-t border-nema-secondary">
-            <div className="px-4 py-6 space-y-6 font-anonymous">
+            <div className="px-4 py-6 space-y-4">
               <Link
                 to="/"
                 onClick={() => setIsMenuOpen(false)}
-                className={`block text-lg font-medium transition-colors duration-200 hover:text-nema-cyan ${location.pathname === '/'
-                    ? 'text-nema-cyan'
-                    : 'text-nema-secondary'
+                className={`nav-link nav-link-mobile nema-display nema-header-2 transition-all duration-200 ${location.pathname === '/'
+                    ? 'nav-link-active'
+                    : 'nav-link-inactive'
                   }`}
               >
                 Worminal
+                <span className="nav-badge-new">NEW</span>
+              </Link>
+              <Link
+                to="/gallery"
+                onClick={() => setIsMenuOpen(false)}
+                className={`nav-link nav-link-mobile nema-display nema-header-2 transition-all duration-200 ${location.pathname === '/gallery'
+                    ? 'nav-link-active'
+                    : 'nav-link-inactive'
+                  }`}
+              >
+                Gallery
+                <span className="nav-badge-new">NEW</span>
               </Link>
               <Link
                 to="/about"
                 onClick={() => setIsMenuOpen(false)}
-                className={`block text-lg font-medium transition-colors duration-200 hover:text-nema-cyan ${location.pathname === '/about'
-                  ? 'text-nema-cyan'
-                  : 'text-nema-secondary'
+                className={`nav-link nav-link-mobile nema-display nema-header-2 transition-all duration-200 ${location.pathname === '/about'
+                  ? 'nav-link-active'
+                  : 'nav-link-inactive'
                   }`}
               >
                 About
@@ -132,9 +247,9 @@ const Navigation = () => {
               <Link
                 to="/roadmap"
                 onClick={() => setIsMenuOpen(false)}
-                className={`block text-lg font-medium transition-colors duration-200 hover:text-nema-cyan ${location.pathname === '/roadmap'
-                  ? 'text-nema-cyan'
-                  : 'text-nema-secondary'
+                className={`nav-link nav-link-mobile nema-display nema-header-2 transition-all duration-200 ${location.pathname === '/roadmap'
+                  ? 'nav-link-active'
+                  : 'nav-link-inactive'
                   }`}
               >
                 Roadmap
@@ -142,9 +257,9 @@ const Navigation = () => {
               <Link
                 to="/airdrop"
                 onClick={() => setIsMenuOpen(false)}
-                className={`block text-lg font-medium transition-colors duration-200 hover:text-nema-cyan ${location.pathname === '/airdrop'
-                    ? 'text-nema-cyan'
-                    : 'text-nema-secondary'
+                className={`nav-link nav-link-mobile nema-display nema-header-2 transition-all duration-200 ${location.pathname === '/airdrop'
+                    ? 'nav-link-active'
+                    : 'nav-link-inactive'
                   }`}
               >
                 Token

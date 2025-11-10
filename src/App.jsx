@@ -12,6 +12,7 @@ import Worminal from './pages/Worminal';
 import Profile from './pages/Profile';
 import OnboardingScreen from './pages/OnboardingScreen';
 import Roadmap from './pages/Roadmap';
+import Gallery from './pages/Gallery';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
                 <Route path="/roadmap" element={<Roadmap />} />
                 <Route path="/docs" element={<Docs />} />
                 <Route path="/airdrop" element={<Airdrop />} />
+                <Route path="/gallery" element={<Gallery />} />
                 <Route path="/onboarding" element={<OnboardingScreen />} />
                 <Route path="/profile" element={
                   <ProtectedRoute requireAuth={true} redirectNewUsers={true}>
