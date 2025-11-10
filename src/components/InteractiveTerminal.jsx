@@ -44,7 +44,7 @@ const InteractiveTerminal = ({ isFullscreen = false, onToggleFullscreen }) => {
   } = useNema();
 
   // Auth context for user info
-  const { profile } = useContext(AuthContext);
+  const { profile, isAuthenticated } = useContext(AuthContext);
 
   // Worminal access control
   const {
@@ -724,8 +724,8 @@ Or simply type a message to chat with your selected NEMA!`,
 
           {/* Terminal Content */}
           <div ref={scrollContainerRef} className="flex-1 p-3 overflow-y-auto min-h-0">
-            {/* Claim Button - Only show when user needs to claim */}
-            {needsToClaim && canClaim && (
+            {/* Claim Button - Show when user can claim a pending session */}
+            {isAuthenticated && currentSession && currentSession.status === 'pending_claim' && canClaim && (
               <div className="mb-4 p-4 border-2 border-nema-cyan bg-nema-cyan/10 rounded">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="flex-1">

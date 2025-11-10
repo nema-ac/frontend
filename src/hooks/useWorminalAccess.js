@@ -329,8 +329,7 @@ export const useWorminalAccess = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [publicTimeRemaining, shouldShowPublicView]); // fetchPublicWorminalData is stable (empty deps)
 
-  // Check claim eligibility when session changes or openForAnyone flag changes
-  // Use session ID and status to prevent unnecessary checks
+  // Check claim eligibility when session changes, openForAnyone flag changes, or auth status changes
   useEffect(() => {
     if (currentSession && currentSession.status === 'pending_claim') {
       checkCanClaim();
@@ -338,8 +337,7 @@ export const useWorminalAccess = () => {
       setCanClaim(false);
       setClaimReason('no_pending_session');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentSession?.id, currentSession?.status, openForAnyone]); // checkCanClaim depends on these values, so it's safe to omit
+  }, [currentSession?.id, currentSession?.status, openForAnyone, isAuthenticated, profile?.wallet_address, checkCanClaim]);
 
   // Fetch public data when user should see public view
   useEffect(() => {

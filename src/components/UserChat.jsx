@@ -26,6 +26,7 @@ const UserChat = () => {
     const { messages, isConnected, error, sendMessage } = useWebSocketContext();
     const { claimSession, refreshSession } = useWorminalAccessContext();
     const lastClaimedSessionIdRef = useRef(null);
+    const lastClaimSessionIdRef = useRef(null);
 
     // Refresh session state when session_claimed message is received
     useEffect(() => {
@@ -40,7 +41,20 @@ const UserChat = () => {
         }
     }, [messages, refreshSession]);
 
-    const scrollToBottom = (smooth = true) => {
+    // Refresh session state when session_claim message is received (session became open for anyone)
+    useEffect(() => {
+        const claimMessage = messages.find(msg =>
+            msg.type === 'session_claim' &&
+            msg.sessionId !== lastClaimSessionIdRef.current
+        );
+
+        if (claimMessage) {
+            lastClaimSessionIdRef.current = claimMessage.sessionId;
+            refreshSession();
+        }
+    }, [messages, refreshSession]);
+
+    const scrollToBottom = (smooth = false) => {
         const container = messagesContainerRef.current;
         if (container) {
             // Scroll the container itself, not the window
@@ -51,12 +65,15 @@ const UserChat = () => {
         }
     };
 
-    // Auto-scroll to bottom when new message arrives
+    // Scroll to bottom immediately on mount
+    useEffect(() => {
+        scrollToBottom(false);
+    }, []);
+
+    // Auto-scroll to bottom when new message arrives (immediate, no animation)
     useEffect(() => {
         if (messages.length > 0) {
-            setTimeout(() => {
-                scrollToBottom();
-            }, 100);
+            scrollToBottom(false);
         }
     }, [messages]);
 
@@ -93,10 +110,10 @@ const UserChat = () => {
         setShowEmojiPicker(false);
         inputRef.current?.focus();
 
-        // Scroll to show the new message after sending
+        // Scroll to show the new message after sending (immediate, no animation)
         setTimeout(() => {
-            scrollToBottom(true);
-        }, 100);
+            scrollToBottom(false);
+        }, 0);
     };
 
     const handleEmojiSelect = (emoji) => {
