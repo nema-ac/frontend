@@ -3,7 +3,7 @@
  * Handles session polling, claim eligibility, and access permissions
  */
 
-import { useState, useEffect, useContext, useCallback, useRef } from 'react';
+import { useState, useEffect, useContext, useCallback, useRef, useMemo } from 'react';
 import accessService from '../services/access.js';
 import { AuthContext } from '../contexts/AuthContext.jsx';
 
@@ -13,8 +13,10 @@ export const useWorminalAccess = () => {
   const { profile, isAuthenticated } = useContext(AuthContext);
   const [currentSession, setCurrentSession] = useState(null);
   const [timeRemaining, setTimeRemaining] = useState(0);
+  const [openForAnyone, setOpenForAnyone] = useState(false);
   const [canClaim, setCanClaim] = useState(false);
   const [claimReason, setClaimReason] = useState('');
+  const [hasAccessFromAPI, setHasAccessFromAPI] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [claiming, setClaiming] = useState(false);
@@ -25,38 +27,51 @@ export const useWorminalAccess = () => {
   const publicCountdownIntervalRef = useRef(null);
   const previousTimeRemainingRef = useRef(null);
   const previousPublicTimeRemainingRef = useRef(null);
+  
+  // Request deduplication - prevent simultaneous duplicate requests
+  const fetchingSessionRef = useRef(false);
+  const fetchingAccessRef = useRef(false);
+  const fetchingPublicRef = useRef(false);
+  const checkingClaimRef = useRef(false);
 
-  // Fetch current session state
+  // Fetch current session state with deduplication
   const fetchCurrentSession = useCallback(async () => {
+    // Prevent duplicate simultaneous requests
+    if (fetchingSessionRef.current) {
+      return;
+    }
+    
+    fetchingSessionRef.current = true;
     try {
       const data = await accessService.getCurrentSession();
       setCurrentSession(data.session);
       setTimeRemaining(data.time_remaining_ms || 0);
+      setOpenForAnyone(data.open_for_anyone || false);
       setError(null);
     } catch (err) {
       console.error('Error fetching current session:', err);
       setError(err.message);
     } finally {
       setLoading(false);
+      fetchingSessionRef.current = false;
     }
   }, []);
 
-  // Check if user can claim the current pending session
+  // Check if user can claim the current pending session with deduplication
   const checkCanClaim = useCallback(async () => {
-    // Only check if user is authenticated, session exists, is pending, and belongs to current user
+    // Only check if user is authenticated and session exists and is pending
     if (!isAuthenticated || !profile || !currentSession || currentSession.status !== 'pending_claim') {
       setCanClaim(false);
       setClaimReason('no_pending_session');
       return;
     }
 
-    // Only query the API if the session belongs to the current user
-    if (currentSession.wallet_address !== profile.wallet_address) {
-      setCanClaim(false);
-      setClaimReason('not_your_session');
+    // Prevent duplicate simultaneous requests
+    if (checkingClaimRef.current) {
       return;
     }
 
+    checkingClaimRef.current = true;
     try {
       const data = await accessService.canClaim();
       setCanClaim(data.can_claim);
@@ -65,6 +80,8 @@ export const useWorminalAccess = () => {
       console.error('Error checking claim eligibility:', err);
       setCanClaim(false);
       setClaimReason('error');
+    } finally {
+      checkingClaimRef.current = false;
     }
   }, [isAuthenticated, profile, currentSession]);
 
@@ -91,34 +108,64 @@ export const useWorminalAccess = () => {
     }
   }, [canClaim, claiming, fetchCurrentSession]);
 
-  // Check if current user has access (session is theirs and active)
+  // Fetch access status from authenticated endpoint with deduplication
+  const fetchAccessStatus = useCallback(async () => {
+    if (!isAuthenticated) {
+      setHasAccessFromAPI(false);
+      return;
+    }
+
+    // Prevent duplicate simultaneous requests
+    if (fetchingAccessRef.current) {
+      return;
+    }
+
+    fetchingAccessRef.current = true;
+    try {
+      const data = await accessService.checkAccess();
+      setHasAccessFromAPI(data.has_access || false);
+    } catch (err) {
+      // If not authenticated or endpoint fails, user doesn't have access
+      console.error('Error checking access:', err);
+      setHasAccessFromAPI(false);
+    } finally {
+      fetchingAccessRef.current = false;
+    }
+  }, [isAuthenticated]);
+
+  // Check if current user has access (uses authenticated endpoint)
   const hasAccess = useCallback(() => {
-    if (!isAuthenticated || !profile || !currentSession) {
+    if (!isAuthenticated || !currentSession) {
       return false;
     }
 
-    // User has access if the session is active and belongs to them
-    return (
-      currentSession.status === 'active' &&
-      currentSession.wallet_address === profile.wallet_address
-    );
-  }, [isAuthenticated, profile, currentSession]);
+    // Use API response for access check (more reliable than wallet comparison)
+    return hasAccessFromAPI && currentSession.status === 'active';
+  }, [isAuthenticated, currentSession, hasAccessFromAPI]);
 
   // Check if current user is in the session but hasn't claimed yet
+  // Uses canClaim status instead of wallet comparison
   const needsToClaim = useCallback(() => {
-    if (!isAuthenticated || !profile || !currentSession) {
+    if (!isAuthenticated || !currentSession) {
       return false;
     }
 
+    // User needs to claim if session is pending and they can claim it
     return (
       currentSession.status === 'pending_claim' &&
-      currentSession.wallet_address === profile.wallet_address &&
+      canClaim &&
       !currentSession.claimed_at
     );
-  }, [isAuthenticated, profile, currentSession]);
+  }, [isAuthenticated, currentSession, canClaim]);
 
-  // Fetch public Worminal data (when user is spectating)
+  // Fetch public Worminal data (when user is spectating) with deduplication
   const fetchPublicWorminalData = useCallback(async () => {
+    // Prevent duplicate simultaneous requests
+    if (fetchingPublicRef.current) {
+      return;
+    }
+
+    fetchingPublicRef.current = true;
     setLoadingPublicData(true);
     try {
       const data = await accessService.getPublicWorminal();
@@ -133,33 +180,68 @@ export const useWorminalAccess = () => {
       setPublicTimeRemaining(0);
     } finally {
       setLoadingPublicData(false);
+      fetchingPublicRef.current = false;
     }
   }, []);
 
-  // Determine if user should see public view
-  const shouldShowPublicView = useCallback(() => {
+  // Determine if user should see public view - computed value, not a function
+  const shouldShowPublicView = useMemo(() => {
     // Show public view only if:
     // 1. There's an active session
     // 2. Session has a valid username (not empty)
     // 3. User doesn't have access
     // 4. User doesn't need to claim
+    // 5. User can't claim (either not their session or not open for anyone)
+    const hasAccessValue = isAuthenticated && currentSession && hasAccessFromAPI && currentSession.status === 'active';
+    const needsToClaimValue = isAuthenticated && currentSession && 
+      currentSession.status === 'pending_claim' && canClaim && !currentSession.claimed_at;
+    
     return (
       currentSession &&
       currentSession.username &&
       currentSession.username.trim() !== '' &&
-      !hasAccess() &&
-      !needsToClaim()
+      !hasAccessValue &&
+      !needsToClaimValue &&
+      !canClaim
     );
-  }, [currentSession, hasAccess, needsToClaim]);
+  }, [
+    currentSession?.id,
+    currentSession?.status,
+    currentSession?.username,
+    isAuthenticated,
+    hasAccessFromAPI,
+    canClaim
+  ]);
 
   // Poll current session every 10 seconds
+  // Use empty deps - fetchCurrentSession is stable and we don't want to restart polling
   useEffect(() => {
     fetchCurrentSession();
 
-    const interval = setInterval(fetchCurrentSession, POLL_INTERVAL);
+    const interval = setInterval(() => {
+      fetchCurrentSession();
+    }, POLL_INTERVAL);
 
     return () => clearInterval(interval);
-  }, [fetchCurrentSession]);
+  }, []); // Empty deps - only run once on mount
+
+  // Poll access status when authenticated
+  // Only restart polling when authentication status changes, not on every session change
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setHasAccessFromAPI(false);
+      return;
+    }
+
+    fetchAccessStatus();
+    
+    // Refresh access status periodically
+    const interval = setInterval(() => {
+      fetchAccessStatus();
+    }, POLL_INTERVAL);
+    
+    return () => clearInterval(interval);
+  }, [isAuthenticated]); // Only depend on isAuthenticated to prevent constant restarts
 
   // Countdown timer - decrements timeRemaining every second
   // Uses a single continuous interval that checks if countdown should run
@@ -229,7 +311,7 @@ export const useWorminalAccess = () => {
     }
     // Update previous value
     previousTimeRemainingRef.current = timeRemaining;
-  }, [timeRemaining, fetchCurrentSession]);
+  }, [timeRemaining]); // Remove fetchCurrentSession from deps - it's stable
 
   // Refresh public data when timer reaches 0 to avoid lag
   useEffect(() => {
@@ -238,15 +320,16 @@ export const useWorminalAccess = () => {
         previousPublicTimeRemainingRef.current > 0 && 
         publicTimeRemaining === 0) {
       // Timer reached 0, refresh public data to get accurate state
-      if (shouldShowPublicView()) {
+      if (shouldShowPublicView) {
         fetchPublicWorminalData();
       }
     }
     // Update previous value
     previousPublicTimeRemainingRef.current = publicTimeRemaining;
-  }, [publicTimeRemaining, fetchPublicWorminalData, shouldShowPublicView]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [publicTimeRemaining, shouldShowPublicView]); // fetchPublicWorminalData is stable (empty deps)
 
-  // Check claim eligibility when session changes
+  // Check claim eligibility when session changes, openForAnyone flag changes, or auth status changes
   useEffect(() => {
     if (currentSession && currentSession.status === 'pending_claim') {
       checkCanClaim();
@@ -254,26 +337,30 @@ export const useWorminalAccess = () => {
       setCanClaim(false);
       setClaimReason('no_pending_session');
     }
-  }, [currentSession, checkCanClaim]);
+  }, [currentSession?.id, currentSession?.status, openForAnyone, isAuthenticated, profile?.wallet_address, checkCanClaim]);
 
   // Fetch public data when user should see public view
   useEffect(() => {
-    if (shouldShowPublicView()) {
+    if (shouldShowPublicView) {
       fetchPublicWorminalData();
 
       // Poll public data every 10 seconds when in public view mode
-      const interval = setInterval(fetchPublicWorminalData, POLL_INTERVAL);
+      const interval = setInterval(() => {
+        fetchPublicWorminalData();
+      }, POLL_INTERVAL);
       return () => clearInterval(interval);
     } else {
       // Clear public data when not in public view
       setPublicWorminalData(null);
       setPublicTimeRemaining(0);
     }
-  }, [shouldShowPublicView, fetchPublicWorminalData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shouldShowPublicView]); // fetchPublicWorminalData is stable (empty deps), so we can safely omit it
 
   return {
     currentSession,
     timeRemaining,
+    openForAnyone,
     canClaim,
     claimReason,
     loading,
@@ -286,7 +373,7 @@ export const useWorminalAccess = () => {
     publicWorminalData,
     publicTimeRemaining,
     loadingPublicData,
-    shouldShowPublicView: shouldShowPublicView()
+    shouldShowPublicView
   };
 };
 

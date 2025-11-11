@@ -1,6 +1,6 @@
 /**
- * Access Control API client for Worminal
- * Handles session management and access claim endpoints
+ * Worminal API client - Unified API for all Worminal endpoints
+ * Handles session management, access control, and Worminal data
  */
 
 import apiClient from './api.js';
@@ -9,10 +9,11 @@ class AccessService {
   /**
    * Get current session state (public endpoint)
    * Shows who has access, session status, and time remaining
+   * Endpoint: GET /worminal/session
    */
   async getCurrentSession() {
     try {
-      return await apiClient.get('/access/current');
+      return await apiClient.get('/worminal/session');
     } catch (error) {
       console.error('Error fetching current session:', error);
       throw error;
@@ -22,10 +23,11 @@ class AccessService {
   /**
    * Check if authenticated user can claim current pending session
    * Requires authentication
+   * Endpoint: GET /worminal/can-claim
    */
   async canClaim() {
     try {
-      return await apiClient.get('/access/can-claim', {
+      return await apiClient.get('/worminal/can-claim', {
         credentials: 'include'
       });
     } catch (error) {
@@ -37,10 +39,11 @@ class AccessService {
   /**
    * Claim the pending session
    * Requires authentication
+   * Endpoint: POST /worminal/claim
    */
   async claimSession() {
     try {
-      return await apiClient.post('/access/claim', null, {
+      return await apiClient.post('/worminal/claim', null, {
         credentials: 'include'
       });
     } catch (error) {
@@ -52,6 +55,7 @@ class AccessService {
   /**
    * Get public Worminal view (public endpoint)
    * Returns session info, neural states, and recent messages
+   * Endpoint: GET /worminal/
    */
   async getPublicWorminal() {
     try {
@@ -65,6 +69,7 @@ class AccessService {
   /**
    * Check if authenticated user has Worminal access (auth required)
    * Returns simple boolean
+   * Endpoint: GET /worminal/access
    */
   async checkAccess() {
     try {
