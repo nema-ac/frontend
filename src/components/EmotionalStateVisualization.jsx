@@ -1,6 +1,6 @@
 /**
  * EmotionalStateVisualization Component
- * 
+ *
  * A comprehensive, animated visualization of Nema's emotional state
  * Inspired by HUD/diagnostic interface aesthetics with monochrome design
  * Features timeline visualization with discrete points for each state
@@ -307,12 +307,14 @@ const EmotionalStateVisualization = ({
         const emotionEntries = Object.entries(normalizedState);
 
         return (
-            <div className={`border border-nema-gray p-4 ${className}`}>
-                <div className="mb-3">
-                    <h3 className="text-sm font-intranet text-nema-cyan mb-2">EMOTIONAL STATE</h3>
+            <div className={className}>
+                <div className="p-2 border-t border-b border-nema-gray -mx-3">
+                    <h3 className="nema-display nema-header-2 text-nema-cyan">EMOTIONAL STATE</h3>
+                </div>
+                <div className="pt-3">
                     {displayedEmotion && (
                         <div className="flex items-center gap-3 mb-3">
-                            <div className="text-lg font-anonymous text-nema-white font-medium">
+                            <div className="text-md font-anonymous text-nema-white font-medium">
                                 {displayedEmotion.label}
                             </div>
                             <div className="flex-1 h-2 bg-nema-black border border-nema-gray/50 overflow-hidden">
@@ -326,10 +328,9 @@ const EmotionalStateVisualization = ({
                             </div>
                         </div>
                     )}
-                </div>
 
-                {/* Circular indicators for ALL emotions - clickable */}
-                <div className="grid grid-cols-4 gap-3">
+                    {/* Circular indicators for ALL emotions - clickable */}
+                    <div className="grid grid-cols-4 gap-3">
                     {emotionEntries.map(([emotion, value]) => {
                         const config = emotionConfig[emotion];
                         const animatedValue = animatedValues[emotion] ?? value;
@@ -396,6 +397,7 @@ const EmotionalStateVisualization = ({
                             </button>
                         );
                     })}
+                    </div>
                 </div>
             </div>
         );
@@ -406,7 +408,7 @@ const EmotionalStateVisualization = ({
         <div className={`border border-nema-gray p-4 bg-nema-black/30 ${className}`}>
             {/* Header */}
             <div className="mb-3">
-                <h2 className="text-base font-intranet text-nema-cyan mb-2">EMOTIONAL STATE</h2>
+                <h2 className="nema-display nema-header-2 text-nema-cyan mb-2">EMOTIONAL STATE</h2>
             </div>
 
             {/* Timeline at the top - only real data */}

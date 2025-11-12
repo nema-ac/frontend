@@ -35,9 +35,9 @@ const Navigation = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b border-nema-secondary">
       <div className="container mx-auto px-4 md:px-3 lg:px-4 xl:px-8">
-        <div className="flex justify-between items-center h-12 gap-3 md:gap-2 lg:gap-3">
+        <div className="flex items-center h-12 gap-3 md:gap-2 lg:gap-3 md:justify-between">
           {/* Mobile/Tablet: Small Logo */}
-          <div className="lg:hidden">
+          <div className="lg:hidden flex-shrink-0">
             <Link to="/" className="flex items-center">
               <img
                 src="/mobile-nema-logo.png"
@@ -58,6 +58,12 @@ const Navigation = () => {
                 style={{ height: 24, width: 'auto' }}
               />
             </Link>
+          </div>
+
+          {/* Mobile: Middle section with Buy Button + Wallet */}
+          <div className="md:hidden flex items-center justify-evenly flex-1 gap-2">
+            <BuyTokenButton />
+            <WalletButton />
           </div>
 
           {/* Navigation Links - Show on md and up */}
@@ -190,9 +196,8 @@ const Navigation = () => {
             <BuyTokenButton />
           </div>
 
-          {/* Mobile: Wallet + Menu */}
-          <div className="md:hidden flex items-center space-x-2 flex-shrink-0">
-            <WalletButton />
+          {/* Mobile: Hamburger Menu */}
+          <div className="md:hidden flex-shrink-0">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-nema-secondary hover:text-nema-cyan focus:outline-none cursor-pointer"

@@ -61,9 +61,9 @@ const ViewSelector = ({
       <div className="flex items-center gap-2">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center gap-2 bg-nema-black/50 border border-nema-gray rounded px-3 py-1.5 hover:border-nema-secondary transition-colors cursor-pointer"
+          className="flex items-center gap-2 bg-nema-black/50 border border-nema-gray rounded px-3 py-2 hover:border-nema-secondary transition-colors cursor-pointer"
         >
-          <span className="text-nema-secondary text-xs font-anonymous font-bold">
+          <span className="text-nema-secondary text-xs sm:text-sm font-anonymous font-bold whitespace-nowrap">
             {currentView?.label}
           </span>
           <svg
