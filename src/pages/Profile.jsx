@@ -10,6 +10,7 @@ import NemaCard from '../components/NemaCard.jsx';
 import { getProfileAvatarUrl } from '../utils/avatarUtils.js';
 import EmotionalStateVisualization from '../components/EmotionalStateVisualization.jsx';
 import { sanitizeProfileField } from '../utils/validation.js';
+import CompactEmotionRadar from '../components/CompactEmotionRadar.jsx';
 
 const Profile = () => {
   const { isAuthenticated, logout, profile: contextProfile, fetchProfile: contextFetchProfile, refreshNemaBalance } = useContext(AuthContext);
@@ -29,6 +30,7 @@ const Profile = () => {
   const [emotionalState, setEmotionalState] = useState(null);
   const [emotionalStateHistory, setEmotionalStateHistory] = useState([]);
   const [loadingEmotionalState, setLoadingEmotionalState] = useState(false);
+  const [neuralState, setNeuralState] = useState(null);
   const usernameInputRef = useRef(null);
 
   useEffect(() => {
@@ -67,6 +69,8 @@ const Profile = () => {
       if (currentState.emotionalState) {
         setEmotionalState(currentState.emotionalState);
       }
+      // Store full neural state for radar plot
+      setNeuralState(currentState);
 
       // Fetch state history for timeline (last 50 states)
       const history = await nemaService.getStateHistory(nemaId, { limit: 50, order: 'desc' });
@@ -474,52 +478,32 @@ Building the future of digital biology with $NEMA 🧠`;
           </div>
         </div>
 
-        {/* Middle Section - Current State and Emotional Timeline */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-          {/* Current State */}
-          <div className="nema-card p-4">
-            <h2 className="text-base font-intranet text-nema-cyan mb-3">CURRENT STATE</h2>
-            <div className="aspect-square bg-nema-black/50 border border-nema-cyan/20 rounded-lg flex items-center justify-center">
-              {/* Placeholder for 3D visualization */}
-              <div className="text-center font-anonymous">
-                <div className="w-20 h-20 mx-auto mb-2 border border-nema-cyan/30 rounded-lg flex items-center justify-center">
-                  <span className="text-nema-secondary text-xs">3D Model</span>
-                </div>
-                <div className="grid grid-cols-2 gap-1.5 text-xs">
-                  <button className="bg-nema-cyan/20 border border-nema-cyan/30 p-1.5 rounded text-xs">+</button>
-                  <button className="bg-nema-cyan/20 border border-nema-cyan/30 p-1.5 rounded text-xs">+</button>
-                </div>
+        {/* Emotional State Visualization */}
+        <div className="mb-6">
+          {loadingEmotionalState ? (
+            <div className="nema-card p-6">
+              <div className="flex items-center justify-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-nema-cyan"></div>
               </div>
             </div>
-          </div>
-
-          {/* Emotional State Visualization */}
-          <div className="lg:col-span-2">
-            {loadingEmotionalState ? (
-              <div className="nema-card p-6">
-                <div className="flex items-center justify-center h-64">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-nema-cyan"></div>
-                </div>
+          ) : emotionalState ? (
+            <EmotionalStateVisualization
+              emotionalState={emotionalState}
+              variant="full"
+              showHistory={true}
+              historyData={emotionalStateHistory}
+              className="w-full"
+            />
+          ) : (
+            <div className="nema-card p-4">
+              <h2 className="text-base font-intranet text-nema-cyan mb-3">EMOTIONAL STATE</h2>
+              <div className="h-48 bg-nema-black/50 border border-nema-cyan/20 rounded-lg flex items-center justify-center">
+                <span className="text-nema-secondary text-xs font-anonymous px-4 text-center">
+                  No emotional state data available yet. Start chatting with your Nema to see emotional states evolve.
+                </span>
               </div>
-            ) : emotionalState ? (
-              <EmotionalStateVisualization
-                emotionalState={emotionalState}
-                variant="full"
-                showHistory={true}
-                historyData={emotionalStateHistory}
-                className="w-full"
-              />
-            ) : (
-              <div className="nema-card p-4">
-                <h2 className="text-base font-intranet text-nema-cyan mb-3">EMOTIONAL STATE</h2>
-                <div className="h-48 bg-nema-black/50 border border-nema-cyan/20 rounded-lg flex items-center justify-center">
-                  <span className="text-nema-secondary text-xs font-anonymous px-4 text-center">
-                    No emotional state data available yet. Start chatting with your Nema to see emotional states evolve.
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* MY ACCOUNT Section */}

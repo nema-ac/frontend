@@ -71,18 +71,15 @@ const NeuralStatePanel = ({
 
       {/* Emotional State */}
       {emotionalState && (
-        <div className="border-t border-nema-gray pt-4">
-          <EmotionalStateVisualization
-            emotionalState={emotionalState}
-            variant="compact"
-            className="mb-0"
-          />
-        </div>
+        <EmotionalStateVisualization
+          emotionalState={emotionalState}
+          variant="compact"
+        />
       )}
 
       {/* Recent Neural Changes */}
       {recentChanges.length > 0 && (
-        <div className="border-t border-nema-gray pt-4">
+        <div className="border-t border-nema-gray pt-4 -mx-3 px-3">
           <div className="text-nema-cyan text-xs mb-2">Recent Changes ({recentChanges.length}):</div>
           <div className="space-y-1 text-xs">
             {recentChanges.slice(0, 10).map((change, idx) => (
@@ -106,8 +103,8 @@ const NeuralStatePanel = ({
       )}
 
       {/* Search and Filter Controls */}
-      <div className="border-t border-nema-gray pt-4">
-        <div className="space-y-2">
+      <div className="border-t border-nema-gray pt-4 -mx-3 mt-3">
+        <div className="space-y-2 px-3">
           <input
             type="text"
             placeholder="Search neurons..."

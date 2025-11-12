@@ -34,22 +34,22 @@ const Navigation = () => {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b border-nema-secondary">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-12 gap-3">
-          {/* Mobile: Logo */}
-          <div className="md:hidden">
+      <div className="container mx-auto px-4 md:px-3 lg:px-4 xl:px-8">
+        <div className="flex items-center h-12 gap-3 md:gap-2 lg:gap-3 md:justify-between">
+          {/* Mobile/Tablet: Small Logo */}
+          <div className="lg:hidden flex-shrink-0">
             <Link to="/" className="flex items-center">
               <img
                 src="/mobile-nema-logo.png"
                 alt="NEMA"
                 className="object-contain"
-                style={{ height: 28, width: 28 }}
+                style={{ height: 32, width: 32 }}
               />
             </Link>
           </div>
 
-          {/* Desktop: Logo */}
-          <div className="hidden md:block flex-shrink-0">
+          {/* Desktop: Full Logo */}
+          <div className="hidden lg:block flex-shrink-0">
             <Link to="/" className="flex items-center">
               <img
                 src="/nema-lab-logo.png"
@@ -58,6 +58,12 @@ const Navigation = () => {
                 style={{ height: 24, width: 'auto' }}
               />
             </Link>
+          </div>
+
+          {/* Mobile: Middle section with Buy Button + Wallet */}
+          <div className="md:hidden flex items-center justify-evenly flex-1 gap-2">
+            <BuyTokenButton />
+            <WalletButton />
           </div>
 
           {/* Navigation Links - Show on md and up */}
@@ -83,11 +89,11 @@ const Navigation = () => {
               Gallery
               <span className="nav-badge-new">NEW</span>
             </Link>
-            
+
             {/* Show on xl and up, hide on md/lg */}
             <Link
               to="/about"
-              className={`hidden xl:block nav-link nema-display nema-header-2 transition-all duration-200 whitespace-nowrap ${location.pathname === '/about'
+              className={`!hidden xl:!block nav-link nema-display nema-header-2 transition-all duration-200 whitespace-nowrap ${location.pathname === '/about'
                   ? 'nav-link-active'
                   : 'nav-link-inactive'
                 }`}
@@ -96,7 +102,7 @@ const Navigation = () => {
             </Link>
             <Link
               to="/roadmap"
-              className={`hidden xl:block nav-link nema-display nema-header-2 transition-all duration-200 whitespace-nowrap ${location.pathname === '/roadmap'
+              className={`!hidden xl:!block nav-link nema-display nema-header-2 transition-all duration-200 whitespace-nowrap ${location.pathname === '/roadmap'
                   ? 'nav-link-active'
                   : 'nav-link-inactive'
                 }`}
@@ -105,14 +111,14 @@ const Navigation = () => {
             </Link>
             <Link
               to="/airdrop"
-              className={`hidden xl:block nav-link nema-display nema-header-2 transition-all duration-200 whitespace-nowrap ${location.pathname === '/airdrop'
+              className={`!hidden xl:!block nav-link nema-display nema-header-2 transition-all duration-200 whitespace-nowrap ${location.pathname === '/airdrop'
                   ? 'nav-link-active'
                   : 'nav-link-inactive'
                 }`}
             >
               Token
             </Link>
-            
+
             {/* Dropdown menu button for md/lg screens */}
             <div ref={dropdownRef} className="xl:hidden relative">
               <button
@@ -123,16 +129,16 @@ const Navigation = () => {
                   }`}
               >
                 More
-                <svg 
+                <svg
                   className={`w-3 h-3 ml-1 inline-block transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
-                  fill="none" 
-                  viewBox="0 0 24 24" 
+                  fill="none"
+                  viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              
+
               {/* Dropdown menu */}
               {isDropdownOpen && (
                 <div className="absolute top-full left-0 mt-2 bg-nema-black border border-nema-gray shadow-lg z-50 min-w-[120px]">
@@ -190,9 +196,8 @@ const Navigation = () => {
             <BuyTokenButton />
           </div>
 
-          {/* Mobile: Wallet + Menu */}
-          <div className="md:hidden flex items-center space-x-2 flex-shrink-0">
-            <WalletButton />
+          {/* Mobile: Hamburger Menu */}
+          <div className="md:hidden flex-shrink-0">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-nema-secondary hover:text-nema-cyan focus:outline-none cursor-pointer"

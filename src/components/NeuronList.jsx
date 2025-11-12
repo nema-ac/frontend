@@ -20,22 +20,24 @@ const NeuronList = ({
   const filteredCount = Object.keys(filteredNeurons).length;
 
   return (
-    <div className="border-t border-nema-gray pt-4">
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="flex items-center justify-between w-full text-nema-white mb-2 hover:text-nema-cyan transition-colors"
-      >
-        <span className="text-xs">
-          {title} ({neuronCount})
-          {filteredCount !== neuronCount && ` - showing ${filteredCount}`}
-        </span>
-        <span
-          className="transform transition-transform duration-200"
-          style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
+    <div className="border-t border-nema-gray pt-4 -mx-3">
+      <div className="px-3">
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="flex items-center justify-between w-full text-nema-white mb-2 hover:text-nema-cyan transition-colors"
         >
-          ▼
-        </span>
-      </button>
+          <span className="text-xs">
+            {title} ({neuronCount})
+            {filteredCount !== neuronCount && ` - showing ${filteredCount}`}
+          </span>
+          <span
+            className="transform transition-transform duration-200"
+            style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
+            >
+              ▼
+            </span>
+          </button>
+      </div>
       {expanded && (
         <div className="text-xs text-nema-white bg-nema-black/50 p-3 rounded max-h-40 overflow-y-auto space-y-1">
           {Object.keys(filteredNeurons).length > 0 ? (

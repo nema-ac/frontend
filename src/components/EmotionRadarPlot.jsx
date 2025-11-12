@@ -150,7 +150,12 @@ const EmotionRadarPlot = ({ nemaId, className = '' }) => {
       // Use CSS dimensions for calculations
       const centerX = rect.width / 2;
       const centerY = rect.height / 2;
-      const maxRadius = Math.min(centerX, centerY) - 60; // Increased margin for labels
+      const maxRadius = Math.max(Math.min(centerX, centerY) - 60, 10); // Increased margin for labels, minimum 10px
+
+      // Don't draw if canvas is too small
+      if (maxRadius <= 10 || rect.width < 100 || rect.height < 100) {
+        return;
+      }
 
       // Clear canvas - transparent background
       ctx.clearRect(0, 0, rect.width, rect.height);

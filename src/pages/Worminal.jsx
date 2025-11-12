@@ -22,7 +22,7 @@ const Worminal = () => {
         {/* Header Section - 3 Columns on desktop, stacked on mobile */}
         <div className="mb-2 lg:grid lg:grid-cols-[auto_1fr_auto] lg:gap-2 flex-shrink-0">
           {/* Column 1: WORMINAL / Mobile View Selector */}
-          <div className="lg:border border-nema-gray p-2 max-lg:p-1.5 flex items-center justify-center">
+          <div className="lg:border border-nema-gray py-2 max-lg:py-1.5 flex items-center justify-center">
             {/* Desktop: Show WORMINAL text */}
             <h1 className="hidden lg:block nema-display nema-display-2 text-nema-white text-xl">
               WORMINAL
