@@ -16,6 +16,7 @@ import NeuralStatePanel from './NeuralStatePanel.jsx';
 import ViewSelector from './ViewSelector.jsx';
 import { calculateNeuralChanges, getMessageNeuralChanges } from '../utils/neuralStateUtils.js';
 import { getAvatarUrl, getProfileAvatarUrl, getDefaultAvatarUrl } from '../utils/avatarUtils.js';
+import { validateNemaMessage, getByteLength } from '../utils/validation.js';
 
 const InteractiveTerminal = ({ isFullscreen = false, onToggleFullscreen }) => {
   const [input, setInput] = useState('');
@@ -493,6 +494,17 @@ Or simply type a message to chat with your selected NEMA!`,
         timestamp: new Date()
       });
       setInput('');
+      return;
+    }
+
+    // Validate message (500 byte limit) before sending
+    const validation = validateNemaMessage(trimmedInput);
+    if (!validation.valid) {
+      addMessage({
+        type: 'system',
+        content: `⚠️ ${validation.error}`,
+        timestamp: new Date()
+      });
       return;
     }
 

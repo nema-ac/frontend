@@ -9,6 +9,7 @@ import NemaCreationFlow from '../components/NemaCreationFlow.jsx';
 import NemaCard from '../components/NemaCard.jsx';
 import { getProfileAvatarUrl } from '../utils/avatarUtils.js';
 import EmotionalStateVisualization from '../components/EmotionalStateVisualization.jsx';
+import { sanitizeProfileField } from '../utils/validation.js';
 
 const Profile = () => {
   const { isAuthenticated, logout, profile: contextProfile, fetchProfile: contextFetchProfile, refreshNemaBalance } = useContext(AuthContext);
@@ -93,9 +94,17 @@ const Profile = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    // Real-time sanitization for twitter_handle and telegram_handle
+    let sanitizedValue = value;
+    if (name === 'twitter_handle' || name === 'telegram_handle') {
+      // Strip leading @ and convert to lowercase as user types
+      sanitizedValue = sanitizeProfileField(value);
+    }
+    
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: sanitizedValue
     }));
 
   };

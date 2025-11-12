@@ -6,6 +6,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import nemaService from '../services/nema.js';
 import { NetworkError, ServerError } from '../services/api.js';
+import { validateNemaMessage } from '../utils/validation.js';
 
 /**
  * Hook for fetching and managing neural state
@@ -121,8 +122,10 @@ export const useSendPrompt = (options = {}) => {
       throw error;
     }
 
-    if (!message || typeof message !== 'string' || message.trim().length === 0) {
-      const error = new Error('Message cannot be empty');
+    // Validate message (500 byte limit)
+    const validation = validateNemaMessage(message);
+    if (!validation.valid) {
+      const error = new Error(validation.error);
       setState(prev => ({ ...prev, error: { message: error.message, type: 'ValidationError' } }));
       if (onError) onError(error);
       throw error;

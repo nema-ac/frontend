@@ -6,6 +6,7 @@ import EmojiPicker from './EmojiPicker.jsx';
 import TransactionMessage from './TransactionMessage.jsx';
 import SessionClaimMessage from './SessionClaimMessage.jsx';
 import { useWorminalAccessContext } from '../contexts/WorminalAccessContext.jsx';
+import { validateChatMessage, getByteLength } from '../utils/validation.js';
 
 /**
  * Simple chat component for users to discuss the worminal chat
@@ -77,27 +78,15 @@ const UserChat = () => {
         }
     }, [messages]);
 
-    // Check if input contains a URL/link
-    const containsLink = (text) => {
-        // Common URL patterns
-        const urlPatterns = [
-            /https?:\/\/[^\s]+/gi,  // http:// or https://
-            /www\.[^\s]+/gi,         // www.
-            /[a-zA-Z0-9-]+\.[a-zA-Z]{2,}[^\s]*/gi,  // domain.com
-        ];
-
-        return urlPatterns.some(pattern => pattern.test(text));
-    };
-
     const handleSend = (e) => {
         e.preventDefault();
         const trimmedInput = input.trim();
         if (!trimmedInput || !isConnected) return;
 
-        // Check for links
-        if (containsLink(trimmedInput)) {
-            // Show error or prevent sending
-            alert('Links are not allowed in chat. Please remove any URLs from your message.');
+        // Validate message (200 byte limit, no URLs)
+        const validation = validateChatMessage(trimmedInput);
+        if (!validation.valid) {
+            alert(validation.error);
             return;
         }
 
@@ -406,8 +395,11 @@ const UserChat = () => {
                         </div>
                         <button
                             type="submit"
-                            disabled={!isConnected || !input.trim()}
-                            className="flex-shrink-0 px-3 py-1.5 bg-nema-cyan text-nema-black font-bold rounded hover:bg-nema-cyan/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs whitespace-nowrap"
+                            disabled={!isConnected || !input.trim() || getByteLength(input.trim()) > 200}
+                            className={`flex-shrink-0 px-3 py-1.5 font-bold rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs whitespace-nowrap ${getByteLength(input.trim()) > 200
+                                    ? 'bg-red-500 text-white hover:bg-red-600'
+                                    : 'bg-nema-cyan text-nema-black hover:bg-nema-cyan/80'
+                                }`}
                         >
                             Send
                         </button>

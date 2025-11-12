@@ -3,6 +3,7 @@
  */
 
 import apiClient from './api.js';
+import { sanitizeProfileData } from '../utils/validation.js';
 
 // Cache to prevent duplicate profile requests
 const profileCache = {
@@ -73,11 +74,28 @@ export const profileService = {
    * @returns {Promise<void>}
    */
   async updateProfile({ username, twitter_handle, telegram_handle, avatar_base64 }) {
-    const body = {};
+    // Sanitize profile fields (lowercase, strip @, trim, validate max lengths)
+    const profileDataToSanitize = {};
+    if (username !== undefined) profileDataToSanitize.username = username;
+    if (twitter_handle !== undefined) profileDataToSanitize.twitter_handle = twitter_handle;
+    if (telegram_handle !== undefined) profileDataToSanitize.telegram_handle = telegram_handle;
 
-    if (username !== undefined) body.username = username;
-    if (twitter_handle !== undefined) body.twitter_handle = twitter_handle;
-    if (telegram_handle !== undefined) body.telegram_handle = telegram_handle;
+    const sanitizationResult = sanitizeProfileData(profileDataToSanitize);
+    if (!sanitizationResult.valid) {
+      const errorMessages = Object.values(sanitizationResult.errors).join(', ');
+      throw new Error(`Profile validation failed: ${errorMessages}`);
+    }
+
+    const body = {};
+    if (sanitizationResult.sanitized.username !== undefined) {
+      body.username = sanitizationResult.sanitized.username;
+    }
+    if (sanitizationResult.sanitized.twitter_handle !== undefined) {
+      body.twitter_handle = sanitizationResult.sanitized.twitter_handle;
+    }
+    if (sanitizationResult.sanitized.telegram_handle !== undefined) {
+      body.telegram_handle = sanitizationResult.sanitized.telegram_handle;
+    }
     if (avatar_base64 !== undefined) body.avatar_base64 = avatar_base64;
 
     const result = await apiClient.put('/user/profile', body, {

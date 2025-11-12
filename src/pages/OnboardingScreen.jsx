@@ -4,6 +4,7 @@ import { AuthContext } from '../contexts/AuthContext';
 import profileService from '../services/profile.js';
 import nemaService from '../services/nema.js';
 import { getProfileAvatarUrl } from '../utils/avatarUtils.js';
+import { sanitizeProfileField } from '../utils/validation.js';
 
 const OnboardingScreen = () => {
   const { profile, fetchProfile } = useContext(AuthContext);
@@ -40,9 +41,17 @@ const OnboardingScreen = () => {
 
   const handleProfileInputChange = (e) => {
     const { name, value } = e.target;
+    
+    // Real-time sanitization for twitter_handle and telegram_handle
+    let sanitizedValue = value;
+    if (name === 'twitter_handle' || name === 'telegram_handle') {
+      // Strip leading @ and convert to lowercase as user types
+      sanitizedValue = sanitizeProfileField(value);
+    }
+    
     setProfileData(prev => ({
       ...prev,
-      [name]: value
+      [name]: sanitizedValue
     }));
   };
 

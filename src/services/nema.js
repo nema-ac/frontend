@@ -4,6 +4,7 @@
  */
 
 import apiClient, { NetworkError, ServerError } from './api.js';
+import { validateNemaMessage } from '../utils/validation.js';
 
 /**
  * Validate neural state response structure
@@ -214,8 +215,10 @@ class NemaService {
       throw new Error('Nema ID is required to send prompt');
     }
     
-    if (!message || typeof message !== 'string' || message.trim().length === 0) {
-      throw new Error('Prompt message cannot be empty');
+    // Validate message (500 byte limit)
+    const validation = validateNemaMessage(message);
+    if (!validation.valid) {
+      throw new Error(validation.error);
     }
 
     try {
