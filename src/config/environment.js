@@ -11,7 +11,7 @@ const config = {
   // API Settings
   api: {
     baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080', // Fallback for local development
-    timeout: 30000, // 30 seconds
+    timeout: 90000, // 90 seconds (longer than backend's 60s WriteTimeout to account for network latency)
   },
   
   // Solana RPC Settings
