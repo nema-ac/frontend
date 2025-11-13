@@ -240,7 +240,7 @@ const OnboardingScreen = () => {
                     name="username"
                     value={profileData.username}
                     onChange={handleProfileInputChange}
-                    className="w-full bg-textbox-background border border-textbox-border px-3 py-3 text-nema-white focus:outline-none focus:border-nema-cyan transition-colors font-anonymous"
+                    className="w-full bg-textbox-background border border-textbox-border px-3 py-3 text-nema-white text-base focus:outline-none focus:border-nema-cyan transition-colors font-anonymous"
                     placeholder="Enter your username"
                     required
                   />
@@ -258,7 +258,7 @@ const OnboardingScreen = () => {
                       name="twitter_handle"
                       value={profileData.twitter_handle}
                       onChange={handleProfileInputChange}
-                      className="w-full bg-textbox-background border border-textbox-border pl-8 pr-3 py-3 text-nema-white focus:outline-none focus:border-nema-cyan transition-colors font-anonymous"
+                      className="w-full bg-textbox-background border border-textbox-border pl-8 pr-3 py-3 text-nema-white text-base focus:outline-none focus:border-nema-cyan transition-colors font-anonymous"
                       placeholder="twitter_handle"
                     />
                   </div>
@@ -276,7 +276,7 @@ const OnboardingScreen = () => {
                       name="telegram_handle"
                       value={profileData.telegram_handle}
                       onChange={handleProfileInputChange}
-                      className="w-full bg-textbox-background border border-textbox-border pl-8 pr-3 py-3 text-nema-white focus:outline-none focus:border-nema-cyan transition-colors font-anonymous"
+                      className="w-full bg-textbox-background border border-textbox-border pl-8 pr-3 py-3 text-nema-white text-base focus:outline-none focus:border-nema-cyan transition-colors font-anonymous"
                       placeholder="telegram_handle"
                     />
                   </div>
@@ -313,7 +313,7 @@ const OnboardingScreen = () => {
                     name="name"
                     value={nemaData.name}
                     onChange={handleNemaInputChange}
-                    className="w-full bg-textbox-background border border-textbox-border px-3 py-3 text-nema-white focus:outline-none focus:border-nema-cyan transition-colors font-anonymous"
+                    className="w-full bg-textbox-background border border-textbox-border px-3 py-3 text-nema-white text-base focus:outline-none focus:border-nema-cyan transition-colors font-anonymous"
                     placeholder="Give your Nema a name (e.g., Wormy, Elegans, Neo)"
                     required
                   />
@@ -329,7 +329,7 @@ const OnboardingScreen = () => {
                     value={nemaData.description}
                     onChange={handleNemaInputChange}
                     rows="4"
-                    className="w-full bg-textbox-background border border-textbox-border px-3 py-3 text-nema-white focus:outline-none focus:border-nema-cyan transition-colors resize-vertical font-anonymous"
+                    className="w-full bg-textbox-background border border-textbox-border px-3 py-3 text-nema-white text-base focus:outline-none focus:border-nema-cyan transition-colors resize-vertical font-anonymous"
                     placeholder="Describe your Nema's personality, goals, or characteristics (optional)..."
                   />
                 </div>

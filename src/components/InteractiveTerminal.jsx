@@ -968,7 +968,7 @@ Or simply type a message to chat with your selected NEMA!`,
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="flex-1 bg-transparent text-nema-white outline-none caret-nema-cyan placeholder-nema-gray-darker font-anonymous"
+                  className="flex-1 bg-transparent text-nema-white outline-none caret-nema-cyan placeholder-nema-gray-darker font-anonymous text-base"
                   placeholder={selectedNema ? "Type a message or command..." : "Type a command (help, nemas, select)..."}
                   disabled={loading || !hasAccess}
                   autoFocus
