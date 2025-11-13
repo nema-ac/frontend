@@ -59,8 +59,7 @@ const InteractiveTerminal = ({ isFullscreen = false, onToggleFullscreen }) => {
     error: accessError,
     publicWorminalData,
     publicTimeRemaining,
-    loadingPublicData,
-    shouldShowPublicView
+    loadingPublicData
   } = useWorminalAccessContext();
 
   // Store neural states for active session (from publicWorminalData when user has access)
@@ -573,25 +572,27 @@ Or simply type a message to chat with your selected NEMA!`,
           {/* Terminal Header - Dynamic based on session state */}
           <div className="bg-nema-gray p-3 sm:p-4 border-b border-nema-gray flex-shrink-0">
             <div className="flex flex-col">
-              {/* Top row: View Selector */}
-              <div className="flex items-center justify-between">
-                {profile && availableNemas.length > 0 && (
-                  <ViewSelector
-                    selectedNemaId={selectedViewNemaId}
-                    nemas={availableNemas}
-                    showPublicOption={!hasAccess}
-                    onViewChange={(nemaId) => {
-                      setSelectedViewNemaId(nemaId);
-                      // If switching to a personal view, ensure that nema is selected
-                      if (nemaId) {
-                        const nema = availableNemas.find(n => n.id === nemaId);
-                        if (nema && nema.id !== selectedNema?.id) {
-                          selectNema(nema);
+              {/* Top row: View Selector and session info */}
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  {profile && availableNemas.length > 0 && (
+                    <ViewSelector
+                      selectedNemaId={selectedViewNemaId}
+                      nemas={availableNemas}
+                      showPublicOption={!hasAccess}
+                      onViewChange={(nemaId) => {
+                        setSelectedViewNemaId(nemaId);
+                        // If switching to a personal view, ensure that nema is selected
+                        if (nemaId) {
+                          const nema = availableNemas.find(n => n.id === nemaId);
+                          if (nema && nema.id !== selectedNema?.id) {
+                            selectNema(nema);
+                          }
                         }
-                      }
-                    }}
-                  />
-                )}
+                      }}
+                    />
+                  )}
+                </div>
 
                 {/* Ready status and session info - hidden on mobile */}
                 <div className="hidden sm:flex items-center gap-4">
@@ -606,18 +607,6 @@ Or simply type a message to chat with your selected NEMA!`,
                       Time Remaining: {Math.floor(publicTimeRemaining / 1000)}s •
                       Prompts: {currentSession.prompts_used || 0}/{currentSession.prompts_limit || 10}
                     </div>
-                  )}
-                  {/* Show time remaining when user has active access */}
-                  {hasAccess && currentSession && currentSession.username && (
-                    <>
-                      <div className="text-xs text-nema-black/70 font-anonymous whitespace-nowrap">
-                        Session: {Math.floor(timeRemaining / 1000)}s •
-                        Prompts: {currentSession.prompts_used || 0}/{currentSession.prompts_limit || 10} •
-                        <span className="text-nema-black/70">
-                          {effectivePublicView || (!currentSession || !currentSession.username) ? ' Spectating' : ' Ready'}
-                        </span> {formatTimestamp(currentTime)}
-                      </div>
-                    </>
                   )}
                 </div>
               </div>
@@ -635,43 +624,31 @@ Or simply type a message to chat with your selected NEMA!`,
                     Time: {Math.floor(publicTimeRemaining / 1000)}s • Prompts: {currentSession.prompts_used || 0}/{currentSession.prompts_limit || 10}
                   </div>
                 )}
-                {/* Show time remaining when user has active access */}
-                {hasAccess && currentSession && currentSession.username && (
-                  <div className="nema-caption text-nema-black/70 font-anonymous">
-                    Session: {Math.floor(timeRemaining / 1000)}s • Prompts: {currentSession.prompts_used || 0}/{currentSession.prompts_limit || 10} •
-                    <span className="text-nema-black/70">
-                      {effectivePublicView || (!currentSession || !currentSession.username) ? ' Spectating' : ' Ready'}
-                    </span> {formatTimestamp(currentTime)}
-                  </div>
-                )}
               </div>
 
               {/* Bottom row: Session/Status messages */}
               <div>
                 {/* Show public session info if spectating */}
                 {effectivePublicView && publicWorminalData && publicWorminalData.user?.username ? (
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={getAvatarUrl(publicWorminalData.user.profile_pic)}
-                        alt={`${publicWorminalData.user.username}'s avatar`}
-                        className="w-10 h-10 rounded-full border-2 border-nema-black"
-                        style={{ imageRendering: 'pixelated' }}
-                      />
-                      <div>
-                        <h3 className="nema-display nema-header-2 text-nema-black">
-                          {publicWorminalData.user.username.toUpperCase()}'S SESSION
-                        </h3>
-                        {publicWorminalData.nema?.name && (
-                          <div className="text-nema-black/70 text-xs pt-1">
-                            Chatting with {publicWorminalData.nema.name}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    {/* Session time/prompts info below */}
-                    <div className="text-xs text-nema-black/70 font-anonymous mt-2">
-                      Time Remaining: {Math.floor(publicTimeRemaining / 1000)}s • Prompts: {currentSession.prompts_used || 0}/{currentSession.prompts_limit || 10}
+                  <div className="flex items-center gap-3 sm:pt-3">
+                    <img
+                      src={getAvatarUrl(publicWorminalData.user.profile_pic)}
+                      alt={`${publicWorminalData.user.username}'s avatar`}
+                      className="w-10 h-10 rounded-full border-2 border-nema-black"
+                      style={{ imageRendering: 'pixelated' }}
+                    />
+                    <div>
+                      <h3 className="nema-display nema-header-2 text-nema-black">
+                        {publicWorminalData.user.username.toUpperCase()}'S SESSION
+                      </h3>
+                      {publicWorminalData.nema?.name && (
+                        <div className="text-nema-black/70 text-xs pt-1 flex items-center gap-2">
+                          <span>Chatting with {publicWorminalData.nema.name}</span>
+                          <span className="text-nema-black font-mono font-bold">
+                            {Math.floor(publicTimeRemaining / 1000)}s
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ) : !currentSession || !currentSession.username ? (
@@ -968,7 +945,7 @@ Or simply type a message to chat with your selected NEMA!`,
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="flex-1 bg-transparent text-nema-white outline-none caret-nema-cyan placeholder-nema-gray-darker font-anonymous"
+                  className="flex-1 bg-transparent text-nema-white outline-none caret-nema-cyan placeholder-nema-gray-darker font-anonymous text-base"
                   placeholder={selectedNema ? "Type a message or command..." : "Type a command (help, nemas, select)..."}
                   disabled={loading || !hasAccess}
                   autoFocus
