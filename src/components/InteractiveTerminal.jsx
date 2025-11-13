@@ -663,22 +663,7 @@ Or simply type a message to chat with your selected NEMA!`,
                       </span>
                     </div>
                   ) : null
-                ) : hasAccess || (!effectivePublicView && profile) ? (
-                  /* User has access OR viewing personal history - show simple ready status */
-                  null
-                ) : (
-                  /* User doesn't have access but session exists - show session holder info */
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                    <span className="text-nema-black text-sm sm:text-base font-bold nema-header-2">
-                      WORMINAL IN USE
-                    </span>
-                    {currentSession.username && currentSession.username.trim() !== '' && (
-                      <span className="text-nema-black/70 text-xs sm:text-sm font-anonymous">
-                        {currentSession.username.toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-                )}
+                ) : null}
               </div>
             </div>
           </div>
