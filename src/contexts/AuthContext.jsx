@@ -51,17 +51,17 @@ export const AuthProvider = ({ children }) => {
             });
         } catch (error) {
             console.error('Error fetching profile:', error);
-            
+
             // If we get a 404 error, it means the user profile doesn't exist
             // This indicates the user session is invalid, so we should disconnect and clear everything
             if (error.status === 404) {
                 console.log('Profile not found (404), disconnecting wallet and clearing session');
-                
+
                 // Clear authentication state
                 setIsAuthenticated(false);
                 setUser(null);
                 setProfile(null);
-                
+
                 // Disconnect the wallet
                 try {
                     disconnect();
@@ -78,19 +78,19 @@ export const AuthProvider = ({ children }) => {
         try {
             // Try to get or generate avatar using the new avatar service
             const avatar = await avatarService.getOrGenerateAvatar(walletAddress);
-            
+
             // Refresh profile after avatar operations
             await fetchProfile();
-            
+
             return avatar;
         } catch (error) {
             console.error('Error loading/generating avatar:', error);
-            
+
             // If avatar already exists (409 error), just refresh profile
             if (error.message.includes('already been set')) {
                 await fetchProfile();
             }
-            
+
             return null;
         }
     };
@@ -99,19 +99,19 @@ export const AuthProvider = ({ children }) => {
         try {
             // Try to generate a new variation avatar
             const avatar = await avatarService.generateAndSetVariationAvatar(walletAddress);
-            
+
             // Refresh profile after avatar operations
             await fetchProfile();
-            
+
             return avatar;
         } catch (error) {
             console.error('Error generating new avatar variation:', error);
-            
+
             // If avatar already exists (409 error), inform user
             if (error.message.includes('already been set')) {
                 throw new Error('Avatar has already been set and cannot be changed');
             }
-            
+
             throw error;
         }
     };
@@ -191,8 +191,47 @@ export const AuthProvider = ({ children }) => {
                 await loadOrGenerateAvatar(walletAddress);
                 return { success: true };
             } else {
-                const error = await response.text();
-                return { success: false, error };
+                // Parse JSON error response
+                let errorMessage = 'Authentication failed';
+                let errorCode = null;
+                let requiredBalance = null;
+
+                try {
+                    const responseText = await response.text();
+                    const contentType = response.headers.get('content-type') || '';
+
+                    // Try to parse as JSON if content-type indicates JSON or response looks like JSON
+                    if (contentType.includes('application/json') || responseText.trim().startsWith('{')) {
+                        try {
+                            const errorData = JSON.parse(responseText);
+                            errorCode = errorData.error;
+                            requiredBalance = errorData.required_balance;
+
+                            if (errorCode === 'insufficient_token_balance' && requiredBalance != null) {
+                                const formattedBalance = requiredBalance.toLocaleString('en-US', {
+                                    maximumFractionDigits: 0
+                                });
+                                errorMessage = `Your wallet needs to hold at least ${formattedBalance} NEMA tokens to create an account.`;
+                            } else if (errorData.message) {
+                                errorMessage = errorData.message;
+                            }
+                        } catch {
+                            // If JSON parsing fails, use the text response
+                            errorMessage = responseText || errorMessage;
+                        }
+                    } else {
+                        errorMessage = responseText || errorMessage;
+                    }
+                } catch {
+                    // If reading fails, use default error message
+                }
+
+                return {
+                    success: false,
+                    error: errorMessage,
+                    errorCode,
+                    requiredBalance
+                };
             }
         } catch (error) {
             console.error('Login error:', error);

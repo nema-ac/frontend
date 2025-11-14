@@ -3,19 +3,20 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { useAuth } from '../hooks/useAuth';
+import { useNotification } from '../contexts/NotificationContext';
 import { authAPI } from '../utils/api';
 import { getProfileAvatarUrl } from '../utils/avatarUtils.js';
 import bs58 from 'bs58';
 
 // Format token amounts for display (e.g., 1.2M, 45.3K)
 const formatTokenAmount = (amount) => {
-  if (amount >= 1000000) {
-    return (amount / 1000000).toFixed(1) + 'M';
-  } else if (amount >= 1000) {
-    return (amount / 1000).toFixed(1) + 'K';
-  } else {
-    return amount.toLocaleString();
-  }
+    if (amount >= 1000000) {
+        return (amount / 1000000).toFixed(1) + 'M';
+    } else if (amount >= 1000) {
+        return (amount / 1000).toFixed(1) + 'K';
+    } else {
+        return amount.toLocaleString();
+    }
 };
 
 // Module-level flag to prevent double authentication across React StrictMode
@@ -26,6 +27,7 @@ const WalletButton = () => {
     const { publicKey, signMessage, disconnect } = useWallet();
     const { setVisible } = useWalletModal();
     const { isAuthenticated, login, logout, loading } = useAuth();
+    const { showError } = useNotification();
     const navigate = useNavigate();
     const [isAuthenticating, setIsAuthenticating] = useState(false);
     const [error, setError] = useState(null);
@@ -51,15 +53,15 @@ const WalletButton = () => {
         try {
             // Step 1: Get a fresh message from the server
             const { message } = await authAPI.getMessage();
-            
+
             // Step 2: Sign the message with the wallet
             // Simple check to prevent the signMessage error
             if (typeof signMessage !== 'function') {
                 throw new Error('Wallet signing function not available');
             }
-            
+
             const messageBytes = new TextEncoder().encode(message);
-            
+
             // Include Nema logo in the sign message display
             // Try multiple format options for different wallet compatibility
             const signature = await signMessage(messageBytes, {
@@ -77,15 +79,22 @@ const WalletButton = () => {
                 icon: `${window.location.origin}/nema-lab-logo.png`,
                 title: 'NEMA'
             });
-            
+
             // Step 3: Convert signature to base58 string (Solana standard)
             const signatureBase58 = bs58.encode(signature);
-            
+
             // Step 4: Send login request
             const result = await login(publicKey.toString(), message, signatureBase58);
-            
+
             if (!result.success) {
-                setError(result.error || 'Authentication failed');
+                // Show global error notification for insufficient balance
+                if (result.errorCode === 'insufficient_token_balance') {
+                    showError(result.error || 'Authentication failed', 'Insufficient NEMA Balance');
+                } else {
+                    // For other errors, show the local error modal
+                    setError(result.error || 'Authentication failed');
+                }
+                return;
             } else {
                 // Redirect to profile page on successful login
                 navigate('/profile');
@@ -93,7 +102,7 @@ const WalletButton = () => {
         } catch (err) {
             console.error('Authentication error:', err);
             const errorMessage = err.message || 'Authentication failed';
-            
+
             // If this is a signing error and we've tried multiple times, offer to disconnect
             if (authAttemptCount >= 2 && (errorMessage.includes('User rejected') || errorMessage.includes('signing') || errorMessage.includes('cancelled'))) {
                 setError(`${errorMessage}. Having trouble? Click here to disconnect and try again.`);
@@ -104,21 +113,21 @@ const WalletButton = () => {
             isAuthenticatingGlobal = false;
             setIsAuthenticating(false);
         }
-    }, [publicKey, signMessage, isAuthenticating, login, navigate]);
+    }, [publicKey, signMessage, isAuthenticating, login, navigate, showError]);
 
     // Auto-authenticate when wallet connects (only once per wallet)
     useEffect(() => {
         const currentWallet = publicKey?.toString();
-        
+
         // Use module-level variables to survive React StrictMode double execution
         if (currentWallet && currentWallet === lastWalletGlobal) {
             return;
         }
-        
+
         if (isAuthenticatingGlobal) {
             return;
         }
-        
+
         if (publicKey && signMessage && !isAuthenticated && !loading && currentWallet) {
             // Set global flags IMMEDIATELY
             lastWalletGlobal = currentWallet;
@@ -160,7 +169,7 @@ const WalletButton = () => {
     const { user, profile } = useAuth();
 
     if (isAuthenticated) {
-        
+
         return (
             <Link
                 to="/profile"
@@ -214,7 +223,7 @@ const WalletButton = () => {
                     </button>
                 </div>
             )}
-            
+
             {error && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" style={{ margin: 0 }}>
                     <div className="bg-zinc-900 border border-red-500/30 rounded-lg shadow-2xl max-w-md w-full p-6 relative" style={{ margin: 'auto' }}>
