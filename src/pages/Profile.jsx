@@ -568,7 +568,7 @@ Building the future of digital biology with $NEMA 🧠`;
                     name="username"
                     value={formData.username}
                     onChange={handleInputChange}
-                    className="w-full max-w-full bg-textbox-background border border-textbox-border h-[40px] py-3 px-4 rounded-lg text-nema-white text-sm focus:outline-none focus:border-nema-cyan transition-colors"
+                    className="w-full max-w-full bg-textbox-background border border-textbox-border h-[40px] py-3 px-4 rounded-lg text-nema-white text-base focus:outline-none focus:border-nema-cyan transition-colors"
                     placeholder="nemauser123"
                   />
                 </div>
@@ -581,7 +581,7 @@ Building the future of digital biology with $NEMA 🧠`;
                       name="twitter_handle"
                       value={formData.twitter_handle}
                       onChange={handleInputChange}
-                      className="flex-1 max-w-full bg-textbox-background border border-textbox-border h-[40px] py-3 px-4 rounded-lg text-nema-white text-sm focus:outline-none focus:border-nema-cyan transition-colors"
+                      className="flex-1 max-w-full bg-textbox-background border border-textbox-border h-[40px] py-3 px-4 rounded-lg text-nema-white text-base focus:outline-none focus:border-nema-cyan transition-colors"
                       placeholder="nematwitter"
                     />
                   </div>
@@ -595,7 +595,7 @@ Building the future of digital biology with $NEMA 🧠`;
                       name="telegram_handle"
                       value={formData.telegram_handle}
                       onChange={handleInputChange}
-                      className="flex-1 max-w-full bg-textbox-background border border-textbox-border h-[40px] py-3 px-4 rounded-lg text-nema-white text-sm focus:outline-none focus:border-nema-cyan transition-colors"
+                      className="flex-1 max-w-full bg-textbox-background border border-textbox-border h-[40px] py-3 px-4 rounded-lg text-nema-white text-base focus:outline-none focus:border-nema-cyan transition-colors"
                       placeholder="nematelegram"
                     />
                   </div>

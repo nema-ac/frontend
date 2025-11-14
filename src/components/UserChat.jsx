@@ -361,7 +361,7 @@ const UserChat = () => {
                                 placeholder={isConnected ? "Type a message..." : "Connecting..."}
                                 disabled={!isConnected}
                                 rows={1}
-                                className="flex-1 min-w-0 bg-transparent text-nema-white outline-none caret-nema-cyan placeholder-nema-gray-darker font-anonymous text-xs resize-none min-h-[24px] max-h-[96px]"
+                                className="flex-1 min-w-0 bg-transparent text-nema-white outline-none caret-nema-cyan placeholder-nema-gray-darker font-anonymous text-base resize-none min-h-[24px] max-h-[96px]"
                                 style={{
                                     height: 'auto',
                                     lineHeight: '24px',
