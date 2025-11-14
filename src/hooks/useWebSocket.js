@@ -1,0 +1,566 @@
+import { useEffect, useRef, useState, useCallback } from 'react';
+import config from '../config/environment.js';
+
+/**
+ * Custom hook for managing WebSocket connection
+ * Handles connection, message sending/receiving, and reconnection
+ * Messages persist across navigation using sessionStorage
+ */
+export const useWebSocket = (url, options = {}) => {
+  // Storage key for persisting messages (based on WebSocket URL)
+  const storageKey = `nema_userchat_messages_${url}`;
+  
+  // Save messages to sessionStorage (limit to last 500 messages to prevent storage bloat)
+  const persistMessages = useCallback((msgs) => {
+    try {
+      // Keep only the most recent 500 messages
+      const messagesToStore = msgs.slice(-500);
+      sessionStorage.setItem(storageKey, JSON.stringify(messagesToStore));
+    } catch (err) {
+      console.warn('Failed to persist messages:', err);
+      // If storage is full, try to clear old messages and retry with fewer
+      try {
+        const reduced = msgs.slice(-250);
+        sessionStorage.setItem(storageKey, JSON.stringify(reduced));
+      } catch (retryErr) {
+        console.error('Failed to persist messages even after reduction:', retryErr);
+      }
+    }
+  }, [storageKey]);
+  
+  // Initialize messages from sessionStorage
+  const [messages, setMessages] = useState(() => {
+    try {
+      const stored = sessionStorage.getItem(storageKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        // Convert timestamp strings back to Date objects
+        return parsed.map(msg => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp),
+        }));
+      }
+    } catch (err) {
+      console.warn('Failed to load persisted messages:', err);
+    }
+    return [];
+  });
+  const [isConnected, setIsConnected] = useState(false);
+  const [error, setError] = useState(null);
+  
+  const wsRef = useRef(null);
+  const reconnectTimeoutRef = useRef(null);
+  const reconnectAttemptsRef = useRef(0);
+  const optionsRef = useRef(options);
+  const isManualCloseRef = useRef(false);
+  const connectionIdRef = useRef(0); // Track connection instances to prevent stale handlers
+  const seenMessagesRef = useRef(new Map()); // Track seen messages to prevent duplicates
+  const lastActivityRef = useRef(null); // Track last activity time for heartbeat monitoring
+  const heartbeatCheckIntervalRef = useRef(null); // Interval to check connection health
+  
+  // Update options ref when options change (but don't trigger reconnection)
+  useEffect(() => {
+    optionsRef.current = options;
+  }, [options]);
+
+  const maxReconnectAttempts = options.maxReconnectAttempts || 5;
+  const reconnectDelay = options.reconnectDelay || 3000;
+
+  const connect = useCallback(() => {
+    // Don't connect if already connected or connecting
+    if (wsRef.current) {
+      const state = wsRef.current.readyState;
+      if (state === WebSocket.OPEN || state === WebSocket.CONNECTING) {
+        return;
+      }
+      // If closing or closed, clean up first
+      if (state === WebSocket.CLOSING || state === WebSocket.CLOSED) {
+        wsRef.current = null;
+      }
+    }
+
+    // Get WebSocket URL - use ws:// or wss:// based on the API base URL
+    const apiUrl = config.api.baseUrl;
+    const wsProtocol = apiUrl.startsWith('https') ? 'wss' : 'ws';
+    const wsHost = apiUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    const wsUrl = url.startsWith('ws') ? url : `${wsProtocol}://${wsHost}${url}`;
+
+    try {
+      // Increment connection ID to track this connection instance
+      const currentConnectionId = ++connectionIdRef.current;
+      const ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
+      isManualCloseRef.current = false;
+
+      ws.onopen = () => {
+        // Only handle if this is still the current connection
+        if (connectionIdRef.current !== currentConnectionId) {
+          return;
+        }
+        
+        setIsConnected(true);
+        setError(null);
+        reconnectAttemptsRef.current = 0;
+        lastActivityRef.current = Date.now();
+        
+        // Browser WebSocket API automatically responds to server ping frames with pong frames
+        // The server sends pings every 54 seconds and expects pong within 60 seconds
+        // We track last activity to monitor connection health
+        
+        // Clear any existing heartbeat check interval
+        if (heartbeatCheckIntervalRef.current) {
+          clearInterval(heartbeatCheckIntervalRef.current);
+        }
+        
+        // Optional: Monitor connection health by checking if we've received any activity
+        // (messages or implicit pong responses) within a reasonable timeframe
+        // Server pings are handled automatically by the browser, so we track message activity
+        heartbeatCheckIntervalRef.current = setInterval(() => {
+          if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+            const now = Date.now();
+            const timeSinceLastActivity = now - (lastActivityRef.current || now);
+            
+            // If we haven't received any activity in 90 seconds (server pings every 54s),
+            // something might be wrong, but we'll let the server timeout handle it
+            // This is mainly for debugging/monitoring purposes
+            if (timeSinceLastActivity > 90000) {
+              console.warn('WebSocket: No activity detected for', Math.floor(timeSinceLastActivity / 1000), 'seconds');
+            }
+          } else {
+            // Connection is not open, clear the interval
+            if (heartbeatCheckIntervalRef.current) {
+              clearInterval(heartbeatCheckIntervalRef.current);
+              heartbeatCheckIntervalRef.current = null;
+            }
+          }
+        }, 30000); // Check every 30 seconds
+        
+        if (optionsRef.current.onOpen) {
+          optionsRef.current.onOpen();
+        }
+      };
+
+      ws.onmessage = (event) => {
+        // Only handle if this is still the current connection
+        if (connectionIdRef.current !== currentConnectionId) {
+          return;
+        }
+        
+        // Update last activity time - this includes both messages and implicit pong responses
+        // to server ping frames (browser handles pongs automatically)
+        lastActivityRef.current = Date.now();
+        
+        try {
+          // Parse JSON message from backend
+          // Backend sends messages with type field: { type: "userchat" | "transaction", ... }
+          // Note: WebSocket ping/pong frames are handled automatically by the browser
+          // and don't trigger onmessage, but any regular messages do
+          let data;
+          try {
+            data = JSON.parse(event.data);
+          } catch (err) {
+            console.error('Failed to parse WebSocket message as JSON:', err);
+            return;
+          }
+          
+          // Check message type
+          const messageType = data.type || 'userchat'; // Default to userchat for backwards compatibility
+          const now = Date.now();
+          
+          // Handle transaction messages
+          if (messageType === 'transaction') {
+            const transactionId = data.transaction_id || '';
+            const username = data.username || 'Unknown';
+            const nemaName = data.nema_name || '';
+            const completed = data.completed !== undefined ? data.completed : true;
+            
+            if (!transactionId) {
+              console.warn('Received transaction message with no transaction_id:', data);
+              return;
+            }
+            
+            // Create deduplication key for transactions
+            const dedupeKey = `tx-${transactionId}`;
+            const lastSeen = seenMessagesRef.current.get(dedupeKey);
+            
+            if (lastSeen && (now - lastSeen < 5000)) {
+              // Already seen this transaction within the last 5 seconds, skip it
+              return;
+            }
+            
+            // Add to seen messages
+            seenMessagesRef.current.set(dedupeKey, now);
+            
+            // Clean up old entries (older than 10 seconds for transactions)
+            seenMessagesRef.current.forEach((time, key) => {
+              if (key.startsWith('tx-') && (now - time > 10000)) {
+                seenMessagesRef.current.delete(key);
+              }
+            });
+            
+            const message = {
+              id: `tx-${now}-${transactionId}`,
+              type: 'transaction',
+              transactionId: transactionId,
+              username: username,
+              nemaName: nemaName,
+              completed: completed,
+              timestamp: new Date(now),
+            };
+            
+            setMessages(prev => {
+              const updated = [...prev, message];
+              // Keep only last 500 messages in memory
+              const limited = updated.slice(-500);
+              // Persist to sessionStorage
+              persistMessages(limited);
+              return limited;
+            });
+            
+            if (optionsRef.current.onMessage) {
+              optionsRef.current.onMessage(message);
+            }
+            return;
+          }
+          
+          // Handle session claim messages
+          if (messageType === 'session_claim') {
+            const sessionId = data.session_id || 0;
+            const messageText = data.message || 'A Worminal session is now available for anyone to claim!';
+            
+            // Create deduplication key for session claims
+            const dedupeKey = `session-claim-${sessionId}`;
+            const lastSeen = seenMessagesRef.current.get(dedupeKey);
+            
+            if (lastSeen && (now - lastSeen < 5000)) {
+              // Already seen this session claim notification within the last 5 seconds, skip it
+              return;
+            }
+            
+            // Add to seen messages
+            seenMessagesRef.current.set(dedupeKey, now);
+            
+            // Clean up old entries (older than 10 seconds for session claims)
+            seenMessagesRef.current.forEach((time, key) => {
+              if (key.startsWith('session-claim-') && (now - time > 10000)) {
+                seenMessagesRef.current.delete(key);
+              }
+            });
+            
+            const message = {
+              id: `session-claim-${now}-${sessionId}`,
+              type: 'session_claim',
+              sessionId: sessionId,
+              message: messageText,
+              timestamp: new Date(now),
+            };
+            
+            setMessages(prev => {
+              const updated = [...prev, message];
+              // Keep only last 500 messages in memory
+              const limited = updated.slice(-500);
+              // Persist to sessionStorage
+              persistMessages(limited);
+              return limited;
+            });
+            
+            if (optionsRef.current.onMessage) {
+              optionsRef.current.onMessage(message);
+            }
+            return;
+          }
+          
+          // Handle session claimed messages (when someone claims a session)
+          if (messageType === 'session_claimed') {
+            const sessionId = data.session_id || 0;
+            const messageText = data.message || 'A session was claimed!';
+            const username = data.username || 'Someone';
+            
+            // Create deduplication key for session claimed notifications
+            const dedupeKey = `session-claimed-${sessionId}`;
+            const lastSeen = seenMessagesRef.current.get(dedupeKey);
+            
+            if (lastSeen && (now - lastSeen < 5000)) {
+              // Already seen this notification within the last 5 seconds, skip it
+              return;
+            }
+            
+            // Add to seen messages
+            seenMessagesRef.current.set(dedupeKey, now);
+            
+            // Clean up old entries (older than 10 seconds)
+            seenMessagesRef.current.forEach((time, key) => {
+              if (key.startsWith('session-claimed-') && (now - time > 10000)) {
+                seenMessagesRef.current.delete(key);
+              }
+            });
+            
+            const message = {
+              id: `session-claimed-${now}-${sessionId}`,
+              type: 'session_claimed',
+              sessionId: sessionId,
+              message: messageText,
+              username: username,
+              timestamp: new Date(now),
+            };
+            
+            setMessages(prev => {
+              const updated = [...prev, message];
+              // Keep only last 500 messages in memory
+              const limited = updated.slice(-500);
+              // Persist to sessionStorage
+              persistMessages(limited);
+              return limited;
+            });
+            
+            // Trigger refresh callback if provided (for refreshing access state)
+            if (optionsRef.current.onSessionClaimed) {
+              optionsRef.current.onSessionClaimed(sessionId);
+            }
+            
+            if (optionsRef.current.onMessage) {
+              optionsRef.current.onMessage(message);
+            }
+            return;
+          }
+          
+          // Handle userchat messages (existing logic)
+          if (messageType === 'userchat') {
+            // Extract message fields (backend uses snake_case: user_id, username, text)
+            const messageText = data.text || '';
+            const userID = data.user_id || data.userID || 'unknown';
+            const username = data.username || 'Unknown';
+            
+            if (!messageText) {
+              console.warn('Received message with no text:', data);
+              return;
+            }
+            
+            // Create a unique key for deduplication: user_id + text + timestamp (rounded to seconds)
+            const nowSeconds = Math.floor(now / 1000);
+            const dedupeKey = `${userID}-${messageText}-${nowSeconds}`;
+            
+            // Check if we've already seen this exact message recently (within 2 seconds)
+            const lastSeen = seenMessagesRef.current.get(dedupeKey);
+            
+            if (lastSeen && (now - lastSeen < 2000)) {
+              // Already seen this message within the last 2 seconds, skip it
+              return;
+            }
+            
+            // Add to seen messages with current timestamp
+            seenMessagesRef.current.set(dedupeKey, now);
+            
+            // Clean up old entries (older than 5 seconds)
+            seenMessagesRef.current.forEach((time, key) => {
+              if (!key.startsWith('tx-') && (now - time > 5000)) {
+                seenMessagesRef.current.delete(key);
+              }
+            });
+
+            const message = {
+              id: `${now}-${Math.random()}-${userID}`,
+              type: 'userchat',
+              text: messageText,
+              username: username,
+              userID: userID,
+              timestamp: new Date(now),
+            };
+
+          setMessages(prev => {
+            // Check if this message might be a duplicate of an optimistic message
+            // (same user, same text, within last 5 seconds)
+            const fiveSecondsAgo = now - 5000;
+            const isDuplicateOptimistic = prev.some(msg => 
+              msg.isOptimistic && 
+              msg.userID === userID && 
+              msg.text === messageText &&
+              msg.timestamp.getTime() > fiveSecondsAgo
+            );
+            
+            let updated;
+            if (isDuplicateOptimistic) {
+              // Replace optimistic message with real one
+              updated = prev.map(msg => 
+                msg.isOptimistic && 
+                msg.userID === userID && 
+                msg.text === messageText &&
+                msg.timestamp.getTime() > fiveSecondsAgo
+                  ? message
+                  : msg
+              );
+            } else {
+              updated = [...prev, message];
+            }
+            
+            // Keep only last 500 messages in memory
+            const limited = updated.slice(-500);
+            // Persist to sessionStorage
+            persistMessages(limited);
+            return limited;
+          });
+          
+          if (optionsRef.current.onMessage) {
+            optionsRef.current.onMessage(message);
+          }
+          return;
+        }
+        
+        // Unknown message type - log warning but don't crash
+        console.warn('Received message with unknown type:', messageType, data);
+        } catch (err) {
+          console.error('Error processing websocket message:', err);
+        }
+      };
+
+      ws.onerror = (err) => {
+        // Only handle if this is still the current connection
+        if (connectionIdRef.current !== currentConnectionId) {
+          return;
+        }
+        
+        console.error('WebSocket error:', err);
+        setError('WebSocket connection error');
+        if (optionsRef.current.onError) {
+          optionsRef.current.onError(err);
+        }
+      };
+
+      ws.onclose = (event) => {
+        // Only handle if this is still the current connection
+        // This prevents stale connection handlers from interfering
+        if (connectionIdRef.current !== currentConnectionId) {
+          return;
+        }
+        
+        setIsConnected(false);
+        
+        // Clean up heartbeat monitoring interval
+        if (heartbeatCheckIntervalRef.current) {
+          clearInterval(heartbeatCheckIntervalRef.current);
+          heartbeatCheckIntervalRef.current = null;
+        }
+        
+        // Reset activity tracking
+        lastActivityRef.current = null;
+        
+        // Only clear wsRef if this is still the current connection
+        if (wsRef.current === ws) {
+          wsRef.current = null;
+        }
+
+        // Only attempt to reconnect if it wasn't manually closed
+        if (!isManualCloseRef.current && reconnectAttemptsRef.current < maxReconnectAttempts) {
+          reconnectAttemptsRef.current += 1;
+          reconnectTimeoutRef.current = setTimeout(() => {
+            // Double-check we still want to reconnect (component might have unmounted)
+            if (connectionIdRef.current === currentConnectionId) {
+              connect();
+            }
+          }, reconnectDelay);
+        } else if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
+          setError('Failed to reconnect. Please refresh the page.');
+        }
+
+        if (optionsRef.current.onClose) {
+          optionsRef.current.onClose();
+        }
+      };
+    } catch (err) {
+      console.error('Error creating WebSocket:', err);
+      setError('Failed to create WebSocket connection');
+      wsRef.current = null;
+    }
+  }, [url, maxReconnectAttempts, reconnectDelay]);
+
+  const sendMessage = useCallback((messageText, username = 'You', userID = 'local') => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      console.warn('WebSocket is not connected');
+      return false;
+    }
+
+    const trimmedText = messageText.trim();
+    if (!trimmedText) {
+      return false;
+    }
+
+    // Add message optimistically (sender sees their own message immediately)
+    const now = Date.now();
+    const optimisticMessage = {
+      id: `optimistic-${now}-${Math.random()}`,
+      text: trimmedText,
+      username: username,
+      userID: userID,
+      timestamp: new Date(now),
+      isOptimistic: true, // Flag to identify optimistic messages
+    };
+
+    // Add to messages immediately and persist
+    setMessages(prev => {
+      const updated = [...prev, optimisticMessage];
+      // Keep only last 500 messages in memory
+      const limited = updated.slice(-500);
+      persistMessages(limited);
+      return limited;
+    });
+
+    // Send as plain text (backend expects raw bytes and will add user info)
+    wsRef.current.send(trimmedText);
+    
+    return true;
+  }, [persistMessages]);
+
+  const disconnect = useCallback(() => {
+    isManualCloseRef.current = true;
+    
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+    
+    // Clean up heartbeat monitoring interval
+    if (heartbeatCheckIntervalRef.current) {
+      clearInterval(heartbeatCheckIntervalRef.current);
+      heartbeatCheckIntervalRef.current = null;
+    }
+    
+    // Reset activity tracking
+    lastActivityRef.current = null;
+    
+    // Increment connection ID to invalidate any pending handlers
+    connectionIdRef.current += 1;
+    
+    if (wsRef.current) {
+      // Close with a normal closure code (not abnormal)
+      try {
+        wsRef.current.close(1000, 'Component unmounting');
+      } catch (err) {
+        // Ignore errors during close
+      }
+      wsRef.current = null;
+    }
+    
+    // Note: We don't clear messages here - they persist in sessionStorage
+    // Messages will only be cleared on page reload/close (sessionStorage behavior)
+    setIsConnected(false);
+  }, []);
+
+  useEffect(() => {
+    connect();
+
+    return () => {
+      disconnect();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [url]); // Only reconnect if URL changes
+
+  return {
+    messages,
+    isConnected,
+    error,
+    sendMessage,
+    disconnect,
+    connect,
+  };
+};
+

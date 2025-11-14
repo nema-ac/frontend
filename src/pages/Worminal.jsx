@@ -1,71 +1,96 @@
+import { useState } from 'react';
 import InteractiveTerminal from '../components/InteractiveTerminal.jsx';
+import WorminalModal from '../components/WorminalModal.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
+import UserChat from '../components/UserChat.jsx';
 
 const Worminal = () => {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [mobileView, setMobileView] = useState('worminal'); // 'worminal' or 'chat'
+
+  const handleToggleFullscreen = () => {
+    setIsFullscreen(true);
+  };
+
+  const handleCloseFullscreen = () => {
+    setIsFullscreen(false);
+  };
+
   return (
-    <div className="min-h-screen bg-black text-white pt-28">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl sm:text-6xl font-bold mb-6">
-            <span className="text-cyan-400">WORMINAL</span>
-          </h1>
-          <p className="text-xl text-gray-400 max-w-4xl mx-auto mb-8">
-            Direct neural interface to NEMA. Chat with the evolving digital organism through this retro terminal.
-          </p>
-          
-          {/* Quick Instructions */}
-          <div className="bg-black/50 border border-cyan-400/30 rounded-lg p-4 max-w-4xl mx-auto text-sm">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
-              <div>
-                <span className="text-cyan-400 font-semibold">Commands:</span> 
-                <span className="text-gray-300"> Type "help" for available commands</span>
-              </div>
-              <div>
-                <span className="text-green-400 font-semibold">Chat:</span> 
-                <span className="text-gray-300"> Simply type a message to talk to NEMA</span>
-              </div>
-              <div>
-                <span className="text-purple-400 font-semibold">Shortcuts:</span> 
-                <span className="text-gray-300"> Ctrl+L (clear), ↑/↓ (history)</span>
-              </div>
+    <div className={`h-screen flex flex-col pt-14 ${mobileView === 'chat' ? 'max-lg:overflow-hidden' : 'max-lg:overflow-y-auto'} lg:overflow-hidden`}>
+      <div className={`container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl flex-1 flex flex-col min-h-0 ${mobileView === 'chat' ? 'max-lg:pb-0' : 'pb-4'}`}>
+        {/* Header Section - 3 Columns on desktop, stacked on mobile */}
+        <div className="mb-2 lg:grid lg:grid-cols-[auto_1fr_auto] lg:gap-2 flex-shrink-0">
+          {/* Column 1: WORMINAL / Mobile View Selector */}
+          <div className="lg:border border-nema-gray py-2 max-lg:py-1.5 flex items-center justify-center">
+            {/* Desktop: Show WORMINAL text */}
+            <h1 className="hidden lg:block nema-display nema-display-2 text-nema-white text-xl">
+              WORMINAL
+            </h1>
+
+            {/* Mobile: Show view selector */}
+            <div className="lg:hidden flex items-center gap-1 w-full">
+              <button
+                onClick={() => setMobileView('worminal')}
+                className={`flex-1 py-1.5 px-2 border transition-colors ${mobileView === 'worminal'
+                  ? 'border-nema-cyan bg-nema-cyan/10 text-nema-cyan'
+                  : 'border-nema-gray text-nema-gray-darker hover:border-nema-gray-darker'
+                  }`}
+              >
+                <span className="nema-display nema-header-2 text-xs">WORMINAL</span>
+              </button>
+              <button
+                onClick={() => setMobileView('chat')}
+                className={`flex-1 py-1.5 px-2 border transition-colors ${mobileView === 'chat'
+                  ? 'border-nema-cyan bg-nema-cyan/10 text-nema-cyan'
+                  : 'border-nema-gray text-nema-gray-darker hover:border-nema-gray-darker'
+                  }`}
+              >
+                <span className="nema-display nema-header-2 text-xs">CHAT</span>
+              </button>
             </div>
+          </div>
+
+          {/* Column 2: Description */}
+          <div className="max-lg:hidden lg:border border-nema-gray p-2">
+            <p className="text-nema-white font-anonymous text-xs leading-relaxed">
+              Use this interface to chat with NEMA's neural substrate. A 302-neuron C. elegans connectome fused with advanced language processing. Every interaction shapes the neural state and contributes to the organism's continuous evolution.
+            </p>
+          </div>
+
+          {/* Column 3: NEMA (rotated 90 degrees left) - hidden on mobile */}
+          <div className="max-lg:hidden border border-nema-gray p-2 flex items-center justify-center">
+            <h1 className="nema-display nema-header-2 text-nema-white text-xs" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+              NEMA
+            </h1>
           </div>
         </div>
 
-        {/* Interactive Terminal */}
-        <div className="mb-16">
-          <ErrorBoundary>
-            <InteractiveTerminal />
-          </ErrorBoundary>
-        </div>
+        {/* Main Content Area - Chat on left, Terminal on right */}
+        <div className="flex-1 min-h-0 flex flex-col lg:flex-row lg:gap-2">
+          {/* User Chat - Left Side (hidden on mobile, shown when mobileView === 'chat') */}
+          <div className={`${mobileView === 'chat' ? 'flex' : 'hidden'} lg:flex lg:w-80 flex-shrink-0 min-h-0 h-full flex-col`}>
+            <ErrorBoundary>
+              <UserChat />
+            </ErrorBoundary>
+          </div>
 
-        {/* Footer Info */}
-        <div className="text-center mb-16">
-          <div className="neon-border bg-gradient-to-br from-purple-900/20 to-black/50 rounded-lg p-6 max-w-4xl mx-auto">
-            <h3 className="text-xl font-bold text-cyan-400 mb-4">About This Interface</h3>
-            <p className="text-gray-300 mb-4">
-              You are connected to NEMA's neural substrate a 302-neuron C. elegans connectome fused with 
-              advanced language processing. Every interaction shapes the neural state and contributes to 
-              the organism's continuous evolution.
-            </p>
-            <div className="flex justify-center items-center space-x-6 text-sm">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 rounded-full bg-green-400"></div>
-                <span className="text-gray-400">Neural Network Active</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 rounded-full bg-cyan-400"></div>
-                <span className="text-gray-400">Memory Persistent</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 rounded-full bg-purple-400"></div>
-                <span className="text-gray-400">Evolution Continuous</span>
-              </div>
-            </div>
+          {/* Interactive Terminal - Right Side (hidden on mobile when chat is selected) */}
+          <div className={`${mobileView === 'worminal' ? 'flex' : 'hidden'} lg:flex flex-1 min-h-0 flex flex-col`}>
+            <ErrorBoundary>
+              <InteractiveTerminal
+                onToggleFullscreen={handleToggleFullscreen}
+              />
+            </ErrorBoundary>
           </div>
         </div>
       </div>
+
+      {/* Fullscreen Modal */}
+      <WorminalModal
+        isOpen={isFullscreen}
+        onClose={handleCloseFullscreen}
+      />
     </div>
   );
 };

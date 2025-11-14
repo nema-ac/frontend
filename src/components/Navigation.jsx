@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Logo from './Logo';
 import WalletButton from './WalletButton';
@@ -7,37 +7,202 @@ import BuyTokenButton from './BuyTokenButton';
 const Navigation = () => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
+
+  // Close dropdown when route changes
+  useEffect(() => {
+    setIsDropdownOpen(false);
+  }, [location.pathname]);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-sm border-b border-cyan-400">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16 md:justify-between">
-          {/* Mobile: Logo */}
-          <div className="md:hidden">
+    <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b border-nema-secondary">
+      <div className="container mx-auto px-4 md:px-3 lg:px-4 xl:px-8">
+        <div className="flex items-center h-12 gap-3 md:gap-2 lg:gap-3 md:justify-between">
+          {/* Mobile/Tablet: Small Logo */}
+          <div className="lg:hidden flex-shrink-0">
             <Link to="/" className="flex items-center">
               <img
                 src="/mobile-nema-logo.png"
                 alt="NEMA"
-                className="w-10 h-10 object-contain rounded-full"
+                className="object-contain"
+                style={{ height: 32, width: 32 }}
               />
             </Link>
           </div>
 
-          {/* Mobile: Buy Button (centered) */}
-          <div className="md:hidden">
-            <BuyTokenButton />
+          {/* Desktop: Full Logo */}
+          <div className="hidden lg:block flex-shrink-0">
+            <Link to="/" className="flex items-center">
+              <img
+                src="/nema-lab-logo.png"
+                alt="NEMA LAB Logo"
+                className="object-contain"
+                style={{ height: 24, width: 'auto' }}
+              />
+            </Link>
           </div>
 
-          {/* Mobile: Wallet + Menu */}
-          <div className="md:hidden flex items-center space-x-2">
+          {/* Mobile: Middle section with Buy Button + Wallet */}
+          <div className="md:hidden flex items-center justify-evenly flex-1 gap-2">
+            <BuyTokenButton />
+            <WalletButton />
+          </div>
+
+          {/* Navigation Links - Show on md and up */}
+          <div className="hidden md:flex items-center gap-3 lg:gap-4 xl:gap-5 flex-1 justify-center min-w-0">
+            {/* Always visible: Worminal and Gallery */}
+            <Link
+              to="/"
+              className={`nav-link nema-display nema-header-2 transition-all duration-200 whitespace-nowrap ${location.pathname === '/'
+                  ? 'nav-link-active'
+                  : 'nav-link-inactive'
+                }`}
+            >
+              Worminal
+              <span className="nav-badge-new">NEW</span>
+            </Link>
+            <Link
+              to="/gallery"
+              className={`nav-link nema-display nema-header-2 transition-all duration-200 whitespace-nowrap ${location.pathname === '/gallery'
+                  ? 'nav-link-active'
+                  : 'nav-link-inactive'
+                }`}
+            >
+              Gallery
+              <span className="nav-badge-new">NEW</span>
+            </Link>
+
+            {/* Show on xl and up, hide on md/lg */}
+            <Link
+              to="/about"
+              className={`!hidden xl:!block nav-link nema-display nema-header-2 transition-all duration-200 whitespace-nowrap ${location.pathname === '/about'
+                  ? 'nav-link-active'
+                  : 'nav-link-inactive'
+                }`}
+            >
+              About
+            </Link>
+            <Link
+              to="/roadmap"
+              className={`!hidden xl:!block nav-link nema-display nema-header-2 transition-all duration-200 whitespace-nowrap ${location.pathname === '/roadmap'
+                  ? 'nav-link-active'
+                  : 'nav-link-inactive'
+                }`}
+            >
+              Roadmap
+            </Link>
+            <Link
+              to="/airdrop"
+              className={`!hidden xl:!block nav-link nema-display nema-header-2 transition-all duration-200 whitespace-nowrap ${location.pathname === '/airdrop'
+                  ? 'nav-link-active'
+                  : 'nav-link-inactive'
+                }`}
+            >
+              Token
+            </Link>
+
+            {/* Dropdown menu button for md/lg screens */}
+            <div ref={dropdownRef} className="xl:hidden relative">
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className={`nav-link nema-display nema-header-2 transition-all duration-200 whitespace-nowrap ${isDropdownOpen || ['/about', '/roadmap', '/airdrop'].includes(location.pathname)
+                    ? 'nav-link-active'
+                    : 'nav-link-inactive'
+                  }`}
+              >
+                More
+                <svg
+                  className={`w-3 h-3 ml-1 inline-block transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {/* Dropdown menu */}
+              {isDropdownOpen && (
+                <div className="absolute top-full left-0 mt-2 bg-nema-black border border-nema-gray shadow-lg z-50 min-w-[120px]">
+                  <div className="py-2">
+                    <Link
+                      to="/about"
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`nav-link nav-link-dropdown nema-display nema-header-2 transition-all duration-200 block ${location.pathname === '/about'
+                          ? 'nav-link-active'
+                          : 'nav-link-inactive'
+                        }`}
+                    >
+                      About
+                    </Link>
+                    <Link
+                      to="/roadmap"
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`nav-link nav-link-dropdown nema-display nema-header-2 transition-all duration-200 block ${location.pathname === '/roadmap'
+                          ? 'nav-link-active'
+                          : 'nav-link-inactive'
+                        }`}
+                    >
+                      Roadmap
+                    </Link>
+                    <Link
+                      to="/airdrop"
+                      onClick={() => {
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`nav-link nav-link-dropdown nema-display nema-header-2 transition-all duration-200 block ${location.pathname === '/airdrop'
+                          ? 'nav-link-active'
+                          : 'nav-link-inactive'
+                        }`}
+                    >
+                      Token
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right side buttons - Show on md and up */}
+          <div className="hidden md:flex items-center gap-2 flex-shrink-0">
+            {/* Wallet Button */}
             <div className="relative">
               <WalletButton />
             </div>
+
+            {/* Buy Token Button */}
+            <BuyTokenButton />
+          </div>
+
+          {/* Mobile: Hamburger Menu */}
+          <div className="md:hidden flex-shrink-0">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-300 hover:text-cyan-400 focus:outline-none"
+              className="text-nema-secondary hover:text-nema-cyan focus:outline-none cursor-pointer"
             >
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 {isMenuOpen ? (
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 ) : (
@@ -46,127 +211,67 @@ const Navigation = () => {
               </svg>
             </button>
           </div>
-
-          {/* Desktop: Logo */}
-          <div className="hidden md:block">
-            <Link to="/" className="flex items-center">
-              <Logo size={36} />
-            </Link>
-          </div>
-
-          {/* Navigation Links */}
-          <div className="hidden md:flex items-center space-x-8">
-            <div className="relative">
-              <Link
-                to="/"
-                className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${
-                  location.pathname === '/'
-                    ? 'text-cyan-400 '
-                    : 'text-gray-300'
-                }`}
-              >
-                WORMINAL
-              </Link>
-              <span className="absolute -top-1 -right-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-1 py-0.5 rounded-full font-bold" style={{ transform: 'scale(0.7)' }}>
-                SOON
-              </span>
-            </div>
-            <Link
-              to="/about"
-              className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${
-                location.pathname === '/about'
-                  ? 'text-cyan-400 '
-                  : 'text-gray-300'
-              }`}
-            >
-              ABOUT
-            </Link>
-            <Link
-              to="/roadmap"
-              className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${
-                location.pathname === '/roadmap'
-                  ? 'text-cyan-400 '
-                  : 'text-gray-300'
-              }`}
-            >
-              ROADMAP
-            </Link>
-            <Link
-              to="/airdrop"
-              className={`text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${
-                location.pathname === '/airdrop'
-                  ? 'text-cyan-400'
-                  : 'text-gray-300'
-              }`}
-            >
-              TOKEN
-            </Link>
-          </div>
-
-          {/* Desktop Navigation and Wallet */}
-          <div className="hidden md:flex items-center space-x-4">
-            {/* Buy Token Button */}
-            <BuyTokenButton />
-            
-            {/* Wallet Button */}
-            <div className="relative">
-              <WalletButton />
-            </div>
-          </div>
-
         </div>
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden bg-black/95 backdrop-blur-sm border-t border-cyan-400/30">
-            <div className="px-4 py-6 space-y-6">
-              <div className="relative block">
-                <Link
-                  to="/"
-                  onClick={() => setIsMenuOpen(false)}
-                  className={`block text-lg font-medium transition-colors duration-200 hover:text-cyan-400 ${
-                    location.pathname === '/'
-                      ? 'text-cyan-400'
-                      : 'text-gray-300'
+          <div className="md:hidden bg-nema-black border-t border-nema-secondary">
+            <div className="px-4 py-6 space-y-4">
+              <Link
+                to="/"
+                onClick={() => setIsMenuOpen(false)}
+                className={`nav-link nav-link-mobile nema-display nema-header-2 transition-all duration-200 ${location.pathname === '/'
+                    ? 'nav-link-active'
+                    : 'nav-link-inactive'
                   }`}
-                >
-                  WORMINAL
-                </Link>
-                <span className="absolute -top-1 left-24 md:-right-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-1 py-0.5 rounded-full font-bold" style={{transform: 'scale(0.7)'}}>
-                  SOON
-                </span>
-              </div>
+              >
+                Worminal
+                <span className="nav-badge-new">NEW</span>
+              </Link>
+              <Link
+                to="/gallery"
+                onClick={() => setIsMenuOpen(false)}
+                className={`nav-link nav-link-mobile nema-display nema-header-2 transition-all duration-200 ${location.pathname === '/gallery'
+                    ? 'nav-link-active'
+                    : 'nav-link-inactive'
+                  }`}
+              >
+                Gallery
+                <span className="nav-badge-new">NEW</span>
+              </Link>
               <Link
                 to="/about"
                 onClick={() => setIsMenuOpen(false)}
-                className={`block text-lg font-medium transition-colors duration-200 hover:text-cyan-400 ${location.pathname === '/about'
-                  ? 'text-cyan-400'
-                  : 'text-gray-300'
+                className={`nav-link nav-link-mobile nema-display nema-header-2 transition-all duration-200 ${location.pathname === '/about'
+                  ? 'nav-link-active'
+                  : 'nav-link-inactive'
                   }`}
               >
-                ABOUT
+                About
               </Link>
               <Link
                 to="/roadmap"
                 onClick={() => setIsMenuOpen(false)}
-                className={`block text-lg font-medium transition-colors duration-200 hover:text-cyan-400 ${location.pathname === '/roadmap'
-                  ? 'text-cyan-400'
-                  : 'text-gray-300'
+                className={`nav-link nav-link-mobile nema-display nema-header-2 transition-all duration-200 ${location.pathname === '/roadmap'
+                  ? 'nav-link-active'
+                  : 'nav-link-inactive'
                   }`}
               >
-                ROADMAP
+                Roadmap
               </Link>
               <Link
                 to="/airdrop"
                 onClick={() => setIsMenuOpen(false)}
-                className={`block text-lg font-medium transition-colors duration-200 hover:text-cyan-400 ${
-                  location.pathname === '/airdrop'
-                    ? 'text-cyan-400'
-                    : 'text-gray-300'
-                }`}
+                className={`nav-link nav-link-mobile nema-display nema-header-2 transition-all duration-200 ${location.pathname === '/airdrop'
+                    ? 'nav-link-active'
+                    : 'nav-link-inactive'
+                  }`}
               >
-                TOKEN
+                Token
               </Link>
+              <div className="pt-4 border-t border-nema-secondary">
+                <BuyTokenButton />
+              </div>
             </div>
           </div>
         )}

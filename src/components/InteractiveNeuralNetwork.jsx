@@ -465,11 +465,11 @@ const InteractiveNeuralNetwork = () => {
   }, []);
 
   return (
-    <div className="rounded-lg bg-gradient-to-br from-purple-900/20 to-black/60 border border-cyan-400/50 p-6">
+    <div className="nema-card p-6 bg-nema-black/40">
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Visualization */}
         <div className="flex-1">
-          <h3 className="text-xl font-bold text-cyan-400 mb-4">Interactive Neural Network</h3>
+          <h3 className="nema-display nema-display-2 text-nema-cyan mb-4 font-intranet">Interactive Neural Network</h3>
           
           {/* Mode Controls */}
           <div className="flex flex-wrap gap-2 mb-4">
@@ -478,10 +478,10 @@ const InteractiveNeuralNetwork = () => {
                 setNetworkMode('normal');
                 addLogMessage('Mode: Signal Flow - Click neurons to propagate signals');
               }}
-              className={`px-3 py-1 text-sm rounded border transition-colors ${
-                networkMode === 'normal' 
-                  ? 'bg-cyan-400 text-black border-cyan-400' 
-                  : 'bg-black/50 text-gray-300 border-gray-600 hover:border-cyan-400'
+              className={`px-3 py-1 text-sm border transition-colors font-anonymous ${
+                networkMode === 'normal'
+                  ? 'bg-nema-cyan text-nema-black border-nema-cyan'
+                  : 'bg-nema-black/50 text-nema-gray border-nema-gray-darker hover:border-nema-cyan'
               }`}
             >
               Signal Flow
@@ -491,10 +491,10 @@ const InteractiveNeuralNetwork = () => {
                 setNetworkMode('learning');
                 addLogMessage('Mode: Neuroplasticity - Click neurons to strengthen synapses');
               }}
-              className={`px-3 py-1 text-sm rounded border transition-colors ${
-                networkMode === 'learning' 
-                  ? 'bg-purple-400 text-black border-purple-400' 
-                  : 'bg-black/50 text-gray-300 border-gray-600 hover:border-purple-400'
+              className={`px-3 py-1 text-sm border transition-colors font-anonymous ${
+                networkMode === 'learning'
+                  ? 'bg-nema-purple text-nema-white border-nema-purple'
+                  : 'bg-nema-black/50 text-nema-gray border-nema-gray-darker hover:border-nema-purple'
               }`}
             >
               Plasticity
@@ -504,26 +504,27 @@ const InteractiveNeuralNetwork = () => {
                 setNetworkMode('evolving');
                 addLogMessage('Mode: Neurogenesis - Click neurons to generate new ones');
               }}
-              className={`px-3 py-1 text-sm rounded border transition-colors ${
-                networkMode === 'evolving' 
-                  ? 'bg-red-400 text-black border-red-400' 
-                  : 'bg-black/50 text-gray-300 border-gray-600 hover:border-red-400'
+              className={`px-3 py-1 text-sm border transition-colors font-anonymous ${
+                networkMode === 'evolving'
+                  ? 'bg-red-400 text-nema-black border-red-400'
+                  : 'bg-nema-black/50 text-nema-gray border-nema-gray-darker hover:border-red-400'
               }`}
             >
               Evolution
             </button>
           </div>
-          
-          <div className="text-sm text-gray-400 mb-4 p-3 bg-black/30 rounded border border-gray-600">
+
+
+          <div className="text-sm text-nema-gray mb-4 p-3 bg-nema-black/30 border border-nema-gray/20 font-anonymous">
             {networkMode === 'normal' && (
               <div>
-                <div className="text-cyan-400 font-bold mb-1">Signal Flow Mode</div>
+                <div className="text-nema-cyan font-bold mb-1">Signal Flow Mode</div>
                 <div>Click neurons to see signal propagation through the network. Watch neural activity cascade through biological pathways from sensory to motor neurons.</div>
               </div>
             )}
             {networkMode === 'learning' && (
               <div>
-                <div className="text-purple-400 font-bold mb-1">Neuroplasticity Mode</div>
+                <div className="text-nema-purple font-bold mb-1">Neuroplasticity Mode</div>
                 <div>Click neurons to strengthen connections through repeated activation. Experience NEMA's learning capabilities as synapses adapt and strengthen over time.</div>
               </div>
             )}
@@ -534,8 +535,8 @@ const InteractiveNeuralNetwork = () => {
               </div>
             )}
           </div>
-          
-          <div className="bg-black/50 rounded border border-cyan-400/30 overflow-hidden">
+
+          <div className="bg-nema-black/50 border border-nema-cyan/30 overflow-hidden">
             <svg
               ref={svgRef}
               width="500"
@@ -548,37 +549,38 @@ const InteractiveNeuralNetwork = () => {
 
         {/* Info Panel */}
         <div className="lg:w-64">
-          <div className="bg-black/50 rounded border border-cyan-400/30 p-4">
-            <h4 className="text-lg font-bold text-cyan-400 mb-3">NEMA Foundation</h4>
-            <p className="text-sm text-gray-300 mb-4">
+          <div className="bg-nema-black/50 border border-nema-cyan/30 p-4">
+            <h4 className="nema-header-2 font-intranet text-nema-cyan mb-3">NEMA Foundation</h4>
+            <p className="text-sm text-nema-gray mb-4 font-anonymous">
               This represents the C. elegans neural network that NEMA builds upon, enhanced with neuroplasticity and neurogenesis capabilities for true digital evolution.
             </p>
-            
-            <h4 className="text-lg font-bold text-cyan-400 mb-3">Neural Types</h4>
-            
-            <div className="space-y-2 text-sm">
+
+            <h4 className="nema-header-2 font-intranet text-nema-cyan mb-3">Neural Types</h4>
+
+
+            <div className="space-y-2 text-sm font-anonymous">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-cyan-400"></div>
-                <span className="text-gray-300">Sensory</span>
+                <div className="w-3 h-3 rounded-full bg-nema-cyan"></div>
+                <span className="text-nema-gray">Sensory</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#9659D4'}}></div>
-                <span className="text-gray-300">Interneuron</span>
+                <div className="w-3 h-3 rounded-full bg-nema-purple"></div>
+                <span className="text-nema-gray">Interneuron</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#00FF88'}}></div>
-                <span className="text-gray-300">Motor</span>
+                <span className="text-nema-gray">Motor</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full" style={{backgroundColor: '#FFD700'}}></div>
-                <span className="text-gray-300">Muscle</span>
+                <span className="text-nema-gray">Muscle</span>
               </div>
             </div>
 
             {selectedNeuron && (
-              <div className="mt-4 pt-4 border-t border-gray-600">
-                <h5 className="font-bold text-cyan-400 mb-2">Selected Neuron</h5>
-                <div className="text-sm text-gray-300">
+              <div className="mt-4 pt-4 border-t border-nema-gray-darker">
+                <h5 className="font-bold text-nema-cyan mb-2 font-anonymous">Selected Neuron</h5>
+                <div className="text-sm text-nema-gray font-anonymous">
                   <p><strong>Name:</strong> {selectedNeuron.name}</p>
                   <p><strong>Type:</strong> {selectedNeuron.type}</p>
                   <p><strong>Connections:</strong> {selectedNeuron.connections}</p>
@@ -586,13 +588,13 @@ const InteractiveNeuralNetwork = () => {
               </div>
             )}
 
-            <div className="mt-4 pt-4 border-t border-gray-600">
-              <h5 className="font-bold text-cyan-400 mb-2">Activity Log</h5>
-              <div className="bg-black/70 rounded p-2 text-xs font-mono h-48 overflow-y-auto border border-gray-600">
+            <div className="mt-4 pt-4 border-t border-nema-gray-darker">
+              <h5 className="font-bold text-nema-cyan mb-2 font-anonymous">Activity Log</h5>
+              <div className="bg-nema-black/70 p-2 text-xs font-anonymous h-48 overflow-y-auto border border-nema-gray-darker">
                 {activityLog.map((log, index) => (
-                  <div 
-                    key={index} 
-                    className={`text-gray-300 leading-tight ${index === activityLog.length - 1 ? 'text-cyan-400' : ''}`}
+                  <div
+                    key={index}
+                    className={`leading-tight ${index === activityLog.length - 1 ? 'text-nema-cyan' : 'text-nema-gray'}`}
                   >
                     {log}
                   </div>
@@ -600,8 +602,8 @@ const InteractiveNeuralNetwork = () => {
               </div>
             </div>
 
-            <div className="mt-4 pt-4 border-t border-gray-600">
-              <p className="text-xs text-gray-400">
+            <div className="mt-4 pt-4 border-t border-nema-gray-darker">
+              <p className="text-xs text-nema-gray-darker font-anonymous">
                 Solid lines: Chemical synapses<br/>
                 Dashed lines: Gap junctions<br/>
                 Node size: Connection count

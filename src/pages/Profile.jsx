@@ -3,6 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { AuthContext } from '../contexts/AuthContext';
 import profileService from '../services/profile.js';
+import nemaService from '../services/nema.js';
+import ProfileTabs from '../components/ProfileTabs.jsx';
+import NemaCreationFlow from '../components/NemaCreationFlow.jsx';
+import NemaCard from '../components/NemaCard.jsx';
+import { getProfileAvatarUrl } from '../utils/avatarUtils.js';
+import EmotionalStateVisualization from '../components/EmotionalStateVisualization.jsx';
+import { sanitizeProfileField } from '../utils/validation.js';
+import CompactEmotionRadar from '../components/CompactEmotionRadar.jsx';
 
 const Profile = () => {
   const { isAuthenticated, logout, profile: contextProfile, fetchProfile: contextFetchProfile, refreshNemaBalance } = useContext(AuthContext);
@@ -10,7 +18,6 @@ const Profile = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
     twitter_handle: '',
@@ -19,9 +26,23 @@ const Profile = () => {
   const [updateLoading, setUpdateLoading] = useState(false);
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const [balanceRefreshing, setBalanceRefreshing] = useState(false);
-  const [shouldHighlightUsername, setShouldHighlightUsername] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [emotionalState, setEmotionalState] = useState(null);
+  const [emotionalStateHistory, setEmotionalStateHistory] = useState([]);
+  const [loadingEmotionalState, setLoadingEmotionalState] = useState(false);
+  const [neuralState, setNeuralState] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const usernameInputRef = useRef(null);
+
+  // Nema editing state
+  const [isEditingNema, setIsEditingNema] = useState(false);
+  const [nemaFormData, setNemaFormData] = useState({
+    name: '',
+    description: ''
+  });
+  const [nemaUpdateLoading, setNemaUpdateLoading] = useState(false);
+  const [nemaUpdateSuccess, setNemaUpdateSuccess] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -36,27 +57,53 @@ const Profile = () => {
         twitter_handle: contextProfile.twitter_handle || '',
         telegram_handle: contextProfile.telegram_handle || ''
       });
+
+      // Initialize Nema form data
+      if (contextProfile.nemas && contextProfile.nemas.length > 0) {
+        setNemaFormData({
+          name: contextProfile.nemas[0].name || '',
+          description: contextProfile.nemas[0].description || ''
+        });
+      }
+
       setLoading(false);
-      
-      // Check if username is blank after sign-in and prompt user to fill it
-      const isUsernameBlank = !contextProfile.username || contextProfile.username.trim() === '';
-      if (isUsernameBlank) {
-        setShouldHighlightUsername(true);
-        setIsEditing(true); // Unlock all inputs
-        
-        // Scroll to username field and focus it after a brief delay
-        setTimeout(() => {
-          if (usernameInputRef.current) {
-            usernameInputRef.current.scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'center' 
-            });
-            usernameInputRef.current.focus();
-          }
-        }, 500); // Small delay to ensure DOM is ready
+
+      // Note: New user onboarding is now handled by OnboardingScreen component
+
+      // Note: Nemas data is now accessed directly from contextProfile.nemas
+
+      // Fetch emotional state for the first nema
+      if (contextProfile.nemas && contextProfile.nemas.length > 0) {
+        fetchEmotionalState(contextProfile.nemas[0].id);
       }
     }
   }, [contextProfile]);
+
+  const fetchEmotionalState = async (nemaId) => {
+    if (!nemaId) return;
+
+    setLoadingEmotionalState(true);
+    try {
+      // Fetch current state
+      const currentState = await nemaService.getNeuralState(nemaId);
+      if (currentState.emotionalState) {
+        setEmotionalState(currentState.emotionalState);
+      }
+      // Store full neural state for radar plot
+      setNeuralState(currentState);
+
+      // Fetch state history for timeline (last 50 states)
+      const history = await nemaService.getStateHistory(nemaId, { limit: 50, order: 'desc' });
+      if (history.states && history.states.length > 0) {
+        setEmotionalStateHistory(history.states);
+      }
+    } catch (err) {
+      console.error('Failed to fetch emotional state:', err);
+      // Don't show error to user, just don't display visualization
+    } finally {
+      setLoadingEmotionalState(false);
+    }
+  };
 
   const fetchProfile = async () => {
     try {
@@ -71,37 +118,40 @@ const Profile = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+
+    // Real-time sanitization for twitter_handle and telegram_handle
+    let sanitizedValue = value;
+    if (name === 'twitter_handle' || name === 'telegram_handle') {
+      // Strip leading @ and convert to lowercase as user types
+      sanitizedValue = sanitizeProfileField(value);
+    }
+
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: sanitizedValue
     }));
-    
-    // Remove highlight when user starts typing in username
-    if (name === 'username' && shouldHighlightUsername) {
-      setShouldHighlightUsername(false);
-    }
+
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validate username is required
     if (!formData.username || formData.username.trim() === '') {
       setError('Username is required. Please enter a username to continue.');
-      setShouldHighlightUsername(true);
       // Scroll to and focus username field
       setTimeout(() => {
         if (usernameInputRef.current) {
-          usernameInputRef.current.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'center' 
+          usernameInputRef.current.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
           });
           usernameInputRef.current.focus();
         }
       }, 100);
       return;
     }
-    
+
     setUpdateLoading(true);
     setError('');
     setUpdateSuccess(false);
@@ -109,10 +159,8 @@ const Profile = () => {
     try {
       await profileService.updateProfile(formData);
       setUpdateSuccess(true);
-      setShouldHighlightUsername(false);
       // Refresh profile data
       await fetchProfile();
-      setIsEditing(false);
       setTimeout(() => setUpdateSuccess(false), 3000);
     } catch (err) {
       setError('Failed to update profile: ' + err.message);
@@ -121,15 +169,67 @@ const Profile = () => {
     }
   };
 
-  const handleCancel = () => {
-    setFormData({
-      username: contextProfile?.username || '',
-      twitter_handle: contextProfile?.twitter_handle || '',
-      telegram_handle: contextProfile?.telegram_handle || ''
-    });
-    setIsEditing(false);
+
+  const handleNemaInputChange = (e) => {
+    const { name, value } = e.target;
+    setNemaFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleNemaEditStart = () => {
+    setIsEditingNema(true);
     setError('');
-    setShouldHighlightUsername(false);
+    setNemaUpdateSuccess(false);
+  };
+
+  const handleNemaEditCancel = () => {
+    setIsEditingNema(false);
+    setError('');
+    // Reset form data to original values
+    if (contextProfile?.nemas?.[0]) {
+      setNemaFormData({
+        name: contextProfile.nemas[0].name || '',
+        description: contextProfile.nemas[0].description || ''
+      });
+    }
+  };
+
+  const handleNemaUpdate = async (e) => {
+    e.preventDefault();
+
+    if (!contextProfile?.nemas?.[0]) {
+      setError('No Nema found to update');
+      return;
+    }
+
+    // Validate name is required
+    if (!nemaFormData.name || nemaFormData.name.trim() === '') {
+      setError('Nema name is required');
+      return;
+    }
+
+    setNemaUpdateLoading(true);
+    setError('');
+    setNemaUpdateSuccess(false);
+
+    try {
+      await profileService.updateNema({
+        id: contextProfile.nemas[0].id,
+        name: nemaFormData.name.trim(),
+        description: nemaFormData.description.trim()
+      });
+      setNemaUpdateSuccess(true);
+      setIsEditingNema(false);
+      // Refresh profile data
+      await fetchProfile();
+      setTimeout(() => setNemaUpdateSuccess(false), 3000);
+    } catch (err) {
+      setError('Failed to update Nema: ' + err.message);
+    } finally {
+      setNemaUpdateLoading(false);
+    }
   };
 
   const handleRefreshBalance = async () => {
@@ -156,14 +256,31 @@ const Profile = () => {
     }
   };
 
+  const handleDeleteProfile = async () => {
+    setIsDeleting(true);
+    setError('');
+    try {
+      await profileService.deleteProfile();
+      // After successful deletion, logout and disconnect
+      await logout();
+      disconnect();
+      // Navigate to home
+      navigate('/');
+    } catch (err) {
+      setError('Failed to delete profile: ' + err.message);
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
   const handleDownloadAvatar = () => {
-    if (!contextProfile?.avatar_base64) return;
+    if (!contextProfile?.profile_pic) return;
 
     const filename = `nema-worm-avatar-${contextProfile.wallet_address?.slice(-8) || 'avatar'}.png`;
-    
+
     // Create bordered version using canvas
     const createBorderedAvatar = () => {
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         try {
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
@@ -176,7 +293,7 @@ const Profile = () => {
 
           const img = new Image();
           img.crossOrigin = 'anonymous';
-          
+
           img.onload = () => {
             try {
               // Clear canvas with transparent background
@@ -204,19 +321,19 @@ const Profile = () => {
               resolve(borderedBase64);
             } catch (canvasError) {
               console.warn('Canvas processing failed, using original:', canvasError);
-              resolve(contextProfile.avatar_base64);
+              resolve(contextProfile.profile_pic);
             }
           };
 
           img.onerror = () => {
             console.warn('Image loading failed, using original');
-            resolve(contextProfile.avatar_base64);
+            resolve(contextProfile.profile_pic);
           };
 
-          img.src = contextProfile.avatar_base64;
+          img.src = contextProfile.profile_pic;
         } catch (error) {
           console.warn('Canvas creation failed, using original:', error);
-          resolve(contextProfile.avatar_base64);
+          resolve(contextProfile.profile_pic);
         }
       });
     };
@@ -225,9 +342,9 @@ const Profile = () => {
     const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     const isSmallScreen = window.matchMedia('(max-width: 768px)').matches;
     const isMobile = isTouchDevice && isSmallScreen;
-    const isEmbeddedBrowser = window.navigator.standalone || 
-                             window.matchMedia('(display-mode: standalone)').matches ||
-                             !window.location.ancestorOrigins;
+    const isEmbeddedBrowser = window.navigator.standalone ||
+      window.matchMedia('(display-mode: standalone)').matches ||
+      !window.location.ancestorOrigins;
 
     // Create the bordered version first
     createBorderedAvatar().then((borderedImage) => {
@@ -247,17 +364,20 @@ const Profile = () => {
                 handleMobileFallback(borderedImage);
               });
             })
-            .catch(() => handleMobileFallback(borderedImage));
+            .catch((shareError) => {
+              console.log('Share failed:', shareError);
+              handleMobileFallback(borderedImage);
+            });
           return;
-        } catch (error) {
-          console.log('Share API failed, using fallback');
+        } catch (shareError) {
+          console.log('Share API failed, using fallback:', shareError);
         }
       }
-      
+
       // Fallback methods
       handleMobileFallback(borderedImage);
     });
-    
+
     // Mobile fallback: Open in new tab for long-press save
     function handleMobileFallback(imageData) {
       if (isMobile || isEmbeddedBrowser) {
@@ -269,15 +389,15 @@ const Profile = () => {
                 <title>NEMA Avatar - Long press to save</title>
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <style>
-                  body { 
-                    margin: 0; 
-                    padding: 20px; 
-                    background: #000; 
-                    color: #fff; 
-                    font-family: Arial, sans-serif; 
-                    text-align: center; 
+                  body {
+                    margin: 0;
+                    padding: 20px;
+                    background: #000;
+                    color: #fff;
+                    font-family: Arial, sans-serif;
+                    text-align: center;
                   }
-                  img { 
+                  img {
                     max-width: 90vw;
                     max-height: 70vh;
                     width: auto;
@@ -306,11 +426,11 @@ const Profile = () => {
         handleDirectDownload(imageData);
       }
     }
-    
+
     // Copy base64 to clipboard fallback
     function handleCopyFallback() {
       if (navigator.clipboard) {
-        navigator.clipboard.writeText(contextProfile.avatar_base64).then(() => {
+        navigator.clipboard.writeText(contextProfile.profile_pic).then(() => {
           alert('Avatar image data copied to clipboard! You can paste it into any image editor or messaging app.');
         }).catch(() => {
           alert('Unable to download avatar. Please take a screenshot of your avatar image on the profile page.');
@@ -319,7 +439,7 @@ const Profile = () => {
         alert('Unable to download avatar. Please take a screenshot of your avatar image on the profile page.');
       }
     }
-    
+
     // Direct download for desktop
     function handleDirectDownload(imageData) {
       try {
@@ -327,7 +447,7 @@ const Profile = () => {
         link.href = imageData;
         link.download = filename;
         link.style.display = 'none';
-        
+
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -350,17 +470,9 @@ Building the future of digital biology with $NEMA 🧠`;
   };
 
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center pt-16">
+      <div className="min-h-screen flex items-center justify-center pt-14">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-cyan-400 mb-4">Access Denied</h1>
           <p className="text-gray-300">Please sign in to view your profile.</p>
@@ -371,7 +483,7 @@ Building the future of digital biology with $NEMA 🧠`;
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center pt-16">
+      <div className="min-h-screen flex items-center justify-center pt-14">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
           <p className="text-gray-300">Loading profile...</p>
@@ -381,359 +493,389 @@ Building the future of digital biology with $NEMA 🧠`;
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-16">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
-        <div className="bg-gray-900/50 backdrop-blur-sm border border-cyan-400/30 rounded-lg p-8">
-          {/* Header */}
-          <div className="mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-cyan-400 mb-2">Profile</h1>
-              <p className="text-gray-300">Manage your Nema account settings</p>
-            </div>
-          </div>
-
-          {/* Error Message */}
-          {error && (
-            <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded-lg mb-6">
-              {error}
-            </div>
-          )}
-
-          {/* Success Message */}
-          {updateSuccess && (
-            <div className="bg-green-900/50 border border-green-500 text-green-200 px-4 py-3 rounded-lg mb-6">
-              Profile updated successfully!
-            </div>
-          )}
-
-          {/* Username Required Alert */}
-          {shouldHighlightUsername && (
-            <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded-lg mb-6">
-              <div className="flex items-center space-x-2">
-                <svg className="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-                <div>
-                  <strong>Username Required:</strong> Please fill out your username below to complete your profile setup. 
-                  Twitter and Telegram handles are optional.
-                </div>
+    <div className="min-h-screen pt-14 pb-12">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+        {/* Header Section with Nema Info */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+          {/* Left: Main Nema */}
+          <div className="flex items-center space-x-6">
+            <div className="flex-shrink-0 relative">
+              <div className="bg-white hover:bg-cyan-400 p-0.5 rounded-full transition-colors duration-200">
+                <img
+                  src={getProfileAvatarUrl(contextProfile)}
+                  alt="Nema Avatar"
+                  className="w-20 h-20 rounded-full object-cover cursor-pointer"
+                  style={{ imageRendering: 'pixelated' }}
+                  onClick={() => setShowAvatarModal(true)}
+                />
               </div>
+              {contextProfile?.profile_pic && (
+                <button
+                  onClick={handleDownloadAvatar}
+                  className="absolute -bottom-2 left-2 w-8 h-8 border border-white/50 hover:border-cyan-300 rounded-full text-white hover:text-cyan-300 hover:bg-cyan-400/10 transition-all duration-200 flex items-center justify-center cursor-pointer"
+                  style={{ backgroundColor: 'rgba(44, 44, 44, 1)' }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 15V16.2C21 17.8802 21 18.7202 20.673 19.362C20.3854 19.9265 19.9265 20.3854 19.362 20.673C18.7202 21 17.8802 21 16.2 21H7.8C6.11984 21 5.27976 21 4.63803 20.673C4.07354 20.3854 3.6146 19.9265 3.32698 19.362C3 18.7202 3 17.8802 3 16.2V15M17 10L12 15M12 15L7 10M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              )}
             </div>
-          )}
+            <div className="flex-1">
+              {!isEditingNema ? (
+                <>
+                  <div className="flex items-start gap-2 mb-1.5">
+                    <h1 className="nema-display nema-display-2 max-md:nema-header-2 text-nema-cyan text-xl max-md:text-base">
+                      {contextProfile?.nemas?.[0]?.name || 'MY MAIN NEMA'}
+                    </h1>
+                    <button
+                      onClick={handleNemaEditStart}
+                      className="text-nema-white hover:text-nema-cyan transition-colors flex-shrink-0"
+                      title="Edit Nema"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.4374 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="space-y-0.5 font-anonymous">
+                    <div>
+                      <span className="text-nema-secondary text-xs">Age: </span>
+                      <span className="text-nema-white text-xs">
+                        {contextProfile?.nemas?.[0]?.created_at ?
+                          (() => {
+                            const createdDate = new Date(contextProfile.nemas[0].created_at);
+                            const now = new Date();
+                            const diffMs = now - createdDate;
+                            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                            const diffWeeks = Math.floor(diffDays / 7);
+                            const diffMonths = Math.floor(diffDays / 30);
+                            const diffYears = Math.floor(diffDays / 365);
 
-          {contextProfile && (
-            <div className="space-y-6">
-              {/* Avatar & Wallet Info Card */}
-              <div className="bg-gray-800/50 border border-gray-600 rounded-lg p-6">
-                <div className="flex items-center space-x-4 mb-6">
-                  {/* Worm Avatar */}
-                  {contextProfile.avatar_base64 && (
-                    <img
-                      src={contextProfile.avatar_base64}
-                      alt="Your Worm Avatar"
-                      className="w-16 h-16 rounded-full border-3 border-cyan-400 cursor-pointer md:cursor-default"
-                      style={{ imageRendering: 'pixelated' }}
-                      onClick={() => {
-                        // Only open modal on mobile/touch devices
-                        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-                        if (isTouchDevice) {
-                          setShowAvatarModal(true);
+                            if (diffYears > 0) return `${diffYears} year${diffYears > 1 ? 's' : ''}`;
+                            if (diffMonths > 0) return `${diffMonths} month${diffMonths > 1 ? 's' : ''}`;
+                            if (diffWeeks > 0) return `${diffWeeks} week${diffWeeks > 1 ? 's' : ''}`;
+                            return `${diffDays} day${diffDays > 1 ? 's' : ''}`;
+                          })()
+                          : '2 months'
                         }
-                      }}
-                    />
-                  )}
-                  <div>
-                    <h3 className="text-lg font-medium text-cyan-400">Your Nema Worm</h3>
-                    <p className="text-sm text-gray-400">Unique C. elegans avatar generated from your wallet</p>
-                  </div>
-                </div>
-
-                <h3 className="text-lg font-medium text-cyan-400 mb-4">Wallet Information</h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <tbody className="divide-y divide-gray-700">
-                      <tr>
-                        <td className="py-3 pr-6 text-sm font-medium text-gray-400 whitespace-nowrap">
-                          Wallet Address
-                        </td>
-                        <td className="py-3 text-sm">
-                          <code className="text-cyan-400 break-all">
-                            {contextProfile.wallet_address}
-                          </code>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="py-3 pr-6 text-sm font-medium text-gray-400 whitespace-nowrap">
-                          NEMA Balance
-                        </td>
-                        <td className="py-3 text-sm">
-                          <div className="flex items-center space-x-3">
-                            <span className="text-yellow-400 font-bold">
-                              {(contextProfile.nema_balance || 0).toLocaleString()} NEMA
-                            </span>
-                            <button
-                              onClick={handleRefreshBalance}
-                              disabled={balanceRefreshing}
-                              className="text-cyan-400 hover:text-cyan-300 disabled:text-gray-500 text-xs transition-colors duration-200 cursor-pointer"
-                              title="Refresh NEMA balance from Solana blockchain"
-                            >
-                              {balanceRefreshing ? (
-                                <div className="w-3 h-3 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
-                              ) : (
-                                '🔄'
-                              )}
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Share on Twitter Section */}
-              {contextProfile.avatar_base64 && (
-                <div className="bg-gray-800/50 border border-gray-600 rounded-lg p-6">
-                  <div className="mb-4">
-                    <h3 className="text-lg font-medium text-cyan-400">Share Your Nema Worm</h3>
-                    <p className="text-sm text-gray-400">Show off your unique digital C. elegans avatar</p>
-                  </div>
-
-                  {/* Mobile layout: Avatar on top, message below */}
-                  <div className="block sm:hidden mb-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
-                    <div className="text-center mb-4">
-                      <img
-                        src={contextProfile.avatar_base64}
-                        alt="Your Worm Avatar Preview"
-                        className="w-16 h-16 rounded-full border-2 border-cyan-400 mx-auto cursor-pointer"
-                        style={{ imageRendering: 'pixelated' }}
-                        onClick={() => setShowAvatarModal(true)}
-                      />
+                      </span>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-300 leading-relaxed text-center">
-                        "Just generated my unique C. elegans avatar on @Nema_Lab! 🪱
-                        Building the future of digital biology with $NEMA 🧠"
-                      </p>
+                      <span className="text-nema-white text-xs">
+                        {contextProfile?.nemas?.[0]?.description || 'This is a description of my nema worm I love it so much'}
+                      </span>
                     </div>
                   </div>
-
-                  {/* Desktop layout: Avatar on left, message on right */}
-                  <div className="hidden sm:flex items-center space-x-4 mb-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
-                    <img
-                      src={contextProfile.avatar_base64}
-                      alt="Your Worm Avatar Preview"
-                      className="w-12 h-12 rounded-full border-2 border-cyan-400"
-                      style={{ imageRendering: 'pixelated' }}
-                    />
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-300 leading-relaxed">
-                        "Just generated my unique C. elegans avatar on @Nema_Lab! 🪱
-                        Building the future of digital biology with $NEMA 🧠"
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <button
-                      onClick={handleDownloadAvatar}
-                      className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 cursor-pointer"
-                    >
-                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="7,10 12,15 17,10"/>
-                        <line x1="12" y1="15" x2="12" y2="3"/>
-                      </svg>
-                      <span>Download Avatar</span>
-                    </button>
-
-                    <button
-                      onClick={handleShareOnTwitter}
-                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 cursor-pointer"
-                    >
-                      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                      </svg>
-                      <span>Share on X</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Profile Form */}
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Username */}
+                </>
+              ) : (
+                <div className="space-y-1 font-anonymous">
+                  <input
+                    type="text"
+                    name="name"
+                    value={nemaFormData.name}
+                    onChange={handleNemaInputChange}
+                    className="w-full bg-textbox-background border border-textbox-border py-1 px-2 rounded text-lg max-md:text-base font-anonymous focus:outline-none focus:border-nema-cyan transition-colors"
+                    placeholder="Nema name"
+                    maxLength={50}
+                  />
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Username <span className="text-red-400">*</span>
-                    </label>
-                    <div className="relative">
-                      {isEditing ? (
-                        <input
-                          ref={usernameInputRef}
-                          type="text"
-                          name="username"
-                          value={formData.username}
-                          onChange={handleInputChange}
-                          className={`w-full bg-gray-800 border rounded-lg px-3 py-3 pr-12 text-white focus:outline-none transition-colors ${
-                            shouldHighlightUsername 
-                              ? 'border-red-500 focus:border-red-400 shadow-red-500/20 shadow-lg' 
-                              : 'border-gray-600 focus:border-cyan-400'
-                          }`}
-                          placeholder="Enter username (required)"
-                        />
-                      ) : (
-                        <>
-                          <div className="bg-gray-800 border border-gray-600 rounded-lg p-3 pr-12">
-                            <span className="text-white">
-                              {contextProfile.username || 'Not set'}
-                            </span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setIsEditing(true)}
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors duration-200 cursor-pointer"
-                            title="Edit username"
-                          >
-                            ✎
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
+                    <span className="text-nema-secondary text-xs">Age: </span>
+                    <span className="text-nema-white text-xs">
+                      {contextProfile?.nemas?.[0]?.created_at ?
+                        (() => {
+                          const createdDate = new Date(contextProfile.nemas[0].created_at);
+                          const now = new Date();
+                          const diffMs = now - createdDate;
+                          const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                          const diffWeeks = Math.floor(diffDays / 7);
+                          const diffMonths = Math.floor(diffDays / 30);
+                          const diffYears = Math.floor(diffDays / 365);
 
-                  {/* Twitter Handle */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Twitter Handle <span className="text-gray-500 text-xs">(optional)</span>
-                    </label>
-                    <div className="relative">
-                      {isEditing ? (
-                        <>
-                          <span className="absolute left-3 top-3 text-gray-400 z-10">@</span>
-                          <input
-                            type="text"
-                            name="twitter_handle"
-                            value={formData.twitter_handle}
-                            onChange={handleInputChange}
-                            className="w-full bg-gray-800 border border-gray-600 rounded-lg pl-8 pr-12 py-3 text-white focus:outline-none focus:border-cyan-400 transition-colors"
-                            placeholder="twitter_handle (optional)"
-                          />
-                        </>
-                      ) : (
-                        <>
-                          <div className="bg-gray-800 border border-gray-600 rounded-lg p-3 pr-12 pl-8">
-                            <span className="text-white">
-                              {contextProfile.twitter_handle || 'Not set'}
-                            </span>
-                          </div>
-                          <span className="absolute left-3 top-3 text-gray-400 z-10">@</span>
-                          <button
-                            type="button"
-                            onClick={() => setIsEditing(true)}
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors duration-200 cursor-pointer"
-                            title="Edit Twitter handle"
-                          >
-                            ✎
-                          </button>
-                        </>
-                      )}
-                    </div>
+                          if (diffYears > 0) return `${diffYears} year${diffYears > 1 ? 's' : ''}`;
+                          if (diffMonths > 0) return `${diffMonths} month${diffMonths > 1 ? 's' : ''}`;
+                          if (diffWeeks > 0) return `${diffWeeks} week${diffWeeks > 1 ? 's' : ''}`;
+                          return `${diffDays} day${diffDays > 1 ? 's' : ''}`;
+                        })()
+                        : '2 months'
+                      }
+                    </span>
                   </div>
-
-                  {/* Telegram Handle */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Telegram Handle <span className="text-gray-500 text-xs">(optional)</span>
-                    </label>
-                    <div className="relative">
-                      {isEditing ? (
-                        <>
-                          <span className="absolute left-3 top-3 text-gray-400 z-10">@</span>
-                          <input
-                            type="text"
-                            name="telegram_handle"
-                            value={formData.telegram_handle}
-                            onChange={handleInputChange}
-                            className="w-full bg-gray-800 border border-gray-600 rounded-lg pl-8 pr-12 py-3 text-white focus:outline-none focus:border-cyan-400 transition-colors"
-                            placeholder="telegram_handle (optional)"
-                          />
-                        </>
-                      ) : (
-                        <>
-                          <div className="bg-gray-800 border border-gray-600 rounded-lg p-3 pr-12 pl-8">
-                            <span className="text-white">
-                              {contextProfile.telegram_handle || 'Not set'}
-                            </span>
-                          </div>
-                          <span className="absolute left-3 top-3 text-gray-400 z-10">@</span>
-                          <button
-                            type="button"
-                            onClick={() => setIsEditing(true)}
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors duration-200 cursor-pointer"
-                            title="Edit Telegram handle"
-                          >
-                            ✎
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                {isEditing && (
-                  <div className="flex gap-4 pt-4">
+                  <textarea
+                    name="description"
+                    value={nemaFormData.description}
+                    onChange={handleNemaInputChange}
+                    className="w-full bg-textbox-background border border-textbox-border py-1 px-2 rounded text-nema-white text-xs focus:outline-none focus:border-nema-cyan transition-colors resize-none"
+                    placeholder="Description..."
+                    rows={2}
+                    maxLength={200}
+                  />
+                  <div className="flex items-center gap-2 pt-1">
                     <button
-                      type="submit"
-                      disabled={updateLoading}
-                      className="bg-cyan-500 hover:bg-cyan-600 disabled:bg-gray-600 text-black font-medium px-6 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2"
+                      onClick={handleNemaUpdate}
+                      disabled={nemaUpdateLoading}
+                      className="px-3 py-1.5 bg-nema-button-500 rounded-lg text-nema-white-light hover:bg-nema-button-600 transition-colors text-xs disabled:opacity-50"
                     >
-                      {updateLoading && (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></div>
-                      )}
-                      {updateLoading ? 'Updating Profile...' : 'Save Profile'}
+                      {nemaUpdateLoading ? 'Saving...' : 'Save'}
                     </button>
                     <button
-                      type="button"
-                      onClick={handleCancel}
-                      className="bg-gray-600 hover:bg-gray-700 text-white font-medium px-6 py-2 rounded-lg transition-colors duration-200"
+                      onClick={handleNemaEditCancel}
+                      disabled={nemaUpdateLoading}
+                      className="px-3 py-1.5 bg-nema-gray/20 rounded-lg text-nema-white hover:bg-nema-gray/30 transition-colors text-xs disabled:opacity-50"
                     >
                       Cancel
                     </button>
                   </div>
-                )}
-              </form>
-
-              {/* Account Info */}
-              <div className="border-t border-gray-700 pt-6">
-                <h3 className="text-lg font-medium text-cyan-400 mb-4">Account Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-6">
-                  <div>
-                    <span className="text-gray-400">Account created:</span>
-                    <span className="text-white ml-2">{contextProfile.created_at ? formatDate(contextProfile.created_at) : 'N/A'}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">Last updated:</span>
-                    <span className="text-white ml-2">{contextProfile.updated_at ? formatDate(contextProfile.updated_at) : 'N/A'}</span>
-                  </div>
                 </div>
+              )}
+            </div>
+          </div>
 
-                {/* Disconnect Button */}
-                <div className="pt-4 border-t border-gray-600">
-                  <button
-                    onClick={handleDisconnect}
-                    className="px-4 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200"
-                  >
-                    Disconnect Wallet
-                  </button>
-                </div>
+          {/* Right: Bio text bubble */}
+          <div className="relative">
+            <div className="nema-card p-4">
+              <div className="absolute top-3 right-3 w-2.5 h-2.5 bg-nema-cyan rounded-full"></div>
+              <p className="text-nema-white font-anonymous text-xs leading-relaxed">
+                Just generated my unique C. elegans avatar on @Nema_Lab.
+                Building the future of digital biology on $NEMA
+              </p>
+            </div>
+            <div className="flex justify-end mt-3">
+              <div
+                onClick={handleShareOnTwitter}
+                className="px-4 py-1.5 bg-nema-button-500 rounded-lg text-nema-white-light hover:bg-nema-button-600 transition-colors font-anonymous text-xs cursor-pointer"
+              >
+                Share on X
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Nema Update Success Message */}
+        {nemaUpdateSuccess && (
+          <div className="mb-4 bg-green-900/50 border border-green-500 text-green-200 px-4 py-3 rounded-lg font-anonymous text-sm">
+            Nema updated successfully!
+          </div>
+        )}
+
+        {/* Emotional State Visualization */}
+        <div className="mb-6">
+          {loadingEmotionalState ? (
+            <div className="nema-card p-6">
+              <div className="flex items-center justify-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-nema-cyan"></div>
+              </div>
+            </div>
+          ) : emotionalState ? (
+            <EmotionalStateVisualization
+              emotionalState={emotionalState}
+              variant="full"
+              showHistory={true}
+              historyData={emotionalStateHistory}
+              className="w-full"
+            />
+          ) : (
+            <div className="nema-card p-4">
+              <h2 className="text-base font-intranet text-nema-cyan mb-3">EMOTIONAL STATE</h2>
+              <div className="h-48 bg-nema-black/50 border border-nema-cyan/20 rounded-lg flex items-center justify-center">
+                <span className="text-nema-secondary text-xs font-anonymous px-4 text-center">
+                  No emotional state data available yet. Start chatting with your Nema to see emotional states evolve.
+                </span>
               </div>
             </div>
           )}
         </div>
+
+        {/* MY ACCOUNT Section */}
+        <div className="nema-card p-5">
+          {/* Header with Avatar on mobile */}
+          <div className="flex items-center gap-3 mb-4">
+            {/* Avatar - shows on mobile */}
+            <div className="flex-shrink-0 md:hidden">
+              <div className="relative">
+                <img
+                  src={getProfileAvatarUrl(contextProfile)}
+                  alt="User Avatar"
+                  className="w-12 h-12 rounded-full object-cover border-2 border-nema-white"
+                  style={{ imageRendering: 'pixelated' }}
+                />
+              </div>
+            </div>
+            <h2 className="nema-display nema-display-2 max-md:nema-header-2 text-nema-cyan text-xl max-md:text-base">MY ACCOUNT</h2>
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-start md:space-x-6">
+            {/* Avatar - shows on desktop */}
+            <div className="hidden md:block flex-shrink-0">
+              <div className="relative">
+                <img
+                  src={getProfileAvatarUrl(contextProfile)}
+                  alt="User Avatar"
+                  className="w-20 h-20 rounded-full object-cover border-2 border-nema-white"
+                  style={{ imageRendering: 'pixelated' }}
+                />
+              </div>
+            </div>
+
+            {/* Account Details */}
+            <div className="flex-1 space-y-4 w-full">
+              {/* Top Row - Editable Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 font-anonymous">
+                <div className="max-w-full">
+                  <label className="block text-nema-white text-sm mb-2">Username*</label>
+                  <input
+                    ref={usernameInputRef}
+                    type="text"
+                    name="username"
+                    value={formData.username}
+                    onChange={handleInputChange}
+                    className="w-full max-w-full bg-textbox-background border border-textbox-border h-[40px] py-3 px-4 rounded-lg text-nema-white text-base focus:outline-none focus:border-nema-cyan transition-colors"
+                    placeholder="nemauser123"
+                  />
+                </div>
+
+                <div className="max-w-full">
+                  <label className="block text-nema-white text-sm mb-2">Twitter Handle</label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      name="twitter_handle"
+                      value={formData.twitter_handle}
+                      onChange={handleInputChange}
+                      className="flex-1 max-w-full bg-textbox-background border border-textbox-border h-[40px] py-3 px-4 rounded-lg text-nema-white text-base focus:outline-none focus:border-nema-cyan transition-colors"
+                      placeholder="nematwitter"
+                    />
+                  </div>
+                </div>
+
+                <div className="max-w-full">
+                  <label className="block text-nema-white text-sm mb-2">Telegram Handle</label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      name="telegram_handle"
+                      value={formData.telegram_handle}
+                      onChange={handleInputChange}
+                      className="flex-1 max-w-full bg-textbox-background border border-textbox-border h-[40px] py-3 px-4 rounded-lg text-nema-white text-base focus:outline-none focus:border-nema-cyan transition-colors"
+                      placeholder="nematelegram"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-nema-gray/20"></div>
+
+              {/* Bottom Row - Read-only Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 font-anonymous">
+                <div className="max-w-full">
+                  <label className="block text-nema-gray-darker text-sm mb-1">Wallet Address</label>
+                  <div className="px-3 py-2 flex items-center max-w-full overflow-hidden">
+                    <code className="text-nema-white text-sm mr-2 truncate flex-1 min-w-0">
+                      {contextProfile?.wallet_address}
+                    </code>
+                    <button className="text-nema-white hover:text-nema-cyan transition-colors flex-shrink-0">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 15C4.06812 15 3.60218 15 3.23463 14.8478C2.74458 14.6448 2.35523 14.2554 2.15224 13.7654C2 13.3978 2 12.9319 2 12V5.2C2 4.0799 2 3.51984 2.21799 3.09202C2.40973 2.71569 2.71569 2.40973 3.09202 2.21799C3.51984 2 4.0799 2 5.2 2H12C12.9319 2 13.3978 2 13.7654 2.15224C14.2554 2.35523 14.6448 2.74458 14.8478 3.23463C15 3.60218 15 4.06812 15 5M12.2 22H18.8C19.9201 22 20.4802 22 20.908 21.782C21.2843 21.5903 21.5903 21.2843 21.782 20.908C22 20.4802 22 19.9201 22 18.8V12.2C22 11.0799 22 10.5198 21.782 10.092C21.5903 9.71569 21.2843 9.40973 20.908 9.21799C20.4802 9 19.9201 9 18.8 9H12.2C11.0799 9 10.5198 9 10.092 9.21799C9.71569 9.40973 9.40973 9.71569 9.21799 10.092C9 10.5198 9 11.0799 9 12.2V18.8C9 19.9201 9 20.4802 9.21799 20.908C9.40973 21.2843 9.71569 21.5903 10.092 21.782C10.5198 22 11.0799 22 12.2 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="max-w-full">
+                  <label className="block text-nema-gray-darker text-sm mb-1">NEMA Balance</label>
+                  <div className="px-3 py-2 flex items-center">
+                    <span className="text-nema-white text-sm font-bold">
+                      {(contextProfile?.nema_balance || 0).toLocaleString()} NEMA
+                    </span>
+                    <button
+                      onClick={handleRefreshBalance}
+                      disabled={balanceRefreshing}
+                      className="text-nema-white hover:text-nema-cyan disabled:text-nema-secondary transition-colors ml-2 flex-shrink-0"
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2 14C2 14 2.12132 14.8492 5.63604 18.364C9.15076 21.8787 14.8492 21.8787 18.364 18.364C19.6092 17.1187 20.4133 15.5993 20.7762 14M2 14V20M2 14H8M22 10C22 10 21.8787 9.15076 18.364 5.63604C14.8492 2.12132 9.15076 2.12132 5.63604 5.63604C4.39076 6.88131 3.58669 8.40072 3.22383 10M22 10V4M22 10H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <button
+              onClick={handleSubmit}
+              disabled={updateLoading}
+              className="nema-button px-6 py-2"
+            >
+              {updateLoading ? 'Updating...' : 'Update Profile'}
+            </button>
+            <button
+              onClick={handleDisconnect}
+              className="nema-button px-6 py-2 text-red-600"
+            >
+              Disconnect Wallet
+            </button>
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="nema-button px-6 py-2 bg-red-900/30 hover:bg-red-900/50 border border-red-800/50 text-red-400 hover:text-red-300"
+            >
+              Delete Account
+            </button>
+          </div>
+
+          {/* Error/Success Messages */}
+          {error && (
+            <div className="mt-4 bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded-lg">
+              {error}
+            </div>
+          )}
+          {updateSuccess && (
+            <div className="mt-4 bg-green-900/50 border border-green-500 text-green-200 px-4 py-3 rounded-lg">
+              Profile updated successfully!
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-gray-800 border border-gray-600 rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-medium text-red-400 mb-4">Delete Account</h3>
+            <p className="text-gray-300 mb-6">
+              Are you sure you want to delete your account? This action cannot be undone and will permanently delete:
+              <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+                <li>Your user account</li>
+                <li>All your nemas (AI companions)</li>
+                <li>All neural states and interaction history</li>
+                <li>Your avatar and profile data</li>
+              </ul>
+            </p>
+            <div className="flex gap-4">
+              <button
+                onClick={handleDeleteProfile}
+                disabled={isDeleting}
+                className="bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2"
+              >
+                {isDeleting && (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                )}
+                {isDeleting ? 'Deleting...' : 'Delete Account'}
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+                className="bg-gray-600 hover:bg-gray-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Avatar Modal for Mobile */}
       {showAvatarModal && (
@@ -753,7 +895,7 @@ Building the future of digital biology with $NEMA 🧠`;
             {/* Avatar with border */}
             <div className="bg-cyan-400 p-2 rounded-full mx-auto w-fit mb-6">
               <img
-                src={contextProfile?.avatar_base64}
+                src={getProfileAvatarUrl(contextProfile)}
                 alt="Your Worm Avatar"
                 className="w-64 h-64 rounded-full object-cover"
                 style={{ imageRendering: 'pixelated' }}
@@ -766,7 +908,7 @@ Building the future of digital biology with $NEMA 🧠`;
               <p className="text-gray-300 text-sm">
                 Long press the image above to save it to your photos, or use the download button below.
               </p>
-              
+
               <button
                 onClick={() => {
                   handleDownloadAvatar();
@@ -775,9 +917,9 @@ Building the future of digital biology with $NEMA 🧠`;
                 className="w-full bg-cyan-500 hover:bg-cyan-600 text-black font-medium px-6 py-3 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7,10 12,15 17,10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7,10 12,15 17,10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
                 <span>Download Avatar</span>
               </button>

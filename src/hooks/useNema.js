@@ -6,6 +6,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import nemaService from '../services/nema.js';
 import { NetworkError, ServerError } from '../services/api.js';
+import { validateNemaMessage } from '../utils/validation.js';
 
 /**
  * Hook for fetching and managing neural state
@@ -101,6 +102,7 @@ export const useNeuralState = (options = {}) => {
  */
 export const useSendPrompt = (options = {}) => {
   const { 
+    nemaId,
     onSuccess = null, 
     onError = null,
     onPromptSent = null 
@@ -113,8 +115,17 @@ export const useSendPrompt = (options = {}) => {
   });
 
   const sendPrompt = useCallback(async (message) => {
-    if (!message || typeof message !== 'string' || message.trim().length === 0) {
-      const error = new Error('Message cannot be empty');
+    if (!nemaId) {
+      const error = new Error('No nema selected. Please select a nema first.');
+      setState(prev => ({ ...prev, error: { message: error.message, type: 'NoNemaError' } }));
+      if (onError) onError(error);
+      throw error;
+    }
+
+    // Validate message (500 byte limit)
+    const validation = validateNemaMessage(message);
+    if (!validation.valid) {
+      const error = new Error(validation.error);
       setState(prev => ({ ...prev, error: { message: error.message, type: 'ValidationError' } }));
       if (onError) onError(error);
       throw error;
@@ -132,7 +143,7 @@ export const useSendPrompt = (options = {}) => {
     }
 
     try {
-      const response = await nemaService.sendPrompt(message);
+      const response = await nemaService.sendPrompt(nemaId, message);
       
       setState({
         loading: false,
@@ -164,7 +175,7 @@ export const useSendPrompt = (options = {}) => {
       
       throw error;
     }
-  }, [onSuccess, onError, onPromptSent]);
+  }, [nemaId, onSuccess, onError, onPromptSent]);
 
   const clearError = useCallback(() => {
     setState(prev => ({ ...prev, error: null }));
@@ -187,6 +198,7 @@ export const useSendPrompt = (options = {}) => {
  */
 export const useConversation = (options = {}) => {
   const { 
+    nemaId,
     maxMessages = 100, 
     onError = null,
     loadHistory = false,
@@ -201,6 +213,7 @@ export const useConversation = (options = {}) => {
   const historyAttemptedRef = useRef(false);
   
   const { sendPrompt, loading, error } = useSendPrompt({
+    nemaId,
     onSuccess: (response) => {
       setIsTyping(false);
       addMessage({
@@ -257,7 +270,8 @@ export const useConversation = (options = {}) => {
   // Load history on mount if enabled
   const loadHistoryMessages = useCallback(async () => {
     // Prevent multiple attempts - if we've tried once, don't try again
-    if (!loadHistory || historyLoaded || isLoadingHistory || historyAttemptedRef.current) {
+    // Also don't load if no nema is selected
+    if (!loadHistory || !nemaId || historyLoaded || isLoadingHistory || historyAttemptedRef.current) {
       return;
     }
     
@@ -265,7 +279,7 @@ export const useConversation = (options = {}) => {
     setIsLoadingHistory(true);
     
     try {
-      const historyData = await nemaService.getHistory(historyLimit);
+      const historyData = await nemaService.getHistory(nemaId, historyLimit);
       
       // Convert history messages to conversation format
       const historyMessages = historyData.messages.map(msg => ({
@@ -275,8 +289,11 @@ export const useConversation = (options = {}) => {
         timestamp: msg.timestamp,
       }));
       
+      // Reverse messages for chronological order (API returns newest first, we want oldest first for chat)
+      const chronologicalMessages = historyMessages.reverse();
+      
       // Set the conversation with history messages
-      setConversation(historyMessages);
+      setConversation(chronologicalMessages);
       setHistoryLoaded(true);
     } catch (error) {
       // If it fails, it fails - don't retry
@@ -287,14 +304,23 @@ export const useConversation = (options = {}) => {
     } finally {
       setIsLoadingHistory(false);
     }
-  }, [loadHistory, historyLoaded, isLoadingHistory, historyLimit, onError]);
+  }, [nemaId, loadHistory, historyLoaded, isLoadingHistory, historyLimit, onError]);
 
-  // Load history when component mounts
+  // Load history when component mounts or nema changes
   useEffect(() => {
-    if (loadHistory && !historyLoaded && !isLoadingHistory) {
+    if (loadHistory && nemaId && !historyLoaded && !isLoadingHistory) {
       loadHistoryMessages();
     }
-  }, [loadHistory, historyLoaded, isLoadingHistory]); // Removed loadHistoryMessages from deps to prevent infinite loop
+  }, [nemaId, loadHistory, historyLoaded, isLoadingHistory, loadHistoryMessages]);
+
+  // Reset conversation and history state when nemaId changes
+  useEffect(() => {
+    if (nemaId) {
+      setConversation([]);
+      setHistoryLoaded(false);
+      historyAttemptedRef.current = false;
+    }
+  }, [nemaId]);
 
   return {
     conversation,

@@ -35,20 +35,18 @@ const BuyTokenButton = () => {
     <button
       onClick={launchWidget}
       disabled={!isLoaded}
-      className={`flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-        isLoaded 
-          ? 'bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white shadow-md hover:shadow-lg cursor-pointer' 
-          : 'bg-gray-700 text-gray-400 cursor-not-allowed'
+      className={`px-3 py-1.5 text-xs bg-cyan-500 hover:bg-cyan-600 text-white rounded-md transition-all duration-200 font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 ${
+        !isLoaded && 'bg-gray-700 text-gray-400'
       }`}
     >
-      <img
-        src="/jupiter-logo.webp"
-        alt="Jupiter"
-        className="w-4 h-4 object-contain"
-      />
-      <span>
-        {isLoaded ? 'Buy $NEMA' : 'Loading...'}
-      </span>
+      <span>{isLoaded ? 'Buy $NEMA' : 'Loading...'}</span>
+      {isLoaded && (
+        <img
+          src="/jupiter-logo.webp"
+          alt="Jupiter"
+          className="w-3 h-3"
+        />
+      )}
     </button>
   );
 };
