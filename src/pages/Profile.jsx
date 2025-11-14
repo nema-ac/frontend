@@ -35,6 +35,15 @@ const Profile = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const usernameInputRef = useRef(null);
 
+  // Nema editing state
+  const [isEditingNema, setIsEditingNema] = useState(false);
+  const [nemaFormData, setNemaFormData] = useState({
+    name: '',
+    description: ''
+  });
+  const [nemaUpdateLoading, setNemaUpdateLoading] = useState(false);
+  const [nemaUpdateSuccess, setNemaUpdateSuccess] = useState(false);
+
   useEffect(() => {
     if (isAuthenticated) {
       fetchProfile();
@@ -48,6 +57,15 @@ const Profile = () => {
         twitter_handle: contextProfile.twitter_handle || '',
         telegram_handle: contextProfile.telegram_handle || ''
       });
+
+      // Initialize Nema form data
+      if (contextProfile.nemas && contextProfile.nemas.length > 0) {
+        setNemaFormData({
+          name: contextProfile.nemas[0].name || '',
+          description: contextProfile.nemas[0].description || ''
+        });
+      }
+
       setLoading(false);
 
       // Note: New user onboarding is now handled by OnboardingScreen component
@@ -151,6 +169,68 @@ const Profile = () => {
     }
   };
 
+
+  const handleNemaInputChange = (e) => {
+    const { name, value } = e.target;
+    setNemaFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleNemaEditStart = () => {
+    setIsEditingNema(true);
+    setError('');
+    setNemaUpdateSuccess(false);
+  };
+
+  const handleNemaEditCancel = () => {
+    setIsEditingNema(false);
+    setError('');
+    // Reset form data to original values
+    if (contextProfile?.nemas?.[0]) {
+      setNemaFormData({
+        name: contextProfile.nemas[0].name || '',
+        description: contextProfile.nemas[0].description || ''
+      });
+    }
+  };
+
+  const handleNemaUpdate = async (e) => {
+    e.preventDefault();
+
+    if (!contextProfile?.nemas?.[0]) {
+      setError('No Nema found to update');
+      return;
+    }
+
+    // Validate name is required
+    if (!nemaFormData.name || nemaFormData.name.trim() === '') {
+      setError('Nema name is required');
+      return;
+    }
+
+    setNemaUpdateLoading(true);
+    setError('');
+    setNemaUpdateSuccess(false);
+
+    try {
+      await profileService.updateNema({
+        id: contextProfile.nemas[0].id,
+        name: nemaFormData.name.trim(),
+        description: nemaFormData.description.trim()
+      });
+      setNemaUpdateSuccess(true);
+      setIsEditingNema(false);
+      // Refresh profile data
+      await fetchProfile();
+      setTimeout(() => setNemaUpdateSuccess(false), 3000);
+    } catch (err) {
+      setError('Failed to update Nema: ' + err.message);
+    } finally {
+      setNemaUpdateLoading(false);
+    }
+  };
 
   const handleRefreshBalance = async () => {
     setBalanceRefreshing(true);
@@ -442,38 +522,112 @@ Building the future of digital biology with $NEMA 🧠`;
               )}
             </div>
             <div className="flex-1">
-              <h1 className="nema-display nema-display-2 max-md:nema-header-2 text-nema-cyan mb-1.5 text-xl max-md:text-base">
-                {contextProfile?.nemas?.[0]?.name || 'MY MAIN NEMA'}
-              </h1>
-              <div className="space-y-0.5 font-anonymous">
-                <div>
-                  <span className="text-nema-secondary text-xs">Age: </span>
-                  <span className="text-nema-white text-xs">
-                    {contextProfile?.nemas?.[0]?.created_at ?
-                      (() => {
-                        const createdDate = new Date(contextProfile.nemas[0].created_at);
-                        const now = new Date();
-                        const diffMs = now - createdDate;
-                        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-                        const diffWeeks = Math.floor(diffDays / 7);
-                        const diffMonths = Math.floor(diffDays / 30);
-                        const diffYears = Math.floor(diffDays / 365);
+              {!isEditingNema ? (
+                <>
+                  <div className="flex items-start gap-2 mb-1.5">
+                    <h1 className="nema-display nema-display-2 max-md:nema-header-2 text-nema-cyan text-xl max-md:text-base">
+                      {contextProfile?.nemas?.[0]?.name || 'MY MAIN NEMA'}
+                    </h1>
+                    <button
+                      onClick={handleNemaEditStart}
+                      className="text-nema-white hover:text-nema-cyan transition-colors flex-shrink-0"
+                      title="Edit Nema"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.4374 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="space-y-0.5 font-anonymous">
+                    <div>
+                      <span className="text-nema-secondary text-xs">Age: </span>
+                      <span className="text-nema-white text-xs">
+                        {contextProfile?.nemas?.[0]?.created_at ?
+                          (() => {
+                            const createdDate = new Date(contextProfile.nemas[0].created_at);
+                            const now = new Date();
+                            const diffMs = now - createdDate;
+                            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                            const diffWeeks = Math.floor(diffDays / 7);
+                            const diffMonths = Math.floor(diffDays / 30);
+                            const diffYears = Math.floor(diffDays / 365);
 
-                        if (diffYears > 0) return `${diffYears} year${diffYears > 1 ? 's' : ''}`;
-                        if (diffMonths > 0) return `${diffMonths} month${diffMonths > 1 ? 's' : ''}`;
-                        if (diffWeeks > 0) return `${diffWeeks} week${diffWeeks > 1 ? 's' : ''}`;
-                        return `${diffDays} day${diffDays > 1 ? 's' : ''}`;
-                      })()
-                      : '2 months'
-                    }
-                  </span>
+                            if (diffYears > 0) return `${diffYears} year${diffYears > 1 ? 's' : ''}`;
+                            if (diffMonths > 0) return `${diffMonths} month${diffMonths > 1 ? 's' : ''}`;
+                            if (diffWeeks > 0) return `${diffWeeks} week${diffWeeks > 1 ? 's' : ''}`;
+                            return `${diffDays} day${diffDays > 1 ? 's' : ''}`;
+                          })()
+                          : '2 months'
+                        }
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-nema-white text-xs">
+                        {contextProfile?.nemas?.[0]?.description || 'This is a description of my nema worm I love it so much'}
+                      </span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-1 font-anonymous">
+                  <input
+                    type="text"
+                    name="name"
+                    value={nemaFormData.name}
+                    onChange={handleNemaInputChange}
+                    className="w-full bg-textbox-background border border-textbox-border py-1 px-2 rounded text-lg max-md:text-base font-anonymous focus:outline-none focus:border-nema-cyan transition-colors"
+                    placeholder="Nema name"
+                    maxLength={50}
+                  />
+                  <div>
+                    <span className="text-nema-secondary text-xs">Age: </span>
+                    <span className="text-nema-white text-xs">
+                      {contextProfile?.nemas?.[0]?.created_at ?
+                        (() => {
+                          const createdDate = new Date(contextProfile.nemas[0].created_at);
+                          const now = new Date();
+                          const diffMs = now - createdDate;
+                          const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                          const diffWeeks = Math.floor(diffDays / 7);
+                          const diffMonths = Math.floor(diffDays / 30);
+                          const diffYears = Math.floor(diffDays / 365);
+
+                          if (diffYears > 0) return `${diffYears} year${diffYears > 1 ? 's' : ''}`;
+                          if (diffMonths > 0) return `${diffMonths} month${diffMonths > 1 ? 's' : ''}`;
+                          if (diffWeeks > 0) return `${diffWeeks} week${diffWeeks > 1 ? 's' : ''}`;
+                          return `${diffDays} day${diffDays > 1 ? 's' : ''}`;
+                        })()
+                        : '2 months'
+                      }
+                    </span>
+                  </div>
+                  <textarea
+                    name="description"
+                    value={nemaFormData.description}
+                    onChange={handleNemaInputChange}
+                    className="w-full bg-textbox-background border border-textbox-border py-1 px-2 rounded text-nema-white text-xs focus:outline-none focus:border-nema-cyan transition-colors resize-none"
+                    placeholder="Description..."
+                    rows={2}
+                    maxLength={200}
+                  />
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      onClick={handleNemaUpdate}
+                      disabled={nemaUpdateLoading}
+                      className="px-3 py-1.5 bg-nema-button-500 rounded-lg text-nema-white-light hover:bg-nema-button-600 transition-colors text-xs disabled:opacity-50"
+                    >
+                      {nemaUpdateLoading ? 'Saving...' : 'Save'}
+                    </button>
+                    <button
+                      onClick={handleNemaEditCancel}
+                      disabled={nemaUpdateLoading}
+                      className="px-3 py-1.5 bg-nema-gray/20 rounded-lg text-nema-white hover:bg-nema-gray/30 transition-colors text-xs disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-nema-white text-xs">
-                    {contextProfile?.nemas?.[0]?.description || 'This is a description of my nema worm I love it so much'}
-                  </span>
-                </div>
-              </div>
+              )}
             </div>
           </div>
 
@@ -496,6 +650,13 @@ Building the future of digital biology with $NEMA 🧠`;
             </div>
           </div>
         </div>
+
+        {/* Nema Update Success Message */}
+        {nemaUpdateSuccess && (
+          <div className="mb-4 bg-green-900/50 border border-green-500 text-green-200 px-4 py-3 rounded-lg font-anonymous text-sm">
+            Nema updated successfully!
+          </div>
+        )}
 
         {/* Emotional State Visualization */}
         <div className="mb-6">
