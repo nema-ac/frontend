@@ -29,8 +29,39 @@ export const authAPI = {
         });
 
         if (!response.ok) {
-            const error = await response.text();
-            throw new Error(error || 'Login failed');
+            // Try to parse JSON error response
+            let errorMessage = 'Login failed';
+            
+            try {
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const errorData = await response.json();
+                    const errorCode = errorData.error;
+                    const requiredBalance = errorData.required_balance;
+                    
+                    if (errorCode === 'insufficient_token_balance' && requiredBalance !== null && requiredBalance !== undefined) {
+                        // Format the balance with commas for readability
+                        const formattedBalance = requiredBalance.toLocaleString('en-US', {
+                            maximumFractionDigits: 0
+                        });
+                        errorMessage = `Your wallet needs to hold at least ${formattedBalance} NEMA tokens to create an account.`;
+                    } else if (errorData.message) {
+                        errorMessage = errorData.message;
+                    }
+                } else {
+                    // Fallback to text response
+                    errorMessage = await response.text() || errorMessage;
+                }
+            } catch (parseError) {
+                // If JSON parsing fails, try text response
+                try {
+                    errorMessage = await response.text() || errorMessage;
+                } catch (textError) {
+                    console.error('Failed to parse error response:', textError);
+                }
+            }
+            
+            throw new Error(errorMessage);
         }
 
         return response;
