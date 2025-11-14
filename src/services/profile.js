@@ -114,7 +114,7 @@ export const profileService = {
    * @returns {Promise<void>}
    */
   async deleteProfile() {
-    return await apiClient.delete('/user/profile', {
+    return await apiClient.delete('/user/profile', null, {
       credentials: 'include'
     });
   },

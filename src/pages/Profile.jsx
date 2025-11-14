@@ -31,6 +31,8 @@ const Profile = () => {
   const [emotionalStateHistory, setEmotionalStateHistory] = useState([]);
   const [loadingEmotionalState, setLoadingEmotionalState] = useState(false);
   const [neuralState, setNeuralState] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const usernameInputRef = useRef(null);
 
   useEffect(() => {
@@ -98,14 +100,14 @@ const Profile = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
+
     // Real-time sanitization for twitter_handle and telegram_handle
     let sanitizedValue = value;
     if (name === 'twitter_handle' || name === 'telegram_handle') {
       // Strip leading @ and convert to lowercase as user types
       sanitizedValue = sanitizeProfileField(value);
     }
-    
+
     setFormData(prev => ({
       ...prev,
       [name]: sanitizedValue
@@ -171,6 +173,23 @@ const Profile = () => {
       navigate('/');
     } catch (err) {
       console.error('Disconnect error:', err);
+    }
+  };
+
+  const handleDeleteProfile = async () => {
+    setIsDeleting(true);
+    setError('');
+    try {
+      await profileService.deleteProfile();
+      // After successful deletion, logout and disconnect
+      await logout();
+      disconnect();
+      // Navigate to home
+      navigate('/');
+    } catch (err) {
+      setError('Failed to delete profile: ' + err.message);
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -638,6 +657,12 @@ Building the future of digital biology with $NEMA 🧠`;
             >
               Disconnect Wallet
             </button>
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="nema-button px-6 py-2 bg-red-900/30 hover:bg-red-900/50 border border-red-800/50 text-red-400 hover:text-red-300"
+            >
+              Delete Account
+            </button>
           </div>
 
           {/* Error/Success Messages */}
@@ -653,6 +678,43 @@ Building the future of digital biology with $NEMA 🧠`;
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-gray-800 border border-gray-600 rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-medium text-red-400 mb-4">Delete Account</h3>
+            <p className="text-gray-300 mb-6">
+              Are you sure you want to delete your account? This action cannot be undone and will permanently delete:
+              <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+                <li>Your user account</li>
+                <li>All your nemas (AI companions)</li>
+                <li>All neural states and interaction history</li>
+                <li>Your avatar and profile data</li>
+              </ul>
+            </p>
+            <div className="flex gap-4">
+              <button
+                onClick={handleDeleteProfile}
+                disabled={isDeleting}
+                className="bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2"
+              >
+                {isDeleting && (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                )}
+                {isDeleting ? 'Deleting...' : 'Delete Account'}
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+                className="bg-gray-600 hover:bg-gray-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Avatar Modal for Mobile */}
       {showAvatarModal && (
